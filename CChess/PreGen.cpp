@@ -140,7 +140,31 @@ void PreGen::generateBishopRelevantBits()
 
 void PreGen::generateRookRelevantBits()
 {
+	for (int rank{}; rank < rankSize; rank++)
+	{
+		for (int file{}; file < fileSize; file++)
+		{
+			for (int newRank{ file + 1 }; newRank <= 6; newRank++)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+			}
 
+			for (int newRank{ file - 1 }; newRank >= 1; newRank--)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+			}
+
+			for (int newFile{ rank + 1 }; newFile <= 6; newFile++)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+			}
+
+			for (int newFile{ rank - 1 }; newFile >= 1; newFile--)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+			}
+		}
+	}
 }
 
 

@@ -1,6 +1,13 @@
 #include <iostream>
 
+
+#include "BitBoard.h"
+#include "PreGen.h"
+
+
 int main()
 {
-	std::cout << "Hello World" << std::endl;
+	static PreGen preGen;
+
+	//preGen.print();
 }

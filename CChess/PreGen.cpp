@@ -118,13 +118,22 @@ void PreGen::generateBishopRelevantBits()
 	{
 		for (int file{}; file < fileSize; file++)
 		{
-			for (int newRank{ rank + 1 }, int newFile{ file + 1 }; newRank <= 6 && newFile <= 6; newRank++, newFile++)
+			for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 6 && newFile <= 6; ++newRank, ++newFile)
 			{
 				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
 			}
-			for (r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--) m_bishopRelevantBits[indexAttackTable(tr, tf)].set_rf(r, f);
-			for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--) m_bishopRelevantBits[indexAttackTable(tr, tf)].set_rf(r, f);
-			for (r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++) m_bishopRelevantBits[indexAttackTable(tr, tf)].set_rf(r, f);
+			for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 6 && newFile >= 1; ++newRank, --newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+			for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 1 && newFile >= 1; --newRank, --newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+			for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 1 && newFile <= 6; --newRank, ++newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
 		}
 	}
 }

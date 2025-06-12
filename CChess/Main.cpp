@@ -9,5 +9,5 @@ int main()
 {
 	static PreGen preGen;
 
-	//preGen.print();
+	preGen.print();
 }

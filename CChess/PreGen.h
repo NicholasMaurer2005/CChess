@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include <algorithm>
+
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
 
@@ -30,10 +32,7 @@ public:
 
 	void print()
 	{
-		for (BitBoard board : m_kingAttacks)
-		{
-			board.print();
-		}
+		std::for_each(m_rookRelevantBits.begin(), m_rookRelevantBits.end(), [](auto board) { board.print(); });
 	}
 
 	//constructor

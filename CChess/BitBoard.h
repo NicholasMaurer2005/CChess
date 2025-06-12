@@ -20,7 +20,10 @@ public:
 
 
 	//getters
-	constexpr std::uint64_t board() const { return m_board; }
+	constexpr std::uint64_t board() const
+	{ 
+		return m_board; 
+	}
 
 	constexpr bool test(int pos) const 
 	{ 
@@ -31,6 +34,13 @@ public:
 	{
 		const int index{ rank * fileSize + file };
 		return static_cast<bool>(m_board & (1ULL << index));
+	}
+
+	constexpr int getLeastSignificantBit() const
+	{
+		unsigned long result{};
+		_BitScanForward64(&result, m_board);
+		return static_cast<int>(result);
 	}
 
 

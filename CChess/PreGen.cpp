@@ -36,6 +36,8 @@ PreGen::PreGen() :
 	generatePawnAttacks();
 	generateKightAttacks();
 	generateKingAttacks();
+	generateBishopRelevantBits();
+	generateRookRelevantBits();
 
 	const std::chrono::duration<double> elapsed{ std::chrono::high_resolution_clock::now() - start };
 	std::cout << "tables generated in " << elapsed.count() << "seconds\n" << std::endl;

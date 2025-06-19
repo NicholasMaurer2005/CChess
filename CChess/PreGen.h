@@ -7,6 +7,8 @@
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
 
+#include <iostream>
+
 constexpr int maxBishopAttacks{ 512 };
 constexpr int maxRookAttacks{ 4096 };
 
@@ -25,14 +27,14 @@ private:
 	//magic numbers
 	alignas(64) std::array<BitBoard, boardSize>  m_bishopRelevantBits;
 	alignas(64) std::array<BitBoard, boardSize>  m_rookRelevantBits;
-	alignas(64) std::array<BitBoard, boardSize> m_bishopMagics;
-	alignas(64) std::array<BitBoard, boardSize> m_rookMagics;
+	alignas(64) std::array<std::uint64_t, boardSize> m_bishopMagics;
+	alignas(64) std::array<std::uint64_t, boardSize> m_rookMagics;
 
 public:
 
 	void print()
 	{
-		std::for_each(m_rookRelevantBits.begin(), m_rookRelevantBits.end(), [](auto board) { board.print(); });
+		std::ranges::for_each(m_rookMagics, [](auto board) { std::cout << board << '\n'; });
 	}
 
 	//constructor
@@ -47,9 +49,16 @@ public:
 
 	void generateKingAttacks();
 
+
+
+	//magic numbers
 	void generateBishopRelevantBits();
 
 	void generateRookRelevantBits();
+
+	void generateBishopMagics();
+
+	void generateRookMagics();
 
 
 

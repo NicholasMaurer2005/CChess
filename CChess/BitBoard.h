@@ -15,33 +15,30 @@ public:
 	//constructors
 	constexpr BitBoard() : m_board() {}
 
-	constexpr BitBoard(std::uint64_t board) : m_board() {}
+	constexpr BitBoard(std::uint64_t board) : m_board(board) {}
 
 
 
 	//getters
-	constexpr std::uint64_t board() const
+	constexpr std::uint64_t board() const noexcept
 	{ 
 		return m_board; 
 	}
 
-	constexpr bool test(int pos) const 
+	constexpr bool test(int pos) const noexcept
 	{ 
 		return static_cast<bool>(m_board & (1ULL << pos)); 
 	}
 
-	constexpr bool test(int rank, int file) const
+	constexpr bool test(int rank, int file) const noexcept
 	{
 		const int index{ rank * fileSize + file };
 		return static_cast<bool>(m_board & (1ULL << index));
 	}
 
-	constexpr int getLeastSignificantBit() const
-	{
-		unsigned long result{};
-		_BitScanForward64(&result, m_board);
-		return static_cast<int>(result);
-	}
+	int leastSignificantBit() const;
+
+	std::size_t bitCount() const;
 
 
 
@@ -53,6 +50,8 @@ public:
 	void reset(int pos);
 
 	void reset(int rank, int file);
+
+	void resetLeastSignificantBit();
 
 
 

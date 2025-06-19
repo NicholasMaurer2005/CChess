@@ -1,8 +1,24 @@
 #include "BitBoard.h"
 
 #include <iostream>
+#include <bit>
 
 #include "ChessConstants.hpp"
+
+
+
+//getters
+int BitBoard::leastSignificantBit() const
+{
+	unsigned long result{};
+	_BitScanForward64(&result, m_board);
+	return static_cast<int>(result);
+}
+
+std::size_t BitBoard::bitCount() const
+{
+	return std::popcount(m_board);
+}
 
 
 
@@ -31,6 +47,12 @@ void BitBoard::reset(int rank, int file)
 	const int index{ rank * fileSize + file };
 	const std::uint64_t bit{ 1ULL << index };
 	m_board &= ~bit;
+}
+
+void BitBoard::resetLeastSignificantBit()
+{
+	const int index{ leastSignificantBit() };
+	reset(index);
 }
 
 

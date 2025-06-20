@@ -6,19 +6,50 @@
 
 static cachealign PreGen preGen;
 
-template<bool white>
-static void pawnMoves(BitBoard pawns, MoveList& moveList) noexcept
+
+static bool whitePawnDouble(int index)
 {
+	constexpr BitBoard doubleMask{ 0b0000000011111111000000000000000000000000000000000000000000000000 };
+	return doubleMask.test(index);
+}
+
+static bool blackPawnDouble(int index)
+{
+	constexpr BitBoard doubleMask{ 0b0000000000000000000000000000000000000000000000001111111100000000 };
+	return doubleMask.test(index);
+}
+
+template<bool white>
+static void pawnMoves(BitBoard pawns, MoveList& moveList, State& state) noexcept
+{
+	constexpr int single{ white ? 8 : -8 };
+	constexpr int pawnDouble{ white ? 16 : -16 };
+	constexpr Piece piece{ white ? Piece::WhitePawn : Piece::BlackPawn };
+
 	while (pawns)
 	{
-		const int index{ pawns.popLeastSignificantBit };
+		const int source{ pawns.popLeastSignificantBit() };
 
-		BitBoard moves{ white ? preGen.whitePawnAttack(index) : preGen.blackPawnAttack(index) };
+		const BitBoard attacks{ white ? preGen.whitePawnAttack(source) : preGen.blackPawnAttack(source) };
+		BitBoard moves{ attacks & (white ? state.blackOccupancy() : state.whiteOccupancy) };
 		
 		while (moves)
 		{
-			const int moveIndex{ moves.popLeastSignificantBit() };
-			moveList.pushQuiet(index, moveIndex);
+			const int destination{ moves.popLeastSignificantBit() };
+			moveList.pushQuiet<piece>(source, destination);
+		}
+
+		const int singleDestination{ source + single };
+		const int doubleDestination{ source + pawnDouble };
+
+		if (singleDestination < boardSize && !state.occupancy().test(singleDestination))
+		{
+			moveList.pushQuiet<piece>(source, singleDestination);
+		}
+		
+		if ((white ? whitePawnDouble(source) : blackPawnDouble(source)) && !state.occupancy().test(doubleDestination))
+		{
+			moveList.pushQuiet<piece>(source, doubleDestination);
 		}
 	}
 }
@@ -57,5 +88,5 @@ MoveGen::MoveGen() noexcept {}
 
 MoveList MoveGen::generateMoves(const State& state) const noexcept
 {
-
+	return MoveList();
 }

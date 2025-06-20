@@ -3,6 +3,7 @@
 #include <array>
 
 #include "ChessConstants.hpp"
+#include "Move.h"
 
 constexpr std::size_t maxLegalMoves{ 218 };
 
@@ -20,7 +21,8 @@ public:
 	template<Piece piece>
 	void pushQuiet(int source, int destination) noexcept
 	{
-		
+		m_moves[m_back] = Move(piece, source, destination);
+		++m_back;
 	}
 
 	void sort() noexcept;

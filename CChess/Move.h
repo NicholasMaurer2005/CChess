@@ -16,6 +16,8 @@ public:
 	//constructors
 	Move() noexcept;
 
+	Move(Piece piece, int source, int destination) noexcept;
+
 
 
 	//getters

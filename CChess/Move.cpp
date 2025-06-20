@@ -14,6 +14,10 @@ constexpr int attackShift{ 16 };
 Move::Move() noexcept
 	: m_move() { }
 
+Move::Move(Piece piece, int source, int destination) noexcept
+	: m_move(static_cast<std::uint32_t>(piece)
+		| static_cast<std::uint32_t>(source) << sourceShift
+		| static_cast<std::uint32_t>(destination) << destinationShift) { }
 
 
 //getters

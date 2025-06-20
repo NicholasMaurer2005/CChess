@@ -61,7 +61,7 @@ void BitBoard::reset(int rank, int file) noexcept
 //helpers
 void BitBoard::print() const
 {
-	for (int rank{ fileSize - 1 }; rank >= 0; --rank)
+	for (int rank{ rankSize - 1 }; rank >= 0; --rank)
 	{
 		std::cout << (rank + 1) << "  ";
 

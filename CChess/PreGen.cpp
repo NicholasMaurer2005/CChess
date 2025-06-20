@@ -37,14 +37,12 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 
 		for (std::size_t square{}; square < bitCount; ++square)
 		{
-			const int index{ relavantBitsCopy.leastSignificantBit() };
+			const int index{ relavantBitsCopy.popLeastSignificantBit() };
 
 			if (i & (1ULL << square))
 			{
 				occupancy.set(index);
 			}
-
-			relavantBitsCopy.resetLeastSignificantBit();
 		}
 
 		occupancies.push_back(occupancy);

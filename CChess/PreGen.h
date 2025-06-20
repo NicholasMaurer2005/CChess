@@ -21,6 +21,8 @@ private:
 	alignas(64) std::array<BitBoard, boardSize>  m_rookRelevantBits;
 	alignas(64) std::array<std::uint64_t, boardSize> m_bishopMagics;
 	alignas(64) std::array<std::uint64_t, boardSize> m_rookMagics;
+	alignas(64) std::array<int, boardSize> m_bishopBitCount;
+	alignas(64) std::array<int, boardSize> m_rookBitCount;
 
 	//attack tables
 	alignas(64) std::array<BitBoard, boardSize> m_whitePawnAttacks;

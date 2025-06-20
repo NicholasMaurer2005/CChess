@@ -140,7 +140,7 @@ PreGen::PreGen() :
 	m_whitePawnAttacks(), m_blackPawnAttacks(), m_knightAttacks(), m_kingAttacks(), m_bishopAttacks(), m_rookAttacks(), 
 
 	//magic numbers
-	m_bishopRelevantBits(), m_rookRelevantBits(), m_bishopMagics(), m_rookMagics()
+	m_bishopRelevantBits(), m_rookRelevantBits(), m_bishopMagics(), m_rookMagics(), m_bishopBitCount(), m_rookBitCount()
 
 {
 	std::cout << "generating tables\n";
@@ -230,6 +230,8 @@ void PreGen::generateBishopMagics()
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
 		const std::size_t bitCount{ m_bishopRelevantBits[i].bitCount() };
+		m_bishopBitCount[i] = bitCount;
+
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };
 
@@ -270,6 +272,8 @@ void PreGen::generateRookMagics()
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
 		const std::size_t bitCount{ m_rookRelevantBits[i].bitCount() };
+		m_rookBitCount[i] = bitCount;
+
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };
 
@@ -441,11 +445,13 @@ BitBoard PreGen::knightAttack(std::size_t index) const
 BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const
 {
 	const std::size_t magic{ m_bishopMagics[index] };
-	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - bitcount) };
-	return m_bishopAttacks[arrayIndex(index, attackIndex));
+	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_bishopBitCount[index])};
+	return m_bishopAttacks[arrayIndex(index, attackIndex)];
 }
 
 BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const
 {
-	return m_rookAttacks;
+	const std::size_t magic{ m_rookMagics[index] };
+	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_rookBitCount[index]) };
+	return m_rookAttacks[arrayIndex(index, attackIndex)];
 }

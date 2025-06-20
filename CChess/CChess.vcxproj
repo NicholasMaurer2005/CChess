@@ -157,12 +157,16 @@
   <ItemGroup>
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MoveGen.cpp" />
     <ClCompile Include="PreGen.cpp" />
+    <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ChessConstants.hpp" />
+    <ClInclude Include="MoveGen.h" />
     <ClInclude Include="PreGen.h" />
+    <ClInclude Include="State.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

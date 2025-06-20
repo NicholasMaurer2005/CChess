@@ -55,6 +55,11 @@ private:
 
 	void generateRookAttacks();
 
+public:
+
+	//constructor
+	PreGen();
+
 
 
 	//getters
@@ -67,10 +72,5 @@ private:
 	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const;
 
 	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const;
-
-public:
-
-	//constructor
-	PreGen();
 };
 

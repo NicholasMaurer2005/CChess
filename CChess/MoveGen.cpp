@@ -1,34 +1,36 @@
 #include "MoveGen.h"
 
+#include "PreGen.h"
 
+static PreGen preGen;
 
 //private
-void MoveGen::pawnMoves(const State& state, MoveList& moveList) const noexcept
+static void pawnMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
 
-void MoveGen::knightMoves(const State& state, MoveList& moveList) const noexcept
+static void knightMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
 
-void MoveGen::bishopMoves(const State& state, MoveList& moveList) const noexcept
+static void bishopMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
 
-void MoveGen::rookMoves(const State& state, MoveList& moveList) const noexcept
+static void rookMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
 
-void MoveGen::queenMoves(const State& state, MoveList& moveList) const noexcept
+static void queenMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
 
-void MoveGen::kingMoves(const State& state, MoveList& moveList) const noexcept
+static void kingMoves(const State& state, MoveList& moveList) noexcept
 {
 
 }
@@ -36,8 +38,7 @@ void MoveGen::kingMoves(const State& state, MoveList& moveList) const noexcept
 
 
 //public
-MoveGen::MoveGen() noexcept
-	: m_PreGen() { }
+MoveGen::MoveGen() noexcept {}
 
 
 

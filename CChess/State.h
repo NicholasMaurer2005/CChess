@@ -23,7 +23,7 @@ enum class Piece : std::size_t
 
 constexpr int pieceOccupancySize{ 12 };
 
-class State
+class alignas(64) State
 {
 private:
 
@@ -31,7 +31,7 @@ private:
 	BitBoard m_whiteOccupancy;
 	BitBoard m_blackOccupancy;
 
-	alignas(64) std::array<BitBoard, pieceOccupancySize> m_pieceOccupancy;
+	std::array<BitBoard, pieceOccupancySize> m_pieceOccupancy;
 
 public:
 

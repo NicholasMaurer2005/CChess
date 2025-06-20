@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreGen.h"
+#include "State.h"
 
 class MoveGen
 {
@@ -12,6 +13,6 @@ public:
 
 	MoveGen();
 
-
+	MoveList generateMoves(State& state);
 };
 

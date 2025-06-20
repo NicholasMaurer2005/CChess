@@ -35,18 +35,18 @@ private:
 
 public:
 
-	State();
+	State() noexcept;
 
-	BitBoard occupancy() const;
+	BitBoard occupancy() const noexcept;
 
-	BitBoard whiteOccupancy() const;
+	BitBoard whiteOccupancy() const noexcept;
 
-	BitBoard blackOccupancy() const;
+	BitBoard blackOccupancy() const noexcept;
 
-	BitBoard pieceOccupancy(Piece piece) const;
+	BitBoard pieceOccupancy(Piece piece) const noexcept;
 
 	template<Piece piece>
-	BitBoard pieceOccupancyT() const
+	BitBoard pieceOccupancyT() const noexcept
 	{
 		return m_pieceOccupancy[static_cast<std::size_t>(piece)];
 	}

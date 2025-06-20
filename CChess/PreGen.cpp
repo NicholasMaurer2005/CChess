@@ -12,12 +12,12 @@
 //static helpers
 template<typename T>
 requires std::integral<T> && std::is_convertible_v<T, std::size_t>
-static std::size_t arrayIndex(T rank, T file)
+static std::size_t arrayIndex(T rank, T file) noexcept
 {
 	return static_cast<std::size_t>(rank * fileSize + file);
 }
 
-static void setSafe(BitBoard& board, int rank, int file)
+static void setSafe(BitBoard& board, int rank, int file) noexcept
 {
 	if (rank >= 0 && rank < rankSize && file >= 0 && file < fileSize)
 	{
@@ -25,7 +25,7 @@ static void setSafe(BitBoard& board, int rank, int file)
 	}
 }
 
-static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std::size_t bitCount, std::size_t occupanciesCount)
+static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std::size_t bitCount, std::size_t occupanciesCount) noexcept
 {
 	std::vector<BitBoard> occupancies;
 	occupancies.reserve(occupanciesCount);
@@ -53,7 +53,7 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 	return occupancies;
 }
 
-static std::uint64_t randomMagic()
+static std::uint64_t randomMagic() noexcept
 {
 	static std::mt19937_64 gen{ std::random_device{}() };
 	static std::uniform_int_distribution<std::uint64_t> dist;
@@ -61,7 +61,7 @@ static std::uint64_t randomMagic()
 	return dist(gen) & dist(gen) & dist(gen);
 }
 
-static BitBoard generateBishopAttack(int rank, int file, BitBoard occupancy)
+static BitBoard generateBishopAttack(int rank, int file, BitBoard occupancy) noexcept
 {
 	BitBoard attack;
 
@@ -96,7 +96,7 @@ static BitBoard generateBishopAttack(int rank, int file, BitBoard occupancy)
 	return attack;
 }
 
-static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy)
+static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy) noexcept
 {
 	BitBoard attack;
 
@@ -134,7 +134,7 @@ static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy)
 
 
 //constructor
-PreGen::PreGen() : 
+PreGen::PreGen() noexcept :
 
 	//attack tables
 	m_whitePawnAttacks(), m_blackPawnAttacks(), m_knightAttacks(), m_kingAttacks(), m_bishopAttacks(), m_rookAttacks(), 
@@ -167,7 +167,7 @@ PreGen::PreGen() :
 
 
 //magic numbers
-void PreGen::generateBishopRelevantBits()
+void PreGen::generateBishopRelevantBits() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -196,7 +196,7 @@ void PreGen::generateBishopRelevantBits()
 	}
 }
 
-void PreGen::generateRookRelevantBits()
+void PreGen::generateRookRelevantBits() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -225,7 +225,7 @@ void PreGen::generateRookRelevantBits()
 	}
 }
 
-void PreGen::generateBishopMagics()
+void PreGen::generateBishopMagics() noexcept
 {
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
@@ -267,7 +267,7 @@ void PreGen::generateBishopMagics()
 	}
 }
 
-void PreGen::generateRookMagics()
+void PreGen::generateRookMagics() noexcept
 {
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
@@ -312,7 +312,7 @@ void PreGen::generateRookMagics()
 
 
 //tables
-void PreGen::generatePawnAttacks()
+void PreGen::generatePawnAttacks() noexcept
 {
 	//white
 	for (int rank{}; rank < rankSize - 1; ++rank)
@@ -337,7 +337,7 @@ void PreGen::generatePawnAttacks()
 	}
 }
 
-void PreGen::generateKightAttacks()
+void PreGen::generateKightAttacks() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -362,7 +362,7 @@ void PreGen::generateKightAttacks()
 	}
 }
 
-void PreGen::generateKingAttacks()
+void PreGen::generateKingAttacks() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -380,7 +380,7 @@ void PreGen::generateKingAttacks()
 	}
 }				
 
-void PreGen::generateBishopAttacks()
+void PreGen::generateBishopAttacks() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -402,7 +402,7 @@ void PreGen::generateBishopAttacks()
 	}
 }
 
-void PreGen::generateRookAttacks()
+void PreGen::generateRookAttacks() noexcept
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -427,29 +427,29 @@ void PreGen::generateRookAttacks()
 
 
 //getters
-BitBoard PreGen::whitePawnAttack(std::size_t index) const
+BitBoard PreGen::whitePawnAttack(std::size_t index) const noexcept
 {
 	return m_whitePawnAttacks[index];
 }
 
-BitBoard PreGen::blackPawnAttack(std::size_t index) const
+BitBoard PreGen::blackPawnAttack(std::size_t index) const noexcept
 {
 	return m_blackPawnAttacks[index];
 }
 
-BitBoard PreGen::knightAttack(std::size_t index) const
+BitBoard PreGen::knightAttack(std::size_t index) const noexcept
 {
 	return m_knightAttacks[index];
 }
 
-BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const
+BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_bishopMagics[index] };
 	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_bishopBitCount[index])};
 	return m_bishopAttacks[arrayIndex(index, attackIndex)];
 }
 
-BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const
+BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_rookMagics[index] };
 	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_rookBitCount[index]) };

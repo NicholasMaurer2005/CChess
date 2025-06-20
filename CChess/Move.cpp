@@ -9,23 +9,23 @@ constexpr int destinationShift{ 6 };
 constexpr int attackShift{ 12 };
 
 //constructors
-Move::Move()
+Move::Move() noexcept
 	: m_move() { }
 
 
 
 //getters
-std::size_t Move::source() const
+std::size_t Move::source() const noexcept
 {
 	return static_cast<std::size_t>(m_move & sourceMask);
 }
 
-std::size_t Move::destination() const
+std::size_t Move::destination() const noexcept
 {
 	return static_cast<std::size_t>((m_move & destinationMask) >> destinationShift);
 }
 
-bool Move::attack() const
+bool Move::attack() const noexcept
 {
 	return static_cast<bool>((m_move & attackMask) >> attackShift);
 }

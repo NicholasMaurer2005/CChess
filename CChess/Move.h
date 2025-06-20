@@ -12,15 +12,15 @@ private:
 public:
 
 	//constructors
-	Move();
+	Move() noexcept;
 
 
 
 	//getters
-	std::size_t source() const;
+	std::size_t source() const noexcept;
 
-	std::size_t destination() const;
+	std::size_t destination() const noexcept;
 
-	bool attack() const;
+	bool attack() const noexcept;
 };
 

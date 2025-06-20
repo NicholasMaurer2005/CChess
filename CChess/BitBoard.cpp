@@ -8,14 +8,14 @@
 
 
 //getters
-int BitBoard::leastSignificantBit() const
+int BitBoard::leastSignificantBit() const noexcept
 {
 	unsigned long result{};
 	_BitScanForward64(&result, m_board);
 	return static_cast<int>(result);
 }
 
-std::size_t BitBoard::bitCount() const
+std::size_t BitBoard::bitCount() const noexcept
 {
 	return std::popcount(m_board);
 }
@@ -23,33 +23,33 @@ std::size_t BitBoard::bitCount() const
 
 
 //setters
-void BitBoard::set(int pos)
+void BitBoard::set(int pos) noexcept
 {
 	const std::uint64_t bit{ 1ULL << pos };
 	m_board |= bit;
 }
 
-void BitBoard::set(int rank, int file)
+void BitBoard::set(int rank, int file) noexcept
 {
 	const int index{ rank * fileSize + file };
 	const std::uint64_t bit{ 1ULL << index };
 	m_board |= bit;
 }
 
-void BitBoard::reset(int index)
+void BitBoard::reset(int index) noexcept
 {
 	const std::uint64_t bit{ 1ULL << index };
 	m_board &= ~bit;
 }
 
-void BitBoard::reset(int rank, int file)
+void BitBoard::reset(int rank, int file) noexcept
 {
 	const int index{ rank * fileSize + file };
 	const std::uint64_t bit{ 1ULL << index };
 	m_board &= ~bit;
 }
 
-void BitBoard::resetLeastSignificantBit()
+void BitBoard::resetLeastSignificantBit() noexcept
 {
 	const int index{ leastSignificantBit() };
 	reset(index);

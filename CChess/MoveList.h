@@ -15,14 +15,14 @@ private:
 
 public:
 
-	MoveList();
+	MoveList() noexcept;
 
-	void push(Move move);
+	void push(Move move) noexcept;
 
-	void sort();
+	void sort() noexcept;
 
-	std::array<Move, maxLegalMoves>::const_iterator begin() const;
+	std::array<Move, maxLegalMoves>::const_iterator begin() const noexcept;
 
-	std::array<Move, maxLegalMoves>::const_iterator end() const;
+	std::array<Move, maxLegalMoves>::const_iterator end() const noexcept;
 };
 

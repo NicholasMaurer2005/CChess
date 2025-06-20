@@ -13,9 +13,9 @@ private:
 public:
 
 	//constructors
-	constexpr BitBoard() : m_board() {}
+	constexpr BitBoard() noexcept : m_board() {}
 
-	constexpr BitBoard(std::uint64_t board) : m_board(board) {}
+	constexpr BitBoard(std::uint64_t board) noexcept : m_board(board) {}
 
 
 
@@ -36,22 +36,22 @@ public:
 		return static_cast<bool>(m_board & (1ULL << index));
 	}
 
-	int leastSignificantBit() const;
+	int leastSignificantBit() const noexcept;
 
-	std::size_t bitCount() const;
+	std::size_t bitCount() const noexcept;
 
 
 
 	//setters
-	void set(int pos);
+	void set(int pos) noexcept;
 
-	void set(int rank, int file);
+	void set(int rank, int file) noexcept;
 
-	void reset(int pos);
+	void reset(int pos) noexcept;
 
-	void reset(int rank, int file);
+	void reset(int rank, int file) noexcept;
 
-	void resetLeastSignificantBit();
+	void resetLeastSignificantBit() noexcept;
 
 
 

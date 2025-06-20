@@ -10,67 +10,68 @@
 constexpr int maxBishopAttacks{ 512 };
 constexpr int maxRookAttacks{ 4096 };
 
-class PreGen
+class alignas(64) PreGen
 {
 private:
 
 	//magic numbers
-	alignas(64) std::array<BitBoard, boardSize>  m_bishopRelevantBits;
-	alignas(64) std::array<BitBoard, boardSize>  m_rookRelevantBits;
-	alignas(64) std::array<std::uint64_t, boardSize> m_bishopMagics;
-	alignas(64) std::array<std::uint64_t, boardSize> m_rookMagics;
-	alignas(64) std::array<int, boardSize> m_bishopBitCount;
-	alignas(64) std::array<int, boardSize> m_rookBitCount;
+	std::array<BitBoard, boardSize>  m_bishopRelevantBits;
+	std::array<BitBoard, boardSize>  m_rookRelevantBits;
+	std::array<std::uint64_t, boardSize> m_bishopMagics;
+	std::array<std::uint64_t, boardSize> m_rookMagics;
+	std::array<int, boardSize> m_bishopBitCount;
+	std::array<int, boardSize> m_rookBitCount;
 
 	//attack tables
-	alignas(64) std::array<BitBoard, boardSize> m_whitePawnAttacks;
-	alignas(64) std::array<BitBoard, boardSize> m_blackPawnAttacks;
-	alignas(64) std::array<BitBoard, boardSize> m_knightAttacks;
-	alignas(64) std::array<BitBoard, boardSize> m_kingAttacks;
-	alignas(64) std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
-	alignas(64) std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
+	std::array<BitBoard, boardSize> m_whitePawnAttacks;
+	std::array<BitBoard, boardSize> m_blackPawnAttacks;
+	std::array<BitBoard, boardSize> m_knightAttacks;
+	std::array<BitBoard, boardSize> m_kingAttacks;
+	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
+	std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
 
 
 	
-
 	//magic numbers
-	void generateBishopRelevantBits();
+	void generateBishopRelevantBits() noexcept;
 
-	void generateRookRelevantBits();
+	void generateRookRelevantBits() noexcept;
 
-	void generateBishopMagics();
+	void generateBishopMagics() noexcept;
 
-	void generateRookMagics();
+	void generateRookMagics() noexcept;
 
 
 
 	//tables
-	void generatePawnAttacks();
+	void generatePawnAttacks() noexcept;
 
-	void generateKightAttacks();
+	void generateKightAttacks() noexcept;
 
-	void generateKingAttacks();
+	void generateKingAttacks() noexcept;
 
-	void generateBishopAttacks();
+	void generateBishopAttacks() noexcept;
 
-	void generateRookAttacks();
+	void generateRookAttacks() noexcept;
+
+
 
 public:
 
 	//constructor
-	PreGen();
+	PreGen() noexcept;
 
 
 
 	//getters
-	BitBoard whitePawnAttack(std::size_t index) const;
+	BitBoard whitePawnAttack(std::size_t index) const noexcept;
 
-	BitBoard blackPawnAttack(std::size_t index) const;
+	BitBoard blackPawnAttack(std::size_t index) const noexcept;
 
-	BitBoard knightAttack(std::size_t index) const;
+	BitBoard knightAttack(std::size_t index) const noexcept;
 
-	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const;
+	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const noexcept;
 
-	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const;
+	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const noexcept;
 };
 

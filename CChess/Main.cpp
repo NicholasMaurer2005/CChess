@@ -7,5 +7,5 @@
 
 int main()
 {
-	static PreGen preGen;
+
 }

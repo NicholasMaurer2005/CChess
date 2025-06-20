@@ -3,11 +3,13 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "ChessConstants.hpp"
+
 class Move
 {
 private:
 
-	std::uint16_t m_move;
+	std::uint32_t m_move;
 
 public:
 
@@ -17,6 +19,8 @@ public:
 
 
 	//getters
+	Piece piece() const noexcept;
+
 	std::size_t source() const noexcept;
 
 	std::size_t destination() const noexcept;

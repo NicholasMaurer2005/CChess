@@ -36,9 +36,11 @@ public:
 		return static_cast<bool>(m_board & (1ULL << index));
 	}
 
+	std::size_t bitCount() const noexcept;
+
 	int leastSignificantBit() const noexcept;
 
-	std::size_t bitCount() const noexcept;
+	int popLeastSignificantBit()noexcept;
 
 
 
@@ -50,8 +52,6 @@ public:
 	void reset(int pos) noexcept;
 
 	void reset(int rank, int file) noexcept;
-
-	void resetLeastSignificantBit() noexcept;
 
 
 

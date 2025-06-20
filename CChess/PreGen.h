@@ -10,7 +10,7 @@
 constexpr int maxBishopAttacks{ 512 };
 constexpr int maxRookAttacks{ 4096 };
 
-class alignas(64) PreGen
+class cachealign PreGen
 {
 private:
 

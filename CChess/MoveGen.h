@@ -3,14 +3,14 @@
 #include "State.h"
 #include "MoveList.h"
 
-class MoveGen //TODO: make this a namespace and have all function static?
+class MoveGen //TODO: make this a namespace and have all functions static?
 {
 
 public:
 
 	MoveGen() noexcept;
 
-	MoveList generateMoves(const State& state) noexcept;
+	MoveList generateMoves(const State& state) const noexcept;
 
 };
 

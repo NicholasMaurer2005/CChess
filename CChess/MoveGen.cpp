@@ -1,16 +1,34 @@
 #include "MoveGen.h"
 
 #include "PreGen.h"
+#include "ChessConstants.hpp"
+#include "Move.h"
 
-static PreGen preGen;
+static cachealign PreGen preGen;
 
-//private
-static void pawnMoves(const State& state, MoveList& moveList) noexcept
+template<bool white>
+static void pawnMoves(BitBoard pawns, MoveList& moveList) noexcept
+{
+	while (pawns)
+	{
+		const int index{ pawns.popLeastSignificantBit };
+
+		BitBoard moves{ white ? preGen.whitePawnAttack(index) : preGen.blackPawnAttack(index) };
+		
+		while (moves)
+		{
+			const int moveIndex{ moves.popLeastSignificantBit() };
+			moveList.pushQuiet(index, moveIndex);
+		}
+	}
+}
+
+static void knightMoves(BitBoard knights, MoveList& moveList) noexcept
 {
 
 }
 
-static void knightMoves(const State& state, MoveList& moveList) noexcept
+static void kingMoves(BitBoard kings, MoveList& moveList) noexcept
 {
 
 }
@@ -30,11 +48,6 @@ static void queenMoves(const State& state, MoveList& moveList) noexcept
 
 }
 
-static void kingMoves(const State& state, MoveList& moveList) noexcept
-{
-
-}
-
 
 
 //public
@@ -42,7 +55,7 @@ MoveGen::MoveGen() noexcept {}
 
 
 
-MoveList MoveGen::generateMoves(const State& state) noexcept
+MoveList MoveGen::generateMoves(const State& state) const noexcept
 {
 
 }

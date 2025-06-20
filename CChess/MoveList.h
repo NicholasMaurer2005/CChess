@@ -2,11 +2,11 @@
 
 #include <array>
 
-#include "Move.h"
+#include "ChessConstants.hpp"
 
 constexpr std::size_t maxLegalMoves{ 218 };
 
-class alignas(64) MoveList
+class cachealign MoveList
 {
 private:
 
@@ -17,7 +17,11 @@ public:
 
 	MoveList() noexcept;
 
-	void push(Move move) noexcept;
+	template<Piece piece>
+	void pushQuiet(int source, int destination) noexcept
+	{
+		
+	}
 
 	void sort() noexcept;
 

@@ -1,7 +1,8 @@
 #include "State.h"
 
 
-State::State()
+
+State::State() noexcept
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy() { }
 
 BitBoard State::occupancy() const noexcept

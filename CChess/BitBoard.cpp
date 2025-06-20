@@ -20,6 +20,13 @@ std::size_t BitBoard::bitCount() const noexcept
 	return std::popcount(m_board);
 }
 
+int BitBoard::popLeastSignificantBit() noexcept
+{
+	const int index{ leastSignificantBit() };
+	reset(index);
+	return index;
+}
+
 
 
 //setters
@@ -47,12 +54,6 @@ void BitBoard::reset(int rank, int file) noexcept
 	const int index{ rank * fileSize + file };
 	const std::uint64_t bit{ 1ULL << index };
 	m_board &= ~bit;
-}
-
-void BitBoard::resetLeastSignificantBit() noexcept
-{
-	const int index{ leastSignificantBit() };
-	reset(index);
 }
 
 

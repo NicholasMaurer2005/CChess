@@ -2,8 +2,6 @@
 
 #include <array>
 
-#include <algorithm>
-
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
 
@@ -71,11 +69,6 @@ private:
 	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const;
 
 public:
-
-	void print()
-	{
-		std::ranges::for_each(m_bishopAttacks, [](auto board) { board.print(); });
-	}
 
 	//constructor
 	PreGen();

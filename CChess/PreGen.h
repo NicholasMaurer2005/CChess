@@ -16,6 +16,12 @@ class PreGen
 {
 private:
 
+	//magic numbers
+	alignas(64) std::array<BitBoard, boardSize>  m_bishopRelevantBits;
+	alignas(64) std::array<BitBoard, boardSize>  m_rookRelevantBits;
+	alignas(64) std::array<std::uint64_t, boardSize> m_bishopMagics;
+	alignas(64) std::array<std::uint64_t, boardSize> m_rookMagics;
+
 	//attack tables
 	alignas(64) std::array<BitBoard, boardSize> m_whitePawnAttacks;
 	alignas(64) std::array<BitBoard, boardSize> m_blackPawnAttacks;
@@ -24,32 +30,8 @@ private:
 	alignas(64) std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
 	alignas(64) std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
 
-	//magic numbers
-	alignas(64) std::array<BitBoard, boardSize>  m_bishopRelevantBits;
-	alignas(64) std::array<BitBoard, boardSize>  m_rookRelevantBits;
-	alignas(64) std::array<std::uint64_t, boardSize> m_bishopMagics;
-	alignas(64) std::array<std::uint64_t, boardSize> m_rookMagics;
 
-public:
-
-	void print()
-	{
-		std::ranges::for_each(m_rookMagics, [](auto board) { std::cout << board << '\n'; });
-	}
-
-	//constructor
-	PreGen();
-
-
-
-	//private
-	void generatePawnAttacks();
-
-	void generateKightAttacks();
-
-	void generateKingAttacks();
-
-
+	
 
 	//magic numbers
 	void generateBishopRelevantBits();
@@ -62,15 +44,38 @@ public:
 
 
 
+	//tables
+	void generatePawnAttacks();
+
+	void generateKightAttacks();
+
+	void generateKingAttacks();
+
+	void generateBishopAttacks();
+
+	void generateRookAttacks();
+
+
+
 	//getters
-	const std::array<BitBoard, boardSize>& whitePawnAttacks() const;
+	BitBoard whitePawnAttack(std::size_t index) const;
 
-	const std::array<BitBoard, boardSize>& blackPawnAttacks() const;
+	BitBoard blackPawnAttack(std::size_t index) const;
 
-	const std::array<BitBoard, boardSize>& knightAttacks() const;
+	BitBoard knightAttack(std::size_t index) const;
 
-	const std::array<BitBoard, maxBishopAttacks* boardSize>& bishopAttacks() const;
+	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const;
 
-	const std::array<BitBoard, maxRookAttacks* boardSize>& rookAttacks() const;
+	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const;
+
+public:
+
+	void print()
+	{
+		std::ranges::for_each(m_bishopAttacks, [](auto board) { board.print(); });
+	}
+
+	//constructor
+	PreGen();
 };
 

@@ -6,10 +6,13 @@
 #include <cstdint>
 #include <random>
 #include <bitset>
+#include <concepts>
 
 
-//shared helpers
-static std::size_t arrayIndex(int rank, int file)
+//static helpers
+template<typename T>
+requires std::integral<T> && std::is_convertible_v<T, std::size_t>
+static std::size_t arrayIndex(T rank, T file)
 {
 	return static_cast<std::size_t>(rank * fileSize + file);
 }
@@ -20,6 +23,112 @@ static void setSafe(BitBoard& board, int rank, int file)
 	{
 		board.set(rank, file);
 	}
+}
+
+static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std::size_t bitCount, std::size_t occupanciesCount)
+{
+	std::vector<BitBoard> occupancies;
+	occupancies.reserve(occupanciesCount);
+
+	for (std::size_t i{}; i < occupanciesCount; ++i)
+	{
+		BitBoard occupancy;
+		BitBoard relavantBitsCopy{ relavantBitsMask };
+
+		for (std::size_t square{}; square < bitCount; ++square)
+		{
+			const int index{ relavantBitsCopy.leastSignificantBit() };
+
+			if (i & (1ULL << square))
+			{
+				occupancy.set(index);
+			}
+
+			relavantBitsCopy.resetLeastSignificantBit();
+		}
+
+		occupancies.push_back(occupancy);
+	}
+
+	return occupancies;
+}
+
+static std::uint64_t randomMagic()
+{
+	static std::mt19937_64 gen{ std::random_device{}() };
+	static std::uniform_int_distribution<std::uint64_t> dist;
+
+	return dist(gen) & dist(gen) & dist(gen);
+}
+
+static BitBoard generateBishopAttack(int rank, int file, BitBoard occupancy)
+{
+	BitBoard attack;
+
+	bool blocked{};
+	for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 7 && newFile <= 7 && !blocked; ++newRank, ++newFile)
+	{
+		attack.set(newRank, newFile);
+		blocked = occupancy.test(newRank, newFile);
+	}
+
+	blocked = false;
+	for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 7 && newFile >= 0 && !blocked; ++newRank, --newFile)
+	{
+		attack.set(newRank, newFile);
+		blocked = occupancy.test(newRank, newFile);
+	}
+
+	blocked = false;
+	for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 0 && newFile >= 0 && !blocked; --newRank, --newFile)
+	{
+		attack.set(newRank, newFile);
+		blocked = occupancy.test(newRank, newFile);
+	}
+
+	blocked = false;
+	for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 0 && newFile <= 7 && !blocked; --newRank, ++newFile)
+	{
+		attack.set(newRank, newFile);
+		blocked = occupancy.test(newRank, newFile);
+	}
+
+	return attack;
+}
+
+static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy)
+{
+	BitBoard attack;
+
+	bool blocked{};
+	for (int newRank{ rank + 1 }; newRank <= 7 && !blocked; ++newRank)
+	{
+		attack.set(newRank, rank);
+		blocked = occupancy.test(newRank, rank);
+	}
+
+	blocked = false;
+	for (int newRank{ rank - 1 }; newRank >= 0 && !blocked; --newRank)
+	{
+		attack.set(newRank, rank);
+		blocked = occupancy.test(newRank, rank);
+	}
+
+	blocked = false;
+	for (int newFile{ file + 1 }; newFile <= 7 && !blocked; ++newFile)
+	{
+		attack.set(file, newFile);
+		blocked = occupancy.test(file, newFile);
+	}
+
+	blocked = false;
+	for (int newFile{ file - 1 }; newFile >= 0 && !blocked; --newFile)
+	{
+		attack.set(file, newFile);
+		blocked = occupancy.test(file, newFile);
+	}
+
+	return attack;
 }
 
 
@@ -37,14 +146,19 @@ PreGen::PreGen() :
 	std::cout << "generating tables\n";
 	const auto start{ std::chrono::high_resolution_clock::now() };
 
-	generatePawnAttacks();
-	generateKightAttacks();
-	generateKingAttacks();
-
+	//magic numbers
 	generateBishopRelevantBits();
 	generateRookRelevantBits();
 	generateBishopMagics();
 	generateRookMagics();
+
+	//tables
+	generatePawnAttacks();
+	generateKightAttacks();
+	generateKingAttacks();
+	generateBishopAttacks();
+	generateRookAttacks();
+
 
 	const std::chrono::duration<double> elapsed{ std::chrono::high_resolution_clock::now() - start };
 	std::cout << "tables generated in " << elapsed.count() << " seconds\n" << std::endl;
@@ -52,7 +166,148 @@ PreGen::PreGen() :
 
 
 
-//private
+//magic numbers
+void PreGen::generateBishopRelevantBits()
+{
+	for (int rank{}; rank < rankSize; ++rank)
+	{
+		for (int file{}; file < fileSize; ++file)
+		{
+			for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 6 && newFile <= 6; ++newRank, ++newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+
+			for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 6 && newFile >= 1; ++newRank, --newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+
+			for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 1 && newFile >= 1; --newRank, --newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+
+			for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 1 && newFile <= 6; --newRank, ++newFile)
+			{
+				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+			}
+		}
+	}
+}
+
+void PreGen::generateRookRelevantBits()
+{
+	for (int rank{}; rank < rankSize; ++rank)
+	{
+		for (int file{}; file < fileSize; ++file)
+		{
+			for (int newRank{ rank + 1 }; newRank <= 6; ++newRank)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+			}
+
+			for (int newRank{ rank - 1 }; newRank >= 1; --newRank)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+			}
+
+			for (int newFile{ file + 1 }; newFile <= 6; ++newFile)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+			}
+
+			for (int newFile{ file - 1 }; newFile >= 1; --newFile)
+			{
+				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+			}
+		}
+	}
+}
+
+void PreGen::generateBishopMagics()
+{
+	for (std::size_t i{}; i < boardSize; ++i)
+	{
+		const std::size_t bitCount{ m_bishopRelevantBits[i].bitCount() };
+		const std::size_t occupanciesCount{ 1ULL << bitCount };
+		const std::size_t shift{ boardSize - bitCount };
+
+		const std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[i], bitCount, occupanciesCount) };
+
+		while (true)
+		{
+			const std::uint64_t magic{ randomMagic() };
+			bool valid{ true };
+			std::bitset<maxBishopAttacks> indexes;
+
+			for (BitBoard occupancy : occupancies)
+			{
+				const std::size_t index{ (occupancy.board() * magic) >> shift };
+
+				if (indexes.test(index))
+				{
+					valid = false;
+					break;
+				}
+				else
+				{
+					indexes.set(index);
+				}
+			}
+
+			if (valid)
+			{
+				m_bishopMagics[i] = magic;
+				break;
+			}
+		}
+	}
+}
+
+void PreGen::generateRookMagics()
+{
+	for (std::size_t i{}; i < boardSize; ++i)
+	{
+		const std::size_t bitCount{ m_rookRelevantBits[i].bitCount() };
+		const std::size_t occupanciesCount{ 1ULL << bitCount };
+		const std::size_t shift{ boardSize - bitCount };
+
+		const std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[i], bitCount, occupanciesCount) };
+
+		while (true)
+		{
+			const std::uint64_t magic{ randomMagic() };
+			bool valid{ true };
+			std::bitset<maxRookAttacks> indexes;
+
+			for (BitBoard occupancy : occupancies)
+			{
+				const std::size_t index{ (occupancy.board() * magic) >> shift };
+
+				if (indexes.test(index))
+				{
+					valid = false;
+					break;
+				}
+				else
+				{
+					indexes.set(index);
+				}
+			}
+
+			if (valid)
+			{
+				m_rookMagics[i] = magic;
+				break;
+			}
+		}
+	}
+}
+
+
+
+//tables
 void PreGen::generatePawnAttacks()
 {
 	//white
@@ -119,177 +374,47 @@ void PreGen::generateKingAttacks()
 			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank + 1, file - 1);	//NW
 		}
 	}
-}											  
+}				
 
-
-
-//magic numbers
-static std::vector<BitBoard> createOccupancy(BitBoard relavantBitsMask, std::size_t bitCount, std::size_t occupanciesCount)
-{
-	std::vector<BitBoard> occupancies;
-	occupancies.reserve(occupanciesCount);
-
-	for (std::size_t i{}; i < occupanciesCount; ++i)
-	{
-		BitBoard occupancy;
-		BitBoard relavantBitsCopy{ relavantBitsMask };
-
-		for (std::size_t square{}; square < bitCount; ++square)
-		{
-			const int index{ relavantBitsCopy.leastSignificantBit() };
-
-			if (i & (1ULL << square))
-			{
-				occupancy.set(index);
-			}
-			
-			relavantBitsCopy.resetLeastSignificantBit();
-		}
-
-		occupancies.push_back(occupancy);
-	}
-
-	return occupancies;
-}
-
-static std::uint64_t randomMagic()
-{
-	static std::mt19937_64 gen{ std::random_device{}() };
-	static std::uniform_int_distribution<std::uint64_t> dist;
-
-	return dist(gen) & dist(gen) & dist(gen);
-}
-
-void PreGen::generateBishopRelevantBits()
+void PreGen::generateBishopAttacks()
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 6 && newFile <= 6; ++newRank, ++newFile)
+			const std::size_t index{ arrayIndex(rank, file) };
+			const std::size_t bitCount{ m_bishopRelevantBits[index].bitCount()};
+			const std::size_t occupanciesCount{ 1ULL << bitCount };
+			const std::size_t shift{ boardSize - bitCount };
+
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[index], bitCount, occupanciesCount) };
+
+			for (std::size_t i{}; i < occupanciesCount; ++i)
 			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
-			}
-			for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 6 && newFile >= 1; ++newRank, --newFile)
-			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
-			}
-			for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 1 && newFile >= 1; --newRank, --newFile)
-			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
-			}
-			for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 1 && newFile <= 6; --newRank, ++newFile)
-			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+				const BitBoard attack{ generateBishopAttack(rank, file, occupancies[i]) };
+				m_bishopAttacks[arrayIndex(index, i)] = attack;
 			}
 		}
 	}
 }
 
-void PreGen::generateRookRelevantBits()
+void PreGen::generateRookAttacks()
 {
 	for (int rank{}; rank < rankSize; ++rank)
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			for (int newRank{ file + 1 }; newRank <= 6; ++newRank)
+			const std::size_t index{ arrayIndex(rank, file) };
+			const std::size_t bitCount{ m_rookRelevantBits[index].bitCount()};
+			const std::size_t occupanciesCount{ 1ULL << bitCount };
+			const std::size_t shift{ boardSize - bitCount };
+
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[index], bitCount, occupanciesCount) };
+
+			for (std::size_t i{}; i < occupanciesCount; ++i)
 			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
-			}
-
-			for (int newRank{ file - 1 }; newRank >= 1; --newRank)
-			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
-			}
-
-			for (int newFile{ rank + 1 }; newFile <= 6; ++newFile)
-			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
-			}
-
-			for (int newFile{ rank - 1 }; newFile >= 1; --newFile)
-			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
-			}
-		}
-	}
-}
-
-void PreGen::generateBishopMagics()
-{
-	for (std::size_t i{}; i < boardSize; ++i)
-	{
-		const std::size_t bitCount{ m_bishopRelevantBits[i].bitCount() };
-		const std::size_t occupanciesCount{ 1ULL << bitCount };
-		const std::size_t shift{ boardSize - bitCount };
-
-		const std::vector<BitBoard> occupancies{ createOccupancy(m_bishopRelevantBits[i], bitCount, occupanciesCount) };
-
-		while (true)
-		{
-			const std::uint64_t magic{ randomMagic() };
-			bool valid{ true };
-			std::bitset<maxBishopAttacks> indexes;
-
-			for (BitBoard occupancy : occupancies)
-			{
-				const std::size_t index{ (occupancy.board() * magic) >> shift };
-
-				if (indexes.test(index))
-				{
-					valid = false;
-					break;
-				}
-				else
-				{
-					indexes.set(index);
-				}
-			}
-
-			if (valid)
-			{
-				m_bishopMagics[i] = magic;
-				break;
-			}
-		}
-	}
-}
-
-void PreGen::generateRookMagics()
-{
-	for (std::size_t i{}; i < boardSize; ++i)
-	{
-		const std::size_t bitCount{ m_rookRelevantBits[i].bitCount() };
-		const std::size_t occupanciesCount{ 1ULL << bitCount };
-		const std::size_t shift{ boardSize - bitCount };
-
-		const std::vector<BitBoard> occupancies{ createOccupancy(m_rookRelevantBits[i], bitCount, occupanciesCount) };
-
-		while (true)
-		{
-			const std::uint64_t magic{ randomMagic() };
-			bool valid{ true };
-			std::bitset<maxRookAttacks> indexes;
-
-			for (BitBoard occupancy : occupancies)
-			{
-				const std::size_t index{ (occupancy.board() * magic) >> shift };
-
-				if (indexes.test(index))
-				{
-					valid = false;
-					break;
-				}
-				else
-				{
-					indexes.set(index);
-				}
-			}
-
-			if (valid)
-			{
-				m_rookMagics[i] = magic;
-				break;
+				const BitBoard attack{ generateRookAttack(rank, file, occupancies[i]) };
+				m_rookAttacks[arrayIndex(index, i)] = attack;
 			}
 		}
 	}
@@ -298,27 +423,29 @@ void PreGen::generateRookMagics()
 
 
 //getters
-const std::array<BitBoard, boardSize>& PreGen::whitePawnAttacks() const
+BitBoard PreGen::whitePawnAttack(std::size_t index) const
 {
-	return m_whitePawnAttacks;
+	return m_whitePawnAttacks[index];
 }
 
-const std::array<BitBoard, boardSize>& PreGen::blackPawnAttacks() const
+BitBoard PreGen::blackPawnAttack(std::size_t index) const
 {
-	return m_blackPawnAttacks;
+	return m_blackPawnAttacks[index];
 }
 
-const std::array<BitBoard, boardSize>& PreGen::knightAttacks() const
+BitBoard PreGen::knightAttack(std::size_t index) const
 {
-	return m_knightAttacks;
+	return m_knightAttacks[index];
 }
 
-const std::array<BitBoard, maxBishopAttacks* boardSize>& PreGen::bishopAttacks() const
+BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const
 {
-	return m_bishopAttacks;
+	const std::size_t magic{ m_bishopMagics[index] };
+	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - bitcount) };
+	return m_bishopAttacks[arrayIndex(index, attackIndex));
 }
 
-const std::array<BitBoard, maxRookAttacks* boardSize>& PreGen::rookAttacks() const
+BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const
 {
 	return m_rookAttacks;
 }

@@ -4,11 +4,11 @@
 constexpr std::uint32_t pieceMask		{ 0b00000000000000000000000000001111 };
 constexpr std::uint32_t sourceMask		{ 0b00000000000000000000001111110000 };
 constexpr std::uint32_t destinationMask	{ 0b00000000000000001111110000000000 };
-constexpr std::uint32_t attackMask		{ 0b00000000000000010000000000000000 };
+constexpr std::uint32_t attackPieceMask	{ 0b00000000000011110000000000000000 };
 
 constexpr int sourceShift{ 6 };
 constexpr int destinationShift{ 10 };
-constexpr int attackShift{ 16 };
+constexpr int attackPieceShift{ 16 };
 
 //constructors
 Move::Move() noexcept
@@ -18,6 +18,12 @@ Move::Move(Piece piece, int source, int destination) noexcept
 	: m_move(static_cast<std::uint32_t>(piece)
 		| static_cast<std::uint32_t>(source) << sourceShift
 		| static_cast<std::uint32_t>(destination) << destinationShift) { }
+
+Move::Move(Piece piece, int source, int destination, Piece attackPiece) noexcept
+	: m_move(static_cast<std::uint32_t>(piece)
+		| static_cast<std::uint32_t>(source) << sourceShift
+		| static_cast<std::uint32_t>(destination) << destinationShift
+		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift) { }
 
 
 //getters
@@ -36,7 +42,7 @@ std::size_t Move::destination() const noexcept
 	return static_cast<std::size_t>((m_move & destinationMask) >> destinationShift);
 }
 
-bool Move::attack() const noexcept
+Piece Move::attackPiece() const noexcept
 {
-	return static_cast<bool>((m_move & attackMask) >> attackShift);
+	return static_cast<Piece>((m_move & attackPieceMask) >> attackPieceShift);
 }

@@ -18,6 +18,7 @@ public:
 
 	Move(Piece piece, int source, int destination) noexcept;
 
+	Move(Piece piece, int source, int destination, Piece attackPiece) noexcept;
 
 
 	//getters
@@ -27,6 +28,6 @@ public:
 
 	std::size_t destination() const noexcept;
 
-	bool attack() const noexcept;
+	Piece attackPiece() const noexcept;
 };
 

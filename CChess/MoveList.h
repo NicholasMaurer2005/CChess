@@ -25,6 +25,13 @@ public:
 		++m_back;
 	}
 
+	template<Piece piece>
+	void pushAttack(int source, int destination, Piece attackPiece)
+	{
+		m_moves[m_back] = Move(piece, source, destination, attackPiece);
+		++m_back;
+	}
+
 	void sort() noexcept;
 
 	std::array<Move, maxLegalMoves>::const_iterator begin() const noexcept;

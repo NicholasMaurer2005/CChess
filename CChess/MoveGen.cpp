@@ -1,5 +1,8 @@
 #include "MoveGen.h"
 
+#include <array>
+#include <cstdint>
+
 #include "PreGen.h"
 #include "ChessConstants.hpp"
 #include "Move.h"
@@ -7,58 +10,148 @@
 static cachealign PreGen preGen;
 
 
-static bool whitePawnDouble(int index)
+template<bool white>
+static BitBoard pawnDoublesMask(BitBoard pawns)
 {
-	constexpr BitBoard doubleMask{ 0b0000000011111111000000000000000000000000000000000000000000000000 };
-	return doubleMask.test(index);
+	constexpr std::uint64_t mask{ white
+		? 0b0000000011111111000000000000000000000000000000000000000000000000
+		: 0b0000000000000000000000000000000000000000000000001111111100000000 };
+
+	return BitBoard(pawns.board() & mask);
 }
 
-static bool blackPawnDouble(int index)
+template<bool white>
+static BitBoard pawnPromotesMask(BitBoard pawns)
 {
-	constexpr BitBoard doubleMask{ 0b0000000000000000000000000000000000000000000000001111111100000000 };
-	return doubleMask.test(index);
+	constexpr std::uint64_t mask{ white
+		? 0b0000000000000000000000000000000000000000000000001111111100000000
+		: 0b0000000011111111000000000000000000000000000000000000000000000000 };
+
+	return BitBoard(pawns.board() & mask);
 }
 
-//template<bool white>
-static void pawnMoves(BitBoard pawns, MoveList& moveList, State& state) noexcept
+template<bool white>
+static BitBoard pawnEnpassantsMask(BitBoard pawns)
 {
-	constexpr bool white = true;
+	constexpr std::uint64_t mask{ white
+		? 0b0000000000000000000000000000000011111111000000000000000000000000
+		: 0b0000000000000000000000001111111100000000000000000000000000000000 };
 
-	constexpr int single{ white ? 8 : -8 };
-	constexpr int pawnDouble{ white ? 16 : -16 };
-	constexpr Piece piece{ white ? Piece::WhitePawn : Piece::BlackPawn };
+	return BitBoard(pawns.board() & mask);
+}
+
+//TODO: maybe check if any bitboards are empty before further logic
+template<bool white>
+static BitBoard pawnShiftedMoves(BitBoard pawns, std::uint64_t mask)
+{
+	if constexpr (white)
+	{
+		const std::uint64_t shiftedPawns{ pawns.board() >> 8};
+		return BitBoard(shiftedPawns & mask);
+	}
+	else
+	{
+		const std::uint64_t shiftedPawns{ pawns.board() << 8 };
+		return BitBoard(shiftedPawns & mask);
+	}
+}
+
+template<bool white>
+static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state)
+{
+	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
+	constexpr Piece knight{ white ? Piece::WhiteKnight : Piece::BlackKnight };
+	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
+	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
+
+	BitBoard pawnQuiets{ pawnShiftedMoves<white>(pawns, ~state.occupancy().board()) };
+
+	while (pawnQuiets.board())
+	{
+		const int destinationIndex{ pawnQuiets.popLeastSignificantBit() };
+		const int sourceIndex{ white ? destinationIndex - 8 : destinationIndex + 8 };
+
+		moveList.pushQuietPromote<white>(sourceIndex, destinationIndex, queen);
+		moveList.pushQuietPromote<white>(sourceIndex, destinationIndex, knight);
+		moveList.pushQuietPromote<white>(sourceIndex, destinationIndex, bishop);
+		moveList.pushQuietPromote<white>(sourceIndex, destinationIndex, rook);
+	}
 
 	while (pawns.board())
 	{
-		const int source{ pawns.popLeastSignificantBit() };
+		const int sourceIndex{ pawns.popLeastSignificantBit() };
 
-		BitBoard attacks{ white ? (preGen.whitePawnAttack(source).board() & state.blackOccupancy().board()) : (preGen.blackPawnAttack(source).board() & state.whiteOccupancy().board()) };
+		BitBoard pawnAttacks{ white
+			? (preGen.whitePawnAttack(sourceIndex).board() & state.blackOccupancy().board())
+			: (preGen.blackPawnAttack(sourceIndex).board() & state.whiteOccupancy().board()) };
 
-		while (attacks.board())
+		while (pawnAttacks.board())
 		{
-			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const int attackIndex{ pawnAttacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 
-			moveList.pushAttack<piece>(source, attackIndex, attackPiece);
-		}
-
-		const int singleDestination{ source + single };
-		const int doubleDestination{ source + pawnDouble };
-
-		if (!state.occupancy().test(singleDestination)) //TODO: make pawn quiet lookup table?
-		{
-			moveList.pushQuiet<piece>(source, singleDestination);
-
-			if ((white ? whitePawnDouble(source) : blackPawnDouble(source)) && !state.occupancy().test(doubleDestination))
-			{
-				moveList.pushQuiet<piece>(source, doubleDestination);
-			}
+			moveList.pushAttackPromote<white>(sourceIndex, attackIndex, queen, attackPiece);
+			moveList.pushAttackPromote<white>(sourceIndex, attackIndex, knight, attackPiece);
+			moveList.pushAttackPromote<white>(sourceIndex, attackIndex, bishop, attackPiece);
+			moveList.pushAttackPromote<white>(sourceIndex, attackIndex, rook, attackPiece);
 		}
 	}
 }
 
 template<bool white>
-static void knightMoves(BitBoard knights, MoveList& moveList, State& state) noexcept
+static void pawnDoubles(BitBoard pawns, MoveList& moveList, const State& state)//TODO: maybe keep track of when there are no more pawns on that rank
+{
+	const std::uint64_t mask{ ~state.occupancy().board() };
+	const BitBoard pawnsShiftedOnce{ pawnShiftedMoves<white>(pawns, mask) };
+	BitBoard pawnsShiftedTwice{ pawnShiftedMoves<white>(pawnsShiftedOnce, mask) };
+
+	while (pawnsShiftedTwice.board())
+	{
+		const int destinationIndex{ pawnsShiftedTwice.popLeastSignificantBit() };
+		const int sourceIndex{ white ? destinationIndex - 16 : destinationIndex + 16 };
+
+		moveList.pushQuiet<white ? Piece::WhitePawn : Piece::BlackPawn>(sourceIndex, destinationIndex);
+	}
+}
+
+template<bool white>
+static void pawnEnpassants(BitBoard pawns, MoveList& moveList, const State& state)
+{
+	const BitBoard enpassantSquare{ white ? state.blackEnpassantSquare() : state.whiteEnpassantSquare() };
+
+	if (!enpassantSquare.board()) return;
+
+	while (pawns.board())
+	{
+		const int sourceIndex{ pawns.popLeastSignificantBit() };
+		BitBoard attacks{ white
+			? preGen.whitePawnAttack(sourceIndex).board() & enpassantSquare.board()
+			: preGen.blackPawnAttack(sourceIndex).board() & enpassantSquare.board() };
+		
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			moveList.pushEnpassant<white>(sourceIndex, attackIndex, white ? attackIndex - 8 : attackIndex + 8);
+		}
+	}
+}
+
+//template<bool white>
+static void pawnMoves(BitBoard pawns, MoveList& moveList, const State& state)
+{
+	constexpr bool white = true;
+
+	const BitBoard pawnPromoteMoves(pawnPromotesMask<white>(pawns));
+	const BitBoard pawnDoubleMoves(pawnDoublesMask<white>(pawns));
+	const BitBoard pawnEnpassantMoves(pawnEnpassantsMask<white>(pawns));
+	const BitBoard pawnNormalMoves(pawns.board() & ~pawnPromoteMoves.board());
+
+	pawnPromotes<white>(pawnPromoteMoves, moveList, state);
+	pawnDoubles<white>(pawnDoubleMoves, moveList, state);
+}
+
+template<bool white>
+static void knightMoves(BitBoard knights, MoveList& moveList, const State& state) noexcept
 {
 	constexpr Piece piece{ white ? Piece::WhiteKnight : Piece::BlackKnight };
 
@@ -67,20 +160,20 @@ static void knightMoves(BitBoard knights, MoveList& moveList, State& state) noex
 		const int sourceIndex{ knights.popLeastSignificantBit() };
 		const std::uint64_t knightAttacks{ preGen.knightAttack(sourceIndex).board() };
 
-		BitBoard attacks{ knightAttacks & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 		BitBoard quiets{ knightAttacks & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
-
-		while (attacks.board())
-		{
-			const int moveIndex{ attacks.popLeastSignificantBit() };
-			const Piece attackPiece{ state.findPiece<!white>(moveIndex) };
-			moveList.pushAttack<piece>(sourceIndex, moveIndex, attackPiece);
-		}
+		BitBoard attacks{ knightAttacks & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
 		while (quiets.board())
 		{
-			const int moveIndex{ quiets.popLeastSignificantBit() };
-			moveList.pushQuiet<piece>(sourceIndex, moveIndex);
+			const int quietIndex{ quiets.popLeastSignificantBit() };
+			moveList.pushQuiet<piece>(sourceIndex, quietIndex);
+		}
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+			moveList.pushAttack<piece>(sourceIndex, attackIndex, attackPiece);
 		}
 	}
 }

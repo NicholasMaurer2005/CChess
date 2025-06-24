@@ -25,10 +25,14 @@ private:
 	//attack tables
 	std::array<BitBoard, boardSize> m_whitePawnAttacks;
 	std::array<BitBoard, boardSize> m_blackPawnAttacks;
-	std::array<BitBoard, boardSize> m_knightAttacks;
+	std::array<BitBoard, boardSize> m_knightAttacks; //TODO: rename from Attacks to Moves?
 	std::array<BitBoard, boardSize> m_kingAttacks;
 	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
 	std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
+
+	//pawn double masks
+	std::array<BitBoard, boardSize> m_whitePawnDoubleMasks;
+	std::array<BitBoard, boardSize> m_blackPawnDoubleMasks;
 
 
 	
@@ -56,6 +60,13 @@ private:
 
 
 
+	//pawn double masks 
+	void generateWhitePawnDoubleMasks() noexcept;
+
+	void generateBlackPawnDoubleMasks() noexcept;
+
+
+
 public:
 
 	//constructor
@@ -73,5 +84,9 @@ public:
 	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const noexcept;
 
 	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const noexcept;
+
+	BitBoard whitePawnDoubleMask(std::size_t index) const noexcept;
+
+	BitBoard blackPawnDoubleMask(std::size_t index) const noexcept;
 };
 

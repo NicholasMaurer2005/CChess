@@ -26,10 +26,31 @@ public:
 	}
 
 	template<Piece piece>
-	void pushAttack(int source, int destination, Piece attackPiece)
+	void pushAttack(int source, int destination, Piece attackPiece) noexcept
 	{
 		m_moves[m_back] = Move(piece, source, destination, attackPiece);
 		++m_back;
+	}
+
+	template<bool white>
+	void pushQuietPromote(int source, int destination, Piece promotePiece) noexcept
+	{
+		m_moves[m_back] = Move(white, source, destination, promotePiece);
+		++m_back;
+	}
+
+	template<bool white>
+	void pushAttackPromote(int source, int destination, Piece promotePiece, Piece attackPiece) noexcept
+	{
+		m_moves[m_back] = Move(white, souurce, destination, promotePiece, attackPiece);
+		++m_back;
+	}
+
+	template<bool white>
+	void pushEnpassant(int source, int destination, int enpassant)//TODO: make more efficient if possible(no conditional constructor)
+	{
+		m_moves[m_back] = Move(white, source, destination, enpassant);
+		++back;
 	}
 
 	void sort() noexcept;

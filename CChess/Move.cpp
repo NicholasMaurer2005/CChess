@@ -1,80 +1,81 @@
 #include "Move.h"
 
 
-constexpr std::uint32_t pieceMask			{ 0b00000000000000000000000000001111 };
-constexpr std::uint32_t sourceMask			{ 0b00000000000000000000001111110000 };
-constexpr std::uint32_t destinationMask		{ 0b00000000000000001111110000000000 };
-constexpr std::uint32_t attackPieceMask		{ 0b00000000000011110000000000000000 };
-constexpr std::uint32_t promotePieceMask	{ 0b00000000111100000000000000000000 };
-constexpr std::uint32_t enpassantFlagMask	{ 0b00000001000000000000000000000000 };
-constexpr std::uint32_t enpassantMask		{ 0b01111110000000000000000000000000 };
+//if no flags are set than it is a 
 
-constexpr int sourceShift{ 4 };
-constexpr int destinationShift{ 10 };
-constexpr int attackPieceShift{ 16 };
+constexpr std::uint32_t sourcePieceMask				{ 0b00000000000000000000000000001111 };
+constexpr std::uint32_t attackPieceMask				{ 0b00000000000000000000000011110000 };
+constexpr std::uint32_t sourceIndexMask				{ 0b00000000000000000011111100000000 };
+constexpr std::uint32_t destinationIndexMask		{ 0b00000000000011111100000000000000 };
+constexpr std::uint32_t promotePieceMask			{ 0b00000000111100000000000000000000 };
+constexpr std::uint32_t enpassantIndexMask			{ 0b01111111000000000000000000000000 };
+constexpr std::uint32_t castleFlagMask				{ 0b10000000000000000000000000000000 };
+constexpr std::uint32_t castleKingPieceMask			{ 0b00000000000000000000000000001111 };
+constexpr std::uint32_t castleRookPieceMask			{ 0b00000000000000000000000011110000 };
+constexpr std::uint32_t castleKingSourceMask		{ 0b00000000000000000011111100000000 };
+constexpr std::uint32_t castleKingDestinationMask	{ 0b00000000000011111100000000000000 };
+constexpr std::uint32_t castleRookSourceMask		{ 0b00000011111100000000000000000000 };
+constexpr std::uint32_t castleRookDestinationMask	{ 0b11111100000000000000000000000000 };
+
+constexpr int attackPieceShift{ 4 };
+constexpr int sourceIndexShift{ 8 };
+constexpr int destinationIndexShift{ 14 };
 constexpr int promotePieceShift{ 20 };
-constexpr int enpassantFlagShift{ 24 };
-constexpr int enpassantShift{ 25 };
+constexpr int enpassantIndexShift{ 24 };
+constexpr int castleFlagShift{ 31 };
+constexpr int castleRookPieceShift{ 4 };
+constexpr int castleKingSourceShift{ 8 };
+constexpr int castleKingDestinationShift{ 14 };
+constexpr int castleRookSourceShift{ 20 };
+constexpr int castleRookDestinationShift{ 26 };
 
-//constructors
+
 
 //quiet
-Move::Move(Piece piece, int source, int destination) noexcept
-	: m_move(static_cast<std::uint32_t>(piece)
-		| static_cast<std::uint32_t>(source) << sourceShift
-		| static_cast<std::uint32_t>(destination) << destinationShift) { }
+Move::Move(Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
+	: m_move(static_cast<std::uint32_t>(sourcePiece)
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift) { }
 
 //attack
-Move::Move(Piece piece, int source, int destination, Piece attackPiece) noexcept
-	: m_move(static_cast<std::uint32_t>(piece)
-		| static_cast<std::uint32_t>(source) << sourceShift
-		| static_cast<std::uint32_t>(destination) << destinationShift
-		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift) { }
+Move::Move(Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept
+	: m_move(static_cast<std::uint32_t>(sourcePiece)
+		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift) { }
 
 //quiet promote
-Move::Move(bool white, int source, int destination, Piece promotePiece) noexcept
-	: m_move(static_cast<std::uint32_t>(white ? Piece::WhitePawn : Piece::BlackPawn)
-		| static_cast<std::uint32_t>(source) << sourceShift
-		| static_cast<std::uint32_t>(destination) << destinationShift
+Move::Move(Piece sourcePiece, int sourceIndex, int destinationIndex, Piece promotePiece) noexcept
+	: m_move(static_cast<std::uint32_t>(sourcePiece)
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift
 		| static_cast<std::uint32_t>(promotePiece) << promotePieceShift) { }
 
-//attack promote //TODO: rearange so that there doesnt need to be a condition
-Move::Move(bool white, int source, int destination, Piece promotePiece, Piece attackPiece) noexcept
-	: m_move(static_cast<std::uint32_t>(white ? Piece::WhitePawn : Piece::BlackPawn)
-		| static_cast<std::uint32_t>(source) << sourceShift
-		| static_cast<std::uint32_t>(destination) << destinationShift
+//attack promote
+Move::Move(Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex, Piece promotePiece) noexcept
+	: m_move(static_cast<std::uint32_t>(sourcePiece)
 		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift
 		| static_cast<std::uint32_t>(promotePiece) << promotePieceShift) { }
 
 //enpassant
-Move::Move(bool white, int source, int destination, int enpassant) noexcept //TODO: maybe make enpassant one shift/mask and make no square an option
-	: m_move(static_cast<std::uint32_t>(white ? Piece::WhitePawn : Piece::BlackPawn) 
-		| static_cast<std::uint32_t>(source) << sourceShift
-		| static_cast<std::uint32_t>(destination) << destinationShift
-		| static_cast<std::uint32_t>(white ? Piece::BlackPawn : Piece::WhitePawn) << attackPieceShift
-		| static_cast<std::uint32_t>(1 << enpassantFlagShift)
-		| static_cast<std::uint32_t>(enpassant << enpassantShift)) { }
+Move::Move(Piece sourcePiece, int sourceIndex, int destinationIndex, Piece attackPiece) noexcept
+	: m_move(static_cast<std::uint32_t>(sourcePiece)
+		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift) { }
 
 //castle
-Move::Move(Castle castle)
-	: m_move()
+Move::Move(std::uint32_t castleMove)
+	: m_move(castleMove) { }
 
 
 
 //getters
-Piece Move::piece() const noexcept
+Piece Move::sourcePiece() const noexcept
 {
-	return static_cast<Piece>(m_move & sourceMask);
-}
-
-std::size_t Move::source() const noexcept
-{
-	return static_cast<std::size_t>((m_move & sourceMask) >> sourceShift);
-}
-
-std::size_t Move::destination() const noexcept
-{
-	return static_cast<std::size_t>((m_move & destinationMask) >> destinationShift);
+	return static_cast<Piece>(m_move & sourcePieceMask);
 }
 
 Piece Move::attackPiece() const noexcept
@@ -82,7 +83,58 @@ Piece Move::attackPiece() const noexcept
 	return static_cast<Piece>((m_move & attackPieceMask) >> attackPieceShift);
 }
 
+std::size_t Move::sourceIndex() const noexcept
+{
+	return static_cast<std::size_t>((m_move & sourceIndexMask) >> sourceIndexShift);
+}
+
+std::size_t Move::destinationIndex() const noexcept
+{
+	return static_cast<std::size_t>((m_move & destinationIndexMask) >> destinationIndexShift);
+}
+
 Piece Move::promotePiece() const noexcept
 {
 	return static_cast<Piece>((m_move & promotePieceMask) >> promotePieceShift);
+}
+
+std::size_t Move::enpassantIndex() const noexcept
+{
+	const std::size_t index{ static_cast<std::size_t>((m_move & enpassantIndexMask) >> enpassantIndexShift) };
+	return index ? index - 1 : 0;
+}
+
+bool Move::castleFlag() const noexcept
+{
+	return static_cast<bool>((m_move & castleFlagMask) >> castleFlagShift);
+}
+
+Piece Move::castleKingPiece() const noexcept
+{
+	return static_cast<Piece>(m_move & castleKingPieceMask);
+}
+
+Piece Move::castleRookPiece() const noexcept
+{
+	return static_cast<Piece>((m_move & castleRookPieceMask) >> castleRookPieceShift);
+}
+
+std::size_t Move::castleKingSource() const noexcept
+{
+	return static_cast<std::size_t>((m_move & castleKingSourceMask) >> castleKingSourceShift);
+}
+
+std::size_t Move::castleKingDestination() const noexcept
+{
+	return static_cast<std::size_t>((m_move & castleKingDestinationMask) >> castleKingDestinationShift);
+}
+
+std::size_t Move::castleRookSource() const noexcept
+{
+	return static_cast<std::size_t>((m_move & castleRookSourceMask) >> castleRookSourceShift);
+}
+
+std::size_t Move::castleRookDestination() const noexcept
+{
+	return static_cast<std::size_t>((m_move & castleRookDestinationMask) >> castleRookDestinationShift);
 }

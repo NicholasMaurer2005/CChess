@@ -17,33 +17,50 @@ public:
 	Move() noexcept {}
 
 	//quiet
-	Move(Piece piece, int source, int destination) noexcept;
+	Move(Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept;
 
 	//attack
-	Move(Piece piece, int source, int destination, Piece attackPiece) noexcept;
+	Move(Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept;
 
 	//quiet promote
-	Move(bool white, int source, int destination, Piece promotePiece) noexcept;
+	Move(Piece sourcePiece, int sourceIndex, int destinationIndex, Piece promotePiece) noexcept;
 
 	//attack promote
-	Move(bool white, int source, int destination, Piece promotePiece, Piece attackPiece) noexcept;
+	Move(Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex, Piece promotePiece) noexcept;
 
 	//enpassant
-	Move(bool white, int source, int destination, int enpassant) noexcept;
+	Move(Piece sourcePiece, int sourceIndex, int destinationIndex, Piece attackPiece) noexcept;
 
 	//castle
-	Move(Castle castle);
+	Move(std::uint32_t castleMove);
+
 
 
 	//getters
-	Piece piece() const noexcept;
-
-	std::size_t source() const noexcept;
-
-	std::size_t destination() const noexcept;
+	Piece sourcePiece() const noexcept;
 
 	Piece attackPiece() const noexcept;
 
+	std::size_t sourceIndex() const noexcept;
+
+	std::size_t destinationIndex() const noexcept;
+
 	Piece promotePiece() const noexcept;
+
+	std::size_t enpassantIndex() const noexcept;
+
+	bool castleFlag() const noexcept;
+
+	Piece castleKingPiece() const noexcept;
+
+	Piece castleRookPiece() const noexcept;
+
+	std::size_t castleKingSource() const noexcept;
+
+	std::size_t castleKingDestination() const noexcept;
+
+	std::size_t castleRookSource() const noexcept;
+
+	std::size_t castleRookDestination() const noexcept;
 };
 

@@ -10,7 +10,7 @@ public:
 
 	MoveGen() noexcept;
 
-	MoveList generateMoves(const State& state) const noexcept;
+	MoveList generateMoves(bool white, const State& state) const noexcept;
 
 };
 

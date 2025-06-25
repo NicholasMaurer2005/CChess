@@ -11,6 +11,13 @@
 
 
 
+struct unmakeMoveInfo
+{
+
+};
+
+
+
 class cachealign State
 {
 private:
@@ -33,6 +40,13 @@ public:
 
 	//construcors
 	State() noexcept;
+
+
+
+	//move
+	unmakeMoveInfo makeMove(Move move) noexcept;
+
+	void unmakeMove(Move move, unmakeMoveInfo info);
 
 
 

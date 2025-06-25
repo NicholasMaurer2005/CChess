@@ -389,9 +389,26 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 //public
 MoveGen::MoveGen() noexcept {}
 
-
-
-MoveList MoveGen::generateMoves(const State& state) const noexcept
+MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 {
-	return MoveList();
+	MoveList moveList;
+	
+	if (white) //TODO: maybe remove if statement and make template?
+	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhitePawn>(), moveList, state);
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteKing>(), moveList, state);
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), moveList, state);
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteRook>(), moveList, state);
+		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), moveList, state);
+	}
+	else
+	{
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackPawn>(), moveList, state);
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackKnight>(), moveList, state);
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackKing>(), moveList, state);
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackBishop>(), moveList, state);
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
+		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
+	}
 }

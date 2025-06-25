@@ -8,6 +8,19 @@ State::State() noexcept
 
 
 
+//move
+unmakeMoveInfo State::makeMove(Move move) noexcept
+{
+	
+}
+
+void State::unmakeMove(Move move, unmakeMoveInfo info)
+{
+
+}
+
+
+
 //getters
 BitBoard State::occupancy() const noexcept
 {

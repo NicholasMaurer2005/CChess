@@ -218,7 +218,7 @@ static void knightMoves(BitBoard knights, MoveList& moveList, const State& state
 }
 
 template<bool white>
-static void kingCastles(MoveList& moveList, const State& state)
+static void kingCastles(MoveList& moveList, const State& state) noexcept
 {
 	if constexpr (white)
 	{
@@ -296,19 +296,92 @@ static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) no
 	}
 }
 
-static void bishopMoves(const State& state, MoveList& moveList) noexcept
+//template<bool white>
+static void bishopMoves(BitBoard bishops, MoveList& moveList, const State& state) noexcept
 {
+	constexpr bool white{};
 
+	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
+
+	while (bishops.board())
+	{
+		const int sourceIndex{ bishops.popLeastSignificantBit() };
+		const BitBoard bishopMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()) };
+
+		BitBoard quiets{ bishopMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard attacks{ bishopMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (quiets.board())
+		{
+			const int destinationIndex{ quiets.popLeastSignificantBit() };
+			moveList.pushQuiet<bishop>(sourceIndex, destinationIndex);
+		}
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			moveList.pushAttack<bishop>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
 }
 
-static void rookMoves(const State& state, MoveList& moveList) noexcept
+static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) noexcept
 {
+	constexpr bool white{};
 
+	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
+
+	while (rooks.board())
+	{
+		const int sourceIndex{ rooks.popLeastSignificantBit() };
+		const BitBoard rookMoves{ preGen.rookAttack(sourceIndex, state.occupancy()) };
+
+		BitBoard quiets{ rookMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard attacks{ rookMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (quiets.board())
+		{
+			const int destinationIndex{ quiets.popLeastSignificantBit() };
+			moveList.pushQuiet<rook>(sourceIndex, destinationIndex);
+		}
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			moveList.pushAttack<rook>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
 }
 
-static void queenMoves(const State& state, MoveList& moveList) noexcept
+static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) noexcept //TODO: maybe make no loop for queen? always one queen per side
 {
+	constexpr bool white{};
 
+	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
+
+	while (queens.board())
+	{
+		const int sourceIndex{ queens.popLeastSignificantBit() };
+		const BitBoard queenMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()).board() | preGen.rookAttack(sourceIndex, state.occupancy()).board() };
+
+		BitBoard quiets{ queenMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard attacks{ queenMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (quiets.board())
+		{
+			const int destinationIndex{ quiets.popLeastSignificantBit() };
+			moveList.pushQuiet<queen>(sourceIndex, destinationIndex);
+		}
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			moveList.pushAttack<queen>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
 }
 
 

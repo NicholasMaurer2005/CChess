@@ -30,10 +30,6 @@ private:
 	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
 	std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
 
-	//pawn double masks
-	std::array<BitBoard, boardSize> m_whitePawnDoubleMasks;
-	std::array<BitBoard, boardSize> m_blackPawnDoubleMasks;
-
 
 	
 	//magic numbers
@@ -57,13 +53,6 @@ private:
 	void generateBishopAttacks() noexcept;
 
 	void generateRookAttacks() noexcept;
-
-
-
-	//pawn double masks 
-	void generateWhitePawnDoubleMasks() noexcept;
-
-	void generateBlackPawnDoubleMasks() noexcept;
 
 
 

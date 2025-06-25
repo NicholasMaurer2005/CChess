@@ -138,10 +138,7 @@ PreGen::PreGen() noexcept :
 	m_whitePawnAttacks(), m_blackPawnAttacks(), m_knightAttacks(), m_kingAttacks(), m_bishopAttacks(), m_rookAttacks(),
 
 	//magic numbers
-	m_bishopRelevantBits(), m_rookRelevantBits(), m_bishopMagics(), m_rookMagics(), m_bishopBitCount(), m_rookBitCount(),
-
-	//pawn double masks
-	m_whitePawnDoubleMasks(), m_blackPawnDoubleMasks()
+	m_bishopRelevantBits(), m_rookRelevantBits(), m_bishopMagics(), m_rookMagics(), m_bishopBitCount(), m_rookBitCount()
 
 {
 	std::cout << "generating tables\n";
@@ -159,11 +156,6 @@ PreGen::PreGen() noexcept :
 	generateKingAttacks();
 	generateBishopAttacks();
 	generateRookAttacks();
-
-	//pawn double masks
-	generateWhitePawnDoubleMasks();
-	generateBlackPawnDoubleMasks();
-
 
 	const std::chrono::duration<double> elapsed{ std::chrono::high_resolution_clock::now() - start };
 	std::cout << "tables generated in " << elapsed.count() << " seconds\n" << std::endl;

@@ -39,32 +39,7 @@ bool Move::castleFlag() const noexcept
 	return static_cast<bool>((m_move & castleFlagMask) >> castleFlagShift);
 }
 
-Piece Move::castleKingPiece() const noexcept
+Castle Move::castleType() const noexcept
 {
-	return static_cast<Piece>(m_move & castleKingPieceMask);
-}
-
-Piece Move::castleRookPiece() const noexcept
-{
-	return static_cast<Piece>((m_move & castleRookPieceMask) >> castleRookPieceShift);
-}
-
-std::size_t Move::castleKingSource() const noexcept
-{
-	return static_cast<std::size_t>((m_move & castleKingSourceMask) >> castleKingSourceShift);
-}
-
-std::size_t Move::castleKingDestination() const noexcept
-{
-	return static_cast<std::size_t>((m_move & castleKingDestinationMask) >> castleKingDestinationShift);
-}
-
-std::size_t Move::castleRookSource() const noexcept
-{
-	return static_cast<std::size_t>((m_move & castleRookSourceMask) >> castleRookSourceShift);
-}
-
-std::size_t Move::castleRookDestination() const noexcept
-{
-	return static_cast<std::size_t>((m_move & castleRookDestinationMask) >> castleRookDestinationShift);
+	return static_cast<Castle>(m_move & castleTypeMask);
 }

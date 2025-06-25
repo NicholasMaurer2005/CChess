@@ -2,9 +2,12 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <algorithm>
 
+#include "ChessConstants.hpp"
 #include "BitBoard.h"
+#include "MoveList.h"
 
 
 
@@ -19,6 +22,10 @@ private:
 	BitBoard m_blackEnpassantSquare;
 
 	std::array<BitBoard, pieceCount> m_pieceOccupancy;
+
+	Castle m_castleRights;
+
+
 
 public:
 
@@ -40,12 +47,13 @@ public:
 
 	BitBoard blackEnpassantSquare() const noexcept;
 
+	Castle castleRights() const noexcept;
+
 	template<Piece piece>
 	BitBoard pieceOccupancyT() const noexcept
 	{
 		return m_pieceOccupancy[static_cast<std::size_t>(piece)];
 	}
-
 
 	template<bool white>
 	Piece findPiece(int index) const noexcept
@@ -61,8 +69,9 @@ public:
 			}
 		}
 
-		//this should never excecute, test for occupancy before calling findPiece()
+		//this should never execute, test for occupancy before calling State::findPiece()
 		return Piece::NoPiece;
 	}
+
 };
 

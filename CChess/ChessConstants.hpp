@@ -33,10 +33,12 @@ constexpr int pieceCount{ 13 };
 constexpr int whitePieceOffset{ 1 };
 constexpr int blackPieceOffset{ 7 };
 
-enum class Castle
+enum class Castle : std::uint32_t
 {
-	WhiteRight = 0,
-	WhiteLeft = 1,
-	BlackRight = 2,
-	BlackLeft = 3
+	WhiteKingSide = 0b0010,
+	WhiteQueenSide = 0b0001,
+	WhiteBoth = 0b0011,
+	BlackKingSide = 0b1000,
+	BlackQueenSide = 0b0100,
+	BlackBoth = 0b1100
 };

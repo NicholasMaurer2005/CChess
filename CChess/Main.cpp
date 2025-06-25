@@ -1,8 +1,7 @@
 #include <iostream>
 
 
-#include "BitBoard.h"
-#include "PreGen.h"
+#include "MoveList.h"
 
 
 int main()

@@ -38,3 +38,8 @@ BitBoard State::blackEnpassantSquare() const noexcept
 {
 	return m_blackEnpassantSquare;
 }
+
+Castle State::castleRights() const noexcept
+{
+	return m_castleRights;
+}

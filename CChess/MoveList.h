@@ -18,39 +18,50 @@ public:
 
 	MoveList() noexcept;
 
+	//quiet
 	template<Piece piece>
-	void pushQuiet(int source, int destination) noexcept
+	void pushQuiet(int sourceIndex, int destinationIndex) noexcept
 	{
-		m_moves[m_back] = Move(piece, source, destination);
+		m_moves[m_back] = makeQuiet<piece>(sourceIndex, destinationIndex);
 		++m_back;
 	}
 
+	//attack
 	template<Piece piece>
-	void pushAttack(int source, int destination, Piece attackPiece) noexcept
+	void pushAttack(Piece attackPiece, int sourceIndex, int destinationIndex) noexcept
 	{
-		m_moves[m_back] = Move(piece, source, destination, attackPiece);
+		m_moves[m_back] = makeAttack<piece>(attackPiece, sourceIndex, destinationIndex);
 		++m_back;
 	}
 
-	template<bool white>
-	void pushQuietPromote(int source, int destination, Piece promotePiece) noexcept
+	//quiet promote
+	template<Piece sourcePiece, Piece promotePiece>
+	void pushQuietPromote(int sourceIndex, int destinationIndex) noexcept
 	{
-		m_moves[m_back] = Move(white, source, destination, promotePiece);
+		m_moves[m_back] = makeQuietPromote<sourcePiece, promotePiece>(sourceIndex, destinationIndex);
 		++m_back;
 	}
 
-	template<bool white>
-	void pushAttackPromote(int source, int destination, Piece promotePiece, Piece attackPiece) noexcept
+	//attack promote
+	template<Piece sourcePiece, Piece promotePiece>
+	void pushAttackPromote(Piece attackPiece, int sourceIndex, int destinationIndex) noexcept
 	{
-		m_moves[m_back] = Move(white, souurce, destination, promotePiece, attackPiece);
+		m_moves[m_back] = makeAttackPromote<sourcePiece, promotePiece>(attackPiece, sourceIndex, destinationIndex);
 		++m_back;
 	}
 
-	template<bool white>
-	void pushEnpassant(int source, int destination, int enpassant)//TODO: make more efficient if possible(no conditional constructor)
+	//enpassant
+	template<Piece sourcePiece, Piece attackPiece>
+	void pushEnpassant(int sourceIndex, int destinationIndex, int enpassantIndex) noexcept//TODO: make more efficient if possible(no conditional constructor)
 	{
-		m_moves[m_back] = Move(white, source, destination, enpassant);
-		++back;
+		m_moves[m_back] = makeEnpassant<sourcePiece, attackPiece>(sourceIndex, destinationIndex, enpassantIndex);
+		++m_back;
+	}
+
+	//castle
+	void pushCastle()
+	{
+
 	}
 
 	void sort() noexcept;

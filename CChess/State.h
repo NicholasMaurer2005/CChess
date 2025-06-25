@@ -25,6 +25,8 @@ private:
 
 	Castle m_castleRights;
 
+	bool m_kingInCheck;
+
 
 
 public:
@@ -47,7 +49,15 @@ public:
 
 	BitBoard blackEnpassantSquare() const noexcept;
 
-	Castle castleRights() const noexcept;
+	bool castleWhiteKingSide() const noexcept;
+
+	bool castleWhiteQueenSide() const noexcept;
+
+	bool castleBlackKingSide() const noexcept;
+
+	bool castleBlackQueenSide() const noexcept;
+
+	bool kingInCheck() const noexcept;
 
 	template<Piece piece>
 	BitBoard pieceOccupancyT() const noexcept
@@ -72,6 +82,5 @@ public:
 		//this should never execute, test for occupancy before calling State::findPiece()
 		return Piece::NoPiece;
 	}
-
 };
 

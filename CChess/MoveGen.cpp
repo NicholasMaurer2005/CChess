@@ -63,7 +63,7 @@ static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state)
 	constexpr Piece knight{ white ? Piece::WhiteKnight : Piece::BlackKnight };
 	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
 	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
-	constexpr Piece piece{ white ? Piece::WhitePawn : Piece::BlackPawn };
+	constexpr Piece pawn{ white ? Piece::WhitePawn : Piece::BlackPawn };
 
 	BitBoard shiftedPawns{ pawnShiftedMoves<white>(pawns, ~state.occupancy().board()) };
 
@@ -72,10 +72,10 @@ static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state)
 		const int destinationIndex{ shiftedPawns.popLeastSignificantBit() };
 		const int sourceIndex{ white ? destinationIndex - 8 : destinationIndex + 8 };
 
-		moveList.pushQuietPromote<piece, queen>(sourceIndex, destinationIndex);
-		moveList.pushQuietPromote<piece, knight>(sourceIndex, destinationIndex);
-		moveList.pushQuietPromote<piece, bishop>(sourceIndex, destinationIndex);
-		moveList.pushQuietPromote<piece, rook>(sourceIndex, destinationIndex);
+		moveList.pushQuietPromote<pawn, queen>(sourceIndex, destinationIndex);
+		moveList.pushQuietPromote<pawn, knight>(sourceIndex, destinationIndex);
+		moveList.pushQuietPromote<pawn, bishop>(sourceIndex, destinationIndex);
+		moveList.pushQuietPromote<pawn, rook>(sourceIndex, destinationIndex);
 	}
 
 	while (pawns.board())
@@ -91,10 +91,10 @@ static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state)
 			const int attackIndex{ pawnAttacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 
-			moveList.pushAttackPromote<piece, queen>(attackPiece, sourceIndex, attackIndex);
-			moveList.pushAttackPromote<piece, knight>(attackPiece, sourceIndex, attackIndex);
-			moveList.pushAttackPromote<piece, bishop>(attackPiece, sourceIndex, attackIndex);
-			moveList.pushAttackPromote<piece, rook>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttackPromote<pawn, queen>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttackPromote<pawn, knight>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttackPromote<pawn, bishop>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttackPromote<pawn, rook>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
 }
@@ -144,7 +144,7 @@ static void pawnEnpassants(BitBoard pawns, MoveList& moveList, const State& stat
 template<bool white>
 static void pawnNormals(BitBoard pawns, MoveList& moveList, const State& state) noexcept
 {
-	constexpr Piece piece{ white ? Piece::WhitePawn : Piece::BlackPawn };
+	constexpr Piece pawn{ white ? Piece::WhitePawn : Piece::BlackPawn };
 
 	BitBoard shiftedPawns{ pawnShiftedMoves<white>(pawns, ~state.occupancy().board()) };
 
@@ -154,7 +154,7 @@ static void pawnNormals(BitBoard pawns, MoveList& moveList, const State& state) 
 		const int destinationIndex{ shiftedPawns.popLeastSignificantBit() };
 		const int sourceIndex{ white ? destinationIndex - 8 : destinationIndex + 8 };
 
-		moveList.pushQuiet<piece>(sourceIndex, destinationIndex);
+		moveList.pushQuiet<pawn>(sourceIndex, destinationIndex);
 	}
 
 	//attacks
@@ -170,7 +170,7 @@ static void pawnNormals(BitBoard pawns, MoveList& moveList, const State& state) 
 			const int attackIndex{ attack.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
 
-			moveList.pushAttack<piece>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttack<pawn>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
 }
@@ -192,36 +192,108 @@ static void pawnMoves(BitBoard pawns, MoveList& moveList, const State& state) no
 template<bool white>
 static void knightMoves(BitBoard knights, MoveList& moveList, const State& state) noexcept
 {
-	constexpr Piece piece{ white ? Piece::WhiteKnight : Piece::BlackKnight };
+	constexpr Piece knight{ white ? Piece::WhiteKnight : Piece::BlackKnight };
 
 	while (knights.board())
 	{
 		const int sourceIndex{ knights.popLeastSignificantBit() };
-		const std::uint64_t knightAttacks{ preGen.knightAttack(sourceIndex).board() };
+		const std::uint64_t knightMoves{ preGen.knightAttack(sourceIndex).board() };
 
-		BitBoard quiets{ knightAttacks & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
-		BitBoard attacks{ knightAttacks & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+		BitBoard quiets{ knightMoves & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard attacks{ knightMoves & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
 		while (quiets.board())
 		{
 			const int quietIndex{ quiets.popLeastSignificantBit() };
-			moveList.pushQuiet<piece>(sourceIndex, quietIndex);
+			moveList.pushQuiet<knight>(sourceIndex, quietIndex);
 		}
 
 		while (attacks.board())
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
-			moveList.pushAttack<piece>(attackPiece, sourceIndex, attackIndex);
+			moveList.pushAttack<knight>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
 }
 
+template<bool white>
+static void kingCastles(MoveList& moveList, const State& state)
+{
+	if constexpr (white)
+	{
+		if (state.castleWhiteKingSide())
+		{
+			constexpr std::uint64_t castleMask{ 0b0000011000000000000000000000000000000000000000000000000000000000 };
 
+			if (!(state.occupancy().board() & castleMask))
+			{
+				moveList.pushCastle<Castle::WhiteKingSide>();
+			}
+		}
+
+		if (state.castleWhiteQueenSide())
+		{
+			constexpr std::uint64_t castleMask{ 0b0111000000000000000000000000000000000000000000000000000000000000 };
+
+			if (!(state.occupancy().board() & castleMask))
+			{
+				moveList.pushCastle<Castle::WhiteQueenSide>();
+			}
+		}
+	}
+	else
+	{
+		if (state.castleBlackKingSide())
+		{
+			constexpr std::uint64_t castleMask{ 0b0000000000000000000000000000000000000000000000000000000000000110 };
+
+			if (!(state.occupancy().board() & castleMask))
+			{
+				moveList.pushCastle<Castle::BlackKingSide>();
+			}
+		}
+
+		if (state.castleBlackQueenSide())
+		{
+			constexpr std::uint64_t castleMask{ 0b0000000000000000000000000000000000000000000000000000000001110000 };
+
+			if (!(state.occupancy().board() & castleMask))
+			{
+				moveList.pushCastle<Castle::BlackQueenSide>();
+			}
+		}
+	}
+}
+
+template<bool white>
 static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) noexcept
 {
-	constexpr bool white = true;
+	constexpr Piece king{ white ? Piece::WhiteKing : Piece::BlackKing };
 
+	const int sourceIndex{ kings.leastSignificantBit() };
+	const BitBoard kingMoves{ preGen.knightAttack(sourceIndex) };
+
+	BitBoard quiets{ kingMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board())};
+	BitBoard attacks{ kingMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board())};
+
+	while (quiets.board())
+	{
+		const int destinationIndex{ quiets.popLeastSignificantBit() };
+		moveList.pushQuiet<king>(sourceIndex, destinationIndex);
+	}
+
+	while (attacks.board())
+	{
+		const int attackIndex{ attacks.popLeastSignificantBit() };
+		const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+		moveList.pushAttack<king>(attackPiece, sourceIndex, attackIndex);
+	}
+
+	if (!state.kingInCheck())
+	{
+		kingCastles<white>(moveList, state);
+	}
 }
 
 static void bishopMoves(const State& state, MoveList& moveList) noexcept

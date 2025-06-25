@@ -59,17 +59,10 @@ public:
 	}
 
 	//castle
-	template<bool white>
-	void pushCastle(Castle castle)
+	template<Castle castle>
+	void pushCastle()
 	{
-		if constexpr (white)
-		{
 
-		}
-		else
-		{
-
-		}
 	}
 
 	void sort() noexcept;

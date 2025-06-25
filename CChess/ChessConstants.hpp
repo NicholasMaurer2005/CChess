@@ -37,8 +37,6 @@ enum class Castle : std::uint32_t
 {
 	WhiteKingSide = 0b0010,
 	WhiteQueenSide = 0b0001,
-	WhiteBoth = 0b0011,
 	BlackKingSide = 0b1000,
 	BlackQueenSide = 0b0100,
-	BlackBoth = 0b1100
 };

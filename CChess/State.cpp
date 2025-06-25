@@ -4,7 +4,7 @@
 
 //constructors
 State::State() noexcept
-	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy() { }
+	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck() { }
 
 
 
@@ -39,7 +39,27 @@ BitBoard State::blackEnpassantSquare() const noexcept
 	return m_blackEnpassantSquare;
 }
 
-Castle State::castleRights() const noexcept
+bool State::castleWhiteKingSide() const noexcept
 {
-	return m_castleRights;
+	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::WhiteKingSide));
+}
+
+bool State::castleWhiteQueenSide() const noexcept
+{
+	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::WhiteQueenSide));
+}
+
+bool State::castleBlackKingSide() const noexcept
+{
+	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackKingSide));
+}
+
+bool State::castleBlackQueenSide() const noexcept
+{
+	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackQueenSide));
+}
+
+bool State::kingInCheck() const noexcept
+{
+	return m_kingInCheck;
 }

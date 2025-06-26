@@ -13,14 +13,14 @@ Piece Move::attackPiece() const noexcept
 	return static_cast<Piece>((m_move & attackPieceMask) >> attackPieceShift);
 }
 
-std::size_t Move::sourceIndex() const noexcept
+int Move::sourceIndex() const noexcept
 {
-	return static_cast<std::size_t>((m_move & sourceIndexMask) >> sourceIndexShift);
+	return static_cast<int>((m_move & sourceIndexMask) >> sourceIndexShift);
 }
 
-std::size_t Move::destinationIndex() const noexcept
+int Move::destinationIndex() const noexcept
 {
-	return static_cast<std::size_t>((m_move & destinationIndexMask) >> destinationIndexShift);
+	return static_cast<int>((m_move & destinationIndexMask) >> destinationIndexShift);
 }
 
 Piece Move::promotePiece() const noexcept
@@ -43,9 +43,9 @@ bool Move::castleFlag() const noexcept
 	return static_cast<bool>(m_move & castleFlagMask);
 }
 
-std::size_t Move::enpassantIndex() const noexcept
+int Move::enpassantIndex() const noexcept
 {
-	return static_cast<std::size_t>((m_move & enpassantIndexMask) >> enpassantIndexShift);
+	return static_cast<int>((m_move & enpassantIndexMask) >> enpassantIndexShift);
 }
 
 Castle Move::castleType() const noexcept

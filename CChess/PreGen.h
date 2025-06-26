@@ -73,9 +73,5 @@ public:
 	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const noexcept;
 
 	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const noexcept;
-
-	BitBoard whitePawnDoubleMask(std::size_t index) const noexcept;
-
-	BitBoard blackPawnDoubleMask(std::size_t index) const noexcept;
 };
 

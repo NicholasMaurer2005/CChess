@@ -40,15 +40,15 @@ private:
 
 
 	//private methods
-	void moveOccupancy(bool white, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+	void moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept;
 
-	void movePiece(Piece piece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+	void movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept;
 
-	void moveQuiet(bool white, Piece sourcePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+	void moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept;
 
-	void moveCapture(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+	void moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept;
 
-	void moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex, std::size_t enpassantIndex) noexcept;
+	void moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
 
 	void moveCastle(bool white, Castle castle) noexcept;
 

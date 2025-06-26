@@ -23,7 +23,7 @@ constexpr int attackPieceShift{ 4 };
 constexpr int sourceIndexShift{ 8 };
 constexpr int destinationIndexShift{ 14 };
 constexpr int promotePieceShift{ 20 };
-constexpr int doublePawnShift{ 24 };
+constexpr int doublePawnFlagShift{ 24 };
 constexpr int enpassantFlagShift{ 25 };
 constexpr int castleFlagShift{ 26 };
 constexpr int enpassantIndexShift{ 27 };
@@ -51,9 +51,9 @@ public:
 
 	Piece attackPiece() const noexcept;
 
-	std::size_t sourceIndex() const noexcept;
+	int sourceIndex() const noexcept;
 
-	std::size_t destinationIndex() const noexcept;
+	int destinationIndex() const noexcept;
 
 	Piece promotePiece() const noexcept;
 
@@ -63,7 +63,7 @@ public:
 
 	bool castleFlag() const noexcept;
 
-	std::size_t enpassantIndex() const noexcept;
+	int enpassantIndex() const noexcept;
 
 	Castle castleType() const noexcept;
 };
@@ -119,7 +119,7 @@ static Move makeEnpassant(int sourceIndex, int destinationIndex, int enpassantIn
 		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
 		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift
 		| static_cast<std::uint32_t>(enpassantIndex & 0b0111) << enpassantIndexShift
-		| static_cast<std::uint32_t>(1U) << enpassantFlagShift
+		| static_cast<std::uint32_t>(1U) << enpassantFlagShift);
 }
 
 //double pawn push

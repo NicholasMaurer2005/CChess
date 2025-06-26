@@ -9,7 +9,7 @@ State::State() noexcept
 
 
 //private methods
-void State::moveOccupancy(bool white, std::size_t sourceIndex, std::size_t destinationIndex) noexcept
+void State::moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept
 {
 	m_occupancy.reset(sourceIndex);
 	m_occupancy.set(destinationIndex);
@@ -26,19 +26,19 @@ void State::moveOccupancy(bool white, std::size_t sourceIndex, std::size_t desti
 	}
 }
 
-void State::movePiece(Piece piece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept
+void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept
 {
 	m_pieceOccupancy[static_cast<std::size_t>(piece)].reset(sourceIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(piece)].set(destinationIndex);
 }
 
-void State::moveQuiet(bool white, Piece sourcePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept
+void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
 {
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
 }
 
-void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept
+void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept
 {
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
@@ -46,7 +46,7 @@ void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, std::
 	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(destinationIndex);
 }
 
-void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex, std::size_t enpassantIndex) noexcept
+void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept
 {
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
@@ -111,6 +111,8 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 			}
 		}
 	}
+
+	return info;
 }
 
 void State::unmakeMove(bool white, Move move, unmakeMoveInfo info)

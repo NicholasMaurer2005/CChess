@@ -411,4 +411,6 @@ MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
 		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
 	}
+
+	return moveList;
 }

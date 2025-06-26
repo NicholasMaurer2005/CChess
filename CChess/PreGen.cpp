@@ -423,27 +423,6 @@ void PreGen::generateRookAttacks() noexcept
 
 
 
-//pawn double masks 
-void PreGen::generateWhitePawnDoubleMasks() noexcept
-{
-	for (std::size_t i{ 8 }; i < 15; ++i)
-	{
-		m_whitePawnDoubleMasks[i].set(i + 8);
-		m_whitePawnDoubleMasks[i].set(i + 16);
-	}
-}
-
-void PreGen::generateBlackPawnDoubleMasks() noexcept
-{
-	for (std::size_t i{ 48 }; i < 55; ++i)
-	{
-		m_blackPawnDoubleMasks[i].set(i - 8);
-		m_blackPawnDoubleMasks[i].set(i - 16);
-	}
-}
-
-
-
 //getters
 BitBoard PreGen::whitePawnAttack(std::size_t index) const noexcept
 {
@@ -472,14 +451,4 @@ BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const noexcep
 	const std::size_t magic{ m_rookMagics[index] };
 	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_rookBitCount[index]) };
 	return m_rookAttacks[arrayIndex(index, attackIndex)];
-}
-
-BitBoard PreGen::whitePawnDoubleMask(std::size_t index) const noexcept
-{
-	return m_whitePawnDoubleMasks[index];
-}
-
-BitBoard PreGen::blackPawnDoubleMask(std::size_t index) const noexcept
-{
-	return m_blackPawnDoubleMasks[index];
 }

@@ -60,7 +60,7 @@ public:
 
 	//double pawn push
 	template<Piece piece>
-	void pushQuiet(int sourceIndex, int destinationIndex) noexcept
+	void pushDoublePawn(int sourceIndex, int destinationIndex) noexcept
 	{
 		m_moves[m_back] = makeDoublePawn<piece>(sourceIndex, destinationIndex);
 		++m_back;

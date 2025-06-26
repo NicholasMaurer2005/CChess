@@ -1,6 +1,7 @@
 #include "State.h"
 
 #include <cctype>
+#include <iostream>
 
 
 static consteval std::array<Piece, 255>  generateCharToPiece()
@@ -9,21 +10,19 @@ static consteval std::array<Piece, 255>  generateCharToPiece()
 
 	table['P'] = Piece::WhitePawn;
 	table['N'] = Piece::WhiteKnight;
-	table['K'] = Piece::WhiteKing;
 	table['B'] = Piece::WhiteBishop;
 	table['R'] = Piece::WhiteRook;
 	table['Q'] = Piece::WhiteQueen;
+	table['K'] = Piece::WhiteKing;
 	table['p'] = Piece::BlackPawn;
 	table['n'] = Piece::BlackKnight;
-	table['k'] = Piece::BlackKing;
 	table['b'] = Piece::BlackBishop;
 	table['r'] = Piece::BlackRook;
 	table['q'] = Piece::BlackQueen;
+	table['k'] = Piece::BlackKing;
 
 	return table;
 }
-
-constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
 
 
@@ -33,7 +32,8 @@ State::State() noexcept
 
 State::State(std::string_view fen)
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck()
-{
+{ //TODO: impliment rest of FEN
+	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
 	for (std::size_t i{}; i < rankSize; ++i)
 	{
@@ -73,6 +73,44 @@ State::State(std::string_view fen)
 		fen = fen.substr(slashIndex + 1);
 	}
 }
+
+
+
+//print
+void State::print() const noexcept
+{
+	constexpr std::array<char, pieceCount> pieceToChar{ '0', 'P', 'N', 'B', 'R', 'Q', 'K', 'X', 'n', 'b', 'r', 'q', 'k' };
+
+	std::array<Piece, boardSize> board{};
+
+	for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
+	{
+		BitBoard occupancy{ m_pieceOccupancy[i] };
+
+		while (occupancy.board())
+		{
+			const int index{ occupancy.popLeastSignificantBit() };
+			board[index] = static_cast<Piece>(i);
+		}
+	}
+
+	for (int rank{ rankSize - 1 }; rank >= 0; --rank)
+	{
+		std::cout << (rank + 1) << "  ";
+
+		for (int file{}; file < fileSize; ++file)
+		{
+			const std::size_t index{ static_cast<std::size_t>(rank * fileSize + file) };
+			std::cout << pieceToChar[static_cast<std::size_t>(board[index])] << ' ';
+		}
+
+		std::cout << "\n";
+	}
+
+	std::cout << "\n   A B C D E F G H\n";
+}
+
+
 
 //private methods
 void State::moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept

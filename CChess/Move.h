@@ -40,7 +40,7 @@ public:
 
 	//constructors
 	constexpr Move() noexcept {}
-
+	
 	constexpr Move(std::uint32_t move)
 		: m_move(move) { }
 

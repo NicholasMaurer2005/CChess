@@ -64,7 +64,13 @@ public:
 	//constructors
 	State() noexcept;
 
-	State(std::string_view fen) noexcept;
+	State(std::string_view fen);
+
+
+
+	//print
+	void print() const noexcept;
+
 
 
 	//move

@@ -67,10 +67,10 @@ void BitBoard::print() const
 
 		for (int file{}; file < fileSize; ++file)
 		{
-			std::cout << test(rank, file) << " ";
+			std::cout << test(rank, file) << ' ';
 		}
 
-		std::cout << "\n";
+		std::cout << '\n';
 	}
 
 	std::cout << "\n   A B C D E F G H\n";

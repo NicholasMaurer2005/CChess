@@ -1,12 +1,78 @@
 #include "State.h"
 
+#include <cctype>
+
+
+static consteval std::array<Piece, 255>  generateCharToPiece()
+{
+	std::array<Piece, 255> table{};
+
+	table['P'] = Piece::WhitePawn;
+	table['N'] = Piece::WhiteKnight;
+	table['K'] = Piece::WhiteKing;
+	table['B'] = Piece::WhiteBishop;
+	table['R'] = Piece::WhiteRook;
+	table['Q'] = Piece::WhiteQueen;
+	table['p'] = Piece::BlackPawn;
+	table['n'] = Piece::BlackKnight;
+	table['k'] = Piece::BlackKing;
+	table['b'] = Piece::BlackBishop;
+	table['r'] = Piece::BlackRook;
+	table['q'] = Piece::BlackQueen;
+
+	return table;
+}
+
+constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
+
 
 
 //constructors
 State::State() noexcept
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck() { }
 
+State::State(std::string_view fen)
+	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck()
+{
 
+	for (std::size_t i{}; i < rankSize; ++i)
+	{
+		const std::size_t slashIndex{ fen.find('/') };
+		const std::string_view rank{ fen.substr(0, slashIndex) };
+		
+		std::size_t boardIndex = (7 - i) * 8;
+
+		for (char c : rank)
+		{
+			if (std::isdigit(c))
+			{
+				std::size_t digit{ static_cast<std::size_t>(c - '0') };
+				boardIndex += digit;
+			}
+			else
+			{
+				const Piece piece{ charToPiece[c] };
+				const bool white = static_cast<std::uint32_t>(piece) < static_cast<std::uint32_t>(blackPieceOffset);
+
+				m_occupancy.set(boardIndex);
+				m_pieceOccupancy[static_cast<std::size_t>(piece)].set(boardIndex);
+
+				if (white)
+				{
+					m_whiteOccupancy.set(boardIndex);
+				}
+				else
+				{
+					m_blackOccupancy.set(boardIndex);
+				}
+
+				++boardIndex;
+			}
+		}
+
+		fen = fen.substr(slashIndex + 1);
+	}
+}
 
 //private methods
 void State::moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept
@@ -172,7 +238,7 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 	return info;
 }
 
-void State::unmakeMove(bool white, Move move, unmakeMoveInfo info)
+void State::unmakeMove(bool white, Move move, unmakeMoveInfo info) noexcept
 {
 
 }

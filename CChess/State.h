@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <algorithm>
+#include <string_view>
 
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
@@ -60,15 +61,16 @@ private:
 
 public:
 
-	//construcors
+	//constructors
 	State() noexcept;
 
+	State(std::string_view fen) noexcept;
 
 
 	//move
 	unmakeMoveInfo makeMove(bool white, Move move) noexcept;
 
-	void unmakeMove(bool white, Move move, unmakeMoveInfo info);
+	void unmakeMove(bool white, Move move, unmakeMoveInfo info) noexcept;
 
 
 

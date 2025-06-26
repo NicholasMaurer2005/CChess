@@ -40,3 +40,5 @@ enum class Castle : std::uint32_t
 	BlackKingSide = 0b1000,
 	BlackQueenSide = 0b0100,
 };
+
+constexpr std::size_t noSquare{ 64 };

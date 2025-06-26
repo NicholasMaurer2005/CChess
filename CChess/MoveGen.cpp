@@ -111,7 +111,7 @@ static void pawnDoubles(BitBoard pawns, MoveList& moveList, const State& state) 
 		const int destinationIndex{ pawnsShiftedTwice.popLeastSignificantBit() };
 		const int sourceIndex{ white ? destinationIndex - 16 : destinationIndex + 16 };
 
-		moveList.pushQuiet<white ? Piece::WhitePawn : Piece::BlackPawn>(sourceIndex, destinationIndex);
+		moveList.pushDoublePawn<white ? Piece::WhitePawn : Piece::BlackPawn>(sourceIndex, destinationIndex);
 	}
 }
 
@@ -123,7 +123,7 @@ static void pawnEnpassants(BitBoard pawns, MoveList& moveList, const State& stat
 
 	const BitBoard enpassantSquare{ white ? state.blackEnpassantSquare() : state.whiteEnpassantSquare() };
 
-	if (!enpassantSquare.board()) return;
+	if (!enpassantSquare.board()) [[likely]] return; //TODO: test if [[likely]] is faster
 
 	while (pawns.board())
 	{

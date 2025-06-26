@@ -28,15 +28,24 @@ Piece Move::promotePiece() const noexcept
 	return static_cast<Piece>((m_move & promotePieceMask) >> promotePieceShift);
 }
 
-std::size_t Move::enpassantIndex() const noexcept
+bool Move::doublePawnFlag() const noexcept
 {
-	const std::size_t index{ static_cast<std::size_t>((m_move & enpassantIndexMask) >> enpassantIndexShift) };
-	return index ? index - 1 : 0;
+	return static_cast<bool>(m_move & doublePawnFlagMask);
+}
+
+bool Move::enpassantFlag() const noexcept
+{
+	return static_cast<bool>(m_move & enpassantFlagMask);
 }
 
 bool Move::castleFlag() const noexcept
 {
-	return static_cast<bool>((m_move & castleFlagMask) >> castleFlagShift);
+	return static_cast<bool>(m_move & castleFlagMask);
+}
+
+std::size_t Move::enpassantIndex() const noexcept
+{
+	return static_cast<std::size_t>((m_move & enpassantIndexMask) >> enpassantIndexShift);
 }
 
 Castle Move::castleType() const noexcept

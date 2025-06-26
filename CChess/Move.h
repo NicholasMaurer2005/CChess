@@ -13,16 +13,20 @@ constexpr std::uint32_t attackPieceMask		{ 0b00000000000000000000000011110000 };
 constexpr std::uint32_t sourceIndexMask		{ 0b00000000000000000011111100000000 };
 constexpr std::uint32_t destinationIndexMask{ 0b00000000000011111100000000000000 };
 constexpr std::uint32_t promotePieceMask	{ 0b00000000111100000000000000000000 };
-constexpr std::uint32_t enpassantIndexMask	{ 0b01111111000000000000000000000000 };
-constexpr std::uint32_t castleFlagMask		{ 0b10000000000000000000000000000000 };
+constexpr std::uint32_t doublePawnFlagMask	{ 0b00000001000000000000000000000000 };
+constexpr std::uint32_t enpassantFlagMask	{ 0b00000010000000000000000000000000 };
+constexpr std::uint32_t castleFlagMask		{ 0b00000100000000000000000000000000 };
+constexpr std::uint32_t enpassantIndexMask	{ 0b00111000000000000000000000000000 };
 constexpr std::uint32_t castleTypeMask		{ 0b00000000000000000000000000001111 };
 
 constexpr int attackPieceShift{ 4 };
 constexpr int sourceIndexShift{ 8 };
 constexpr int destinationIndexShift{ 14 };
 constexpr int promotePieceShift{ 20 };
-constexpr int enpassantIndexShift{ 24 };
-constexpr int castleFlagShift{ 31 };
+constexpr int doublePawnShift{ 24 };
+constexpr int enpassantFlagShift{ 25 };
+constexpr int castleFlagShift{ 26 };
+constexpr int enpassantIndexShift{ 27 };
 
 
 
@@ -41,7 +45,7 @@ public:
 		: m_move(move) { }
 
 
-
+		
 	//getters
 	Piece sourcePiece() const noexcept;
 
@@ -53,9 +57,13 @@ public:
 
 	Piece promotePiece() const noexcept;
 
-	std::size_t enpassantIndex() const noexcept;
+	bool doublePawnFlag() const noexcept;
+
+	bool enpassantFlag() const noexcept;
 
 	bool castleFlag() const noexcept;
+
+	std::size_t enpassantIndex() const noexcept;
 
 	Castle castleType() const noexcept;
 };
@@ -110,5 +118,16 @@ static Move makeEnpassant(int sourceIndex, int destinationIndex, int enpassantIn
 		| static_cast<std::uint32_t>(attackPiece) << attackPieceShift
 		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
 		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift
-		| static_cast<std::uint32_t>(enpassantIndex) << enpassantIndexShift);
+		| static_cast<std::uint32_t>(enpassantIndex & 0b0111) << enpassantIndexShift
+		| static_cast<std::uint32_t>(1U) << enpassantFlagShift
+}
+
+//double pawn push
+template<Piece sourcePiece>
+static Move makeDoublePawn(int sourceIndex, int destinationIndex) noexcept
+{
+	return Move(static_cast<std::uint32_t>(sourcePiece)
+		| static_cast<std::uint32_t>(sourceIndex) << sourceIndexShift
+		| static_cast<std::uint32_t>(destinationIndex) << destinationIndexShift
+		| static_cast<std::uint32_t>(1U << doublePawnFlagShift));
 }

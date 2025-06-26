@@ -13,7 +13,10 @@
 
 struct unmakeMoveInfo
 {
-
+	BitBoard whiteEnpassantSquare;
+	BitBoard blackEnpassantSquare;
+	Castle m_castleRights;
+	bool kingInCheck;
 };
 
 
@@ -36,6 +39,21 @@ private:
 
 
 
+	//private methods
+	void moveOccupancy(bool white, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+
+	void movePiece(Piece piece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+
+	void moveQuiet(bool white, Piece sourcePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+
+	void moveCapture(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex) noexcept;
+
+	void moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, std::size_t sourceIndex, std::size_t destinationIndex, std::size_t enpassantIndex) noexcept;
+
+	void moveCastle(bool white, Castle castle) noexcept;
+
+
+
 public:
 
 	//construcors
@@ -44,9 +62,9 @@ public:
 
 
 	//move
-	unmakeMoveInfo makeMove(Move move) noexcept;
+	unmakeMoveInfo makeMove(bool white, Move move) noexcept;
 
-	void unmakeMove(Move move, unmakeMoveInfo info);
+	void unmakeMove(bool white, Move move, unmakeMoveInfo info);
 
 
 

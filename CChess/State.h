@@ -50,7 +50,11 @@ private:
 
 	void moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
 
-	void moveCastle(bool white, Castle castle) noexcept;
+	void moveCastle(Castle castle) noexcept;
+
+	void moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept;
+
+	void moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept;
 
 
 

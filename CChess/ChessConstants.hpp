@@ -35,10 +35,10 @@ constexpr int blackPieceOffset{ 7 };
 
 enum class Castle : std::uint32_t
 {
-	WhiteKingSide = 0b0010,
-	WhiteQueenSide = 0b0001,
-	BlackKingSide = 0b1000,
-	BlackQueenSide = 0b0100,
+	WhiteKingSide	= 0b0001,
+	WhiteQueenSide	= 0b0010,
+	BlackKingSide	= 0b0100,
+	BlackQueenSide	= 0b1000,
 };
 
 constexpr std::size_t noSquare{ 64 };

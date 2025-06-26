@@ -227,7 +227,7 @@ void PreGen::generateBishopMagics() noexcept
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
 		const std::size_t bitCount{ m_bishopRelevantBits[i].bitCount() };
-		m_bishopBitCount[i] = bitCount;
+		m_bishopBitCount[i] = static_cast<int>(bitCount);
 
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };
@@ -269,7 +269,7 @@ void PreGen::generateRookMagics() noexcept
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
 		const std::size_t bitCount{ m_rookRelevantBits[i].bitCount() };
-		m_rookBitCount[i] = bitCount;
+		m_rookBitCount[i] = static_cast<int>(bitCount);
 
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };

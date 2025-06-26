@@ -54,9 +54,47 @@ void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int
 	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(enpassantIndex);
 }
 
-void State::moveCastle(bool white, Castle castle) noexcept
+void State::moveCastle(Castle castle) noexcept
 {
-	//TODO
+	switch (castle)
+	{
+	case Castle::WhiteKingSide:
+		moveQuiet(true, Piece::WhiteKing, 4, 6);
+		moveQuiet(true, Piece::WhiteRook, 7, 5);
+		break;
+
+	case Castle::WhiteQueenSide:
+		moveQuiet(true, Piece::WhiteKing, 4, 2);
+		moveQuiet(true, Piece::WhiteRook, 0, 3);
+		break;
+
+	case Castle::BlackKingSide:
+		moveQuiet(false, Piece::BlackKing, 60, 62);
+		moveQuiet(false, Piece::BlackRook, 63, 61);
+		break;
+
+	case Castle::BlackQueenSide:
+		moveQuiet(false, Piece::BlackKing, 60, 58);
+		moveQuiet(false, Piece::BlackRook, 56, 59);
+		break;
+	}
+}
+
+void State::moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept
+{
+	moveOccupancy(white, sourceIndex, destinationIndex);
+
+	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
+	m_pieceOccupancy[static_cast<std::size_t>(promotePiece)].set(destinationIndex);
+}
+
+void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept
+{
+	moveOccupancy(white, sourceIndex, destinationIndex);
+
+	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
+	m_pieceOccupancy[static_cast<std::size_t>(attackPiece)].reset(destinationIndex);
+	m_pieceOccupancy[static_cast<std::size_t>(promotePiece)].set(destinationIndex);
 }
 
 
@@ -68,12 +106,14 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 
 	if (move.castleFlag()) [[unlikely]]
 	{
-		//castle move
+		//castle
+		moveCastle(move.castleType());
 	}
 	else if (move.enpassantFlag()) [[unlikely]]
 	{
 		//enpassant
-		(white ? 24 : 32);
+		const int enpassantIndex{ move.enpassantIndex() + (white ? 24 : 32) };
+		moveEnpassant(white, move.sourcePiece(), move.attackPiece(), move.sourceIndex(), move.destinationIndex(), enpassantIndex);
 	}
 	else
 	{
@@ -88,15 +128,30 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 				if (move.doublePawnFlag()) [[unlikely]]
 				{
 					//double pawn push
+					const int sourceIndex{ move.sourceIndex() };
+					moveQuiet(white, move.sourcePiece(), sourceIndex, move.destinationIndex());
+					
+					if (white)
+					{
+						const int enpassantIndex{ sourceIndex + 8 };
+						m_whiteEnpassantSquare = BitBoard(1ULL << enpassantIndex);
+					}
+					else
+					{
+						const int enpassantIndex{ sourceIndex - 8 };
+						m_blackEnpassantSquare = BitBoard(1ULL << enpassantIndex);
+					}
 				}
 				else
 				{
 					//normal quiet
+					moveQuiet(white, move.sourcePiece(), move.sourceIndex(), move.destinationIndex());
 				}
 			}
 			else
 			{
 				//normal capture
+				moveCapture(white, move.sourcePiece(), move.attackPiece(), move.sourceIndex(), move.destinationIndex());
 			}
 		}
 		else
@@ -104,10 +159,12 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 			if (attackPiece == Piece::NoPiece)
 			{
 				//quiet promote
+				moveQuietPromote(white, move.sourcePiece(), promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 			else
 			{
 				//capture promote
+				moveCapturePromote(white, move.sourcePiece(), attackPiece, promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 		}
 	}

@@ -70,7 +70,10 @@ public:
 	template<Castle castle>
 	void pushCastle()
 	{
+		constexpr Move castleMove{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(castle) };
 
+		m_moves[m_back] = castleMove;
+		++m_back;
 	}
 
 	void sort() noexcept;

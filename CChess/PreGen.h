@@ -15,12 +15,12 @@ class cachealign PreGen
 private:
 
 	//magic numbers
-	std::array<BitBoard, boardSize>  m_bishopRelevantBits;
+	std::array<BitBoard, boardSize>  m_bishopRelevantBits; //TODO: use stockfish method.
 	std::array<BitBoard, boardSize>  m_rookRelevantBits;
 	std::array<std::uint64_t, boardSize> m_bishopMagics;
 	std::array<std::uint64_t, boardSize> m_rookMagics;
-	std::array<int, boardSize> m_bishopBitCount;
-	std::array<int, boardSize> m_rookBitCount;
+	std::array<int, boardSize> m_bishopBitCount; //TODO: replace with shifts
+	std::array<int, boardSize> m_rookBitCount; 
 
 	//attack tables
 	std::array<BitBoard, boardSize> m_whitePawnAttacks;

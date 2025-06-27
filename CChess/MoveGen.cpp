@@ -14,8 +14,8 @@ template<bool white>
 static BitBoard pawnDoublesMask(BitBoard pawns) noexcept
 {
 	constexpr std::uint64_t mask{ white
-		? 0b0000000011111111000000000000000000000000000000000000000000000000
-		: 0b0000000000000000000000000000000000000000000000001111111100000000 };
+		? 0b0000000000000000000000000000000000000000000000001111111100000000
+		: 0b0000000011111111000000000000000000000000000000000000000000000000 };
 
 	return BitBoard(pawns.board() & mask);
 }
@@ -24,8 +24,8 @@ template<bool white>
 static BitBoard pawnPromotesMask(BitBoard pawns) noexcept
 {
 	constexpr std::uint64_t mask{ white
-		? 0b0000000000000000000000000000000000000000000000001111111100000000
-		: 0b0000000011111111000000000000000000000000000000000000000000000000 };
+		? 0b0000000011111111000000000000000000000000000000000000000000000000
+		: 0b0000000000000000000000000000000000000000000000001111111100000000 };
 
 	return BitBoard(pawns.board() & mask);
 }
@@ -34,8 +34,8 @@ template<bool white>
 static BitBoard pawnEnpassantsMask(BitBoard pawns) noexcept
 {
 	constexpr std::uint64_t mask{ white
-		? 0b0000000000000000000000000000000011111111000000000000000000000000
-		: 0b0000000000000000000000001111111100000000000000000000000000000000 };
+		? 0b0000000000000000000000001111111100000000000000000000000000000000
+		: 0b0000000000000000000000000000000011111111000000000000000000000000 };
 
 	return BitBoard(pawns.board() & mask);
 }
@@ -46,15 +46,17 @@ static BitBoard pawnShiftedMoves(BitBoard pawns, std::uint64_t mask) noexcept
 {
 	if constexpr (white)
 	{
-		const std::uint64_t shiftedPawns{ pawns.board() >> 8};
+		const std::uint64_t shiftedPawns{ pawns.board() << 8};
 		return BitBoard(shiftedPawns & mask);
 	}
 	else
 	{
-		const std::uint64_t shiftedPawns{ pawns.board() << 8 };
+		const std::uint64_t shiftedPawns{ pawns.board() >> 8 };
 		return BitBoard(shiftedPawns & mask);
 	}
 }
+
+
 
 template<bool white>
 static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state) noexcept
@@ -189,6 +191,8 @@ static void pawnMoves(BitBoard pawns, MoveList& moveList, const State& state) no
 	pawnNormals<white>(pawnNormalMoves, moveList, state);
 }
 
+
+
 template<bool white>
 static void knightMoves(BitBoard knights, MoveList& moveList, const State& state) noexcept
 {
@@ -286,7 +290,7 @@ static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) no
 	while (attacks.board())
 	{
 		const int attackIndex{ attacks.popLeastSignificantBit() };
-		const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+		const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 		moveList.pushAttack<king>(attackPiece, sourceIndex, attackIndex);
 	}
 
@@ -296,11 +300,9 @@ static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) no
 	}
 }
 
-//template<bool white>
+template<bool white>
 static void bishopMoves(BitBoard bishops, MoveList& moveList, const State& state) noexcept
 {
-	constexpr bool white{};
-
 	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
 
 	while (bishops.board())
@@ -320,16 +322,15 @@ static void bishopMoves(BitBoard bishops, MoveList& moveList, const State& state
 		while (attacks.board())
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
-			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 			moveList.pushAttack<bishop>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
 }
 
+template<bool white>
 static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) noexcept
 {
-	constexpr bool white{};
-
 	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
 
 	while (rooks.board())
@@ -349,16 +350,15 @@ static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) no
 		while (attacks.board())
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
-			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 			moveList.pushAttack<rook>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
 }
 
+template<bool white>
 static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) noexcept //TODO: maybe make no loop for queen? always one queen per side
 {
-	constexpr bool white{};
-
 	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
 
 	while (queens.board())
@@ -378,7 +378,7 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 		while (attacks.board())
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
-			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 			moveList.pushAttack<queen>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
@@ -396,20 +396,20 @@ MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 	if (white) //TODO: maybe remove if statement and make template?
 	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
 		pawnMoves<true>(state.pieceOccupancyT<Piece::WhitePawn>(), moveList, state);
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteKing>(), moveList, state);
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), moveList, state);
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteRook>(), moveList, state);
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), moveList, state);
+		knightMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);
+		bishopMoves<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), moveList, state);
+		rookMoves<true>(state.pieceOccupancyT<Piece::WhiteRook>(), moveList, state);
+		queenMoves<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), moveList, state);
+		kingMoves<true>(state.pieceOccupancyT<Piece::WhiteKing>(), moveList, state);
 	}
 	else
 	{
 		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackPawn>(), moveList, state);
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackKnight>(), moveList, state);
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackKing>(), moveList, state);
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackBishop>(), moveList, state);
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
+		knightMoves<false>(state.pieceOccupancyT<Piece::BlackKnight>(), moveList, state);
+		bishopMoves<false>(state.pieceOccupancyT<Piece::BlackBishop>(), moveList, state);
+		rookMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
+		queenMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
+		kingMoves<false>(state.pieceOccupancyT<Piece::BlackKing>(), moveList, state);
 	}
 
 	return moveList;

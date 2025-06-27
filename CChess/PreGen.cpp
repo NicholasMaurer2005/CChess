@@ -12,9 +12,19 @@
 //static helpers
 template<typename T>
 requires std::integral<T> && std::is_convertible_v<T, std::size_t>
-static std::size_t arrayIndex(T rank, T file) noexcept
+static std::size_t boardIndex(T rank, T file) noexcept
 {
 	return static_cast<std::size_t>(rank * fileSize + file);
+}
+
+static std::size_t bishopMagicIndex(std::size_t square, std::size_t magicIndex)
+{
+	return square * maxBishopAttacks + magicIndex;
+}
+
+static std::size_t rookMagicIndex(std::size_t square, std::size_t magicIndex)
+{
+	return square * maxRookAttacks + magicIndex;
 }
 
 static void setSafe(BitBoard& board, int rank, int file) noexcept
@@ -172,22 +182,22 @@ void PreGen::generateBishopRelevantBits() noexcept
 		{
 			for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 6 && newFile <= 6; ++newRank, ++newFile)
 			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
 			}
 
 			for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 6 && newFile >= 1; ++newRank, --newFile)
 			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
 			}
 
 			for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 1 && newFile >= 1; --newRank, --newFile)
 			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
 			}
 
 			for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 1 && newFile <= 6; --newRank, ++newFile)
 			{
-				m_bishopRelevantBits[arrayIndex(rank, file)].set(newRank, newFile);
+				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
 			}
 		}
 	}
@@ -201,22 +211,22 @@ void PreGen::generateRookRelevantBits() noexcept
 		{
 			for (int newRank{ rank + 1 }; newRank <= 6; ++newRank)
 			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+				m_rookRelevantBits[boardIndex(file, rank)].set(newRank, rank);
 			}
 
 			for (int newRank{ rank - 1 }; newRank >= 1; --newRank)
 			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(newRank, rank);
+				m_rookRelevantBits[boardIndex(file, rank)].set(newRank, rank);
 			}
 
 			for (int newFile{ file + 1 }; newFile <= 6; ++newFile)
 			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+				m_rookRelevantBits[boardIndex(file, rank)].set(file, newFile);
 			}
 
 			for (int newFile{ file - 1 }; newFile >= 1; --newFile)
 			{
-				m_rookRelevantBits[arrayIndex(file, rank)].set(file, newFile);
+				m_rookRelevantBits[boardIndex(file, rank)].set(file, newFile);
 			}
 		}
 	}
@@ -317,8 +327,8 @@ void PreGen::generatePawnAttacks() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const int newRank{ rank + 1 };
-			setSafe(m_whitePawnAttacks[arrayIndex(rank, file)], newRank, file + 1);
-			setSafe(m_whitePawnAttacks[arrayIndex(rank, file)], newRank, file - 1);
+			setSafe(m_whitePawnAttacks[boardIndex(rank, file)], newRank, file + 1);
+			setSafe(m_whitePawnAttacks[boardIndex(rank, file)], newRank, file - 1);
 		}
 	}
 
@@ -328,8 +338,8 @@ void PreGen::generatePawnAttacks() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const int newRank{ rank - 1 };
-			setSafe(m_blackPawnAttacks[arrayIndex(rank, file)], newRank, file + 1);
-			setSafe(m_blackPawnAttacks[arrayIndex(rank, file)], newRank, file - 1);
+			setSafe(m_blackPawnAttacks[boardIndex(rank, file)], newRank, file + 1);
+			setSafe(m_blackPawnAttacks[boardIndex(rank, file)], newRank, file - 1);
 		}
 	}
 }
@@ -341,20 +351,20 @@ void PreGen::generateKightAttacks() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			//north
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank + 2, file + 1);
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank + 2, file - 1);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank + 2, file + 1);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank + 2, file - 1);
 																 
 			//east												 
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank + 1, file + 2);
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank - 1, file + 2);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank + 1, file + 2);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank - 1, file + 2);
 																 
 			//south												 
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank - 2, file + 1);
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank - 2, file - 1);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank - 2, file + 1);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank - 2, file - 1);
 																 
 			//west												 
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank + 1, file - 2);
-			setSafe(m_knightAttacks[arrayIndex(rank, file)], rank - 1, file - 2);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank + 1, file - 2);
+			setSafe(m_knightAttacks[boardIndex(rank, file)], rank - 1, file - 2);
 		}
 	}
 }
@@ -365,14 +375,14 @@ void PreGen::generateKingAttacks() noexcept
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank + 1, file);		//N
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank + 1, file + 1);	//NE
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank, file + 1);		//E
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank - 1, file + 1);	//SE
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank - 1, file);		//S
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank - 1, file - 1);	//SW
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank, file - 1);		//W
-			setSafe(m_kingAttacks[arrayIndex(rank, file)], rank + 1, file - 1);	//NW
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank + 1, file);		//N
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank + 1, file + 1);	//NE
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank, file + 1);		//E
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank - 1, file + 1);	//SE
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank - 1, file);		//S
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank - 1, file - 1);	//SW
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank, file - 1);		//W
+			setSafe(m_kingAttacks[boardIndex(rank, file)], rank + 1, file - 1);	//NW
 		}
 	}
 }				
@@ -383,17 +393,18 @@ void PreGen::generateBishopAttacks() noexcept
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			const std::size_t index{ arrayIndex(rank, file) };
-			const std::size_t bitCount{ m_bishopRelevantBits[index].bitCount()};
+			const std::size_t square{ boardIndex(rank, file) };
+			const std::size_t bitCount{ m_bishopRelevantBits[square].bitCount()};
 			const std::size_t occupanciesCount{ 1ULL << bitCount };
 			const std::size_t shift{ boardSize - bitCount };
 
-			std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[index], bitCount, occupanciesCount) };
-
-			for (std::size_t i{}; i < occupanciesCount; ++i)
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[square], bitCount, occupanciesCount) };
+			
+			for (BitBoard occupancy : occupancies)
 			{
-				const BitBoard attack{ generateBishopAttack(rank, file, occupancies[i]) };
-				m_bishopAttacks[arrayIndex(index, i)] = attack;
+				const BitBoard attack{ generateBishopAttack(rank, file, occupancy) };
+				const std::size_t magicIndex{ (occupancy.board() * m_bishopMagics[square]) >> shift };
+				m_bishopAttacks[bishopMagicIndex(square, magicIndex)] = attack;
 			}
 		}
 	}
@@ -405,17 +416,19 @@ void PreGen::generateRookAttacks() noexcept
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			const std::size_t index{ arrayIndex(rank, file) };
-			const std::size_t bitCount{ m_rookRelevantBits[index].bitCount()};
+			const std::size_t square{ boardIndex(rank, file) };
+			const std::size_t bitCount{ m_rookRelevantBits[square].bitCount()};
 			const std::size_t occupanciesCount{ 1ULL << bitCount };
 			const std::size_t shift{ boardSize - bitCount };
 
-			std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[index], bitCount, occupanciesCount) };
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[square], bitCount, occupanciesCount) };
 
-			for (std::size_t i{}; i < occupanciesCount; ++i)
+			for (BitBoard occupancy : occupancies)
 			{
-				const BitBoard attack{ generateRookAttack(rank, file, occupancies[i]) };
-				m_rookAttacks[arrayIndex(index, i)] = attack;
+				const BitBoard attack{ generateRookAttack(rank, file, occupancy) };
+
+				const std::size_t magicIndex{ (occupancy.board() * m_rookMagics[square]) >> shift };
+				m_rookAttacks[rookMagicIndex(square, magicIndex)] = attack;
 			}
 		}
 	}
@@ -442,13 +455,17 @@ BitBoard PreGen::knightAttack(std::size_t index) const noexcept
 BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_bishopMagics[index] };
-	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_bishopBitCount[index])};
-	return m_bishopAttacks[arrayIndex(index, attackIndex)];
+	const std::uint64_t relevantBits{ occupancy.board() & m_bishopRelevantBits[index].board() };
+	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_bishopBitCount[index])};
+
+	return m_bishopAttacks[bishopMagicIndex(index, attackIndex)];
 }
 
 BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_rookMagics[index] };
-	const std::size_t attackIndex{ (occupancy.board() * magic) << (boardSize - m_rookBitCount[index]) };
-	return m_rookAttacks[arrayIndex(index, attackIndex)];
+	const std::uint64_t relevantBits{ occupancy.board() & m_rookRelevantBits[index].board() };
+	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_rookBitCount[index]) };
+
+	return m_rookAttacks[rookMagicIndex(index, attackIndex)];
 }

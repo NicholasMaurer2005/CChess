@@ -10,7 +10,7 @@ void MoveList::sort() noexcept
 
 std::array<Move, maxLegalMoves>::const_iterator MoveList::begin() const noexcept
 {
-	return m_moves.begin() + whitePieceOffset;
+	return m_moves.begin();
 }
 
 std::array<Move, maxLegalMoves>::const_iterator MoveList::end() const noexcept

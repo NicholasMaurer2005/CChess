@@ -28,7 +28,7 @@ static consteval std::array<Piece, 255>  generateCharToPiece()
 
 //constructors
 State::State() noexcept
-	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck() { }
+	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights() { }
 
 State::State(std::string_view fen)
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck()
@@ -206,7 +206,7 @@ void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece,
 //move
 unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 {
-	unmakeMoveInfo info{ m_whiteEnpassantSquare, m_blackEnpassantSquare, m_castleRights, m_kingInCheck };
+	unmakeMoveInfo info{ m_whiteEnpassantSquare, m_blackEnpassantSquare, m_castleRights, m_whiteKingInCheck, m_blackKingInCheck };
 
 	if (move.castleFlag()) [[unlikely]]
 	{
@@ -332,9 +332,4 @@ bool State::castleBlackKingSide() const noexcept
 bool State::castleBlackQueenSide() const noexcept
 {
 	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackQueenSide));
-}
-
-bool State::kingInCheck() const noexcept
-{
-	return m_kingInCheck;
 }

@@ -111,29 +111,29 @@ static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy) noexc
 	bool blocked{};
 	for (int newRank{ rank + 1 }; newRank <= 7 && !blocked; ++newRank)
 	{
-		attack.set(newRank, rank);
-		blocked = occupancy.test(newRank, rank);
+		attack.set(newRank, file);
+		blocked = occupancy.test(newRank, file);
 	}
 
 	blocked = false;
 	for (int newRank{ rank - 1 }; newRank >= 0 && !blocked; --newRank)
 	{
-		attack.set(newRank, rank);
-		blocked = occupancy.test(newRank, rank);
+		attack.set(newRank, file);
+		blocked = occupancy.test(newRank, file);
 	}
 
 	blocked = false;
 	for (int newFile{ file + 1 }; newFile <= 7 && !blocked; ++newFile)
 	{
-		attack.set(file, newFile);
-		blocked = occupancy.test(file, newFile);
+		attack.set(rank, newFile);
+		blocked = occupancy.test(rank, newFile);
 	}
 
 	blocked = false;
 	for (int newFile{ file - 1 }; newFile >= 0 && !blocked; --newFile)
 	{
-		attack.set(file, newFile);
-		blocked = occupancy.test(file, newFile);
+		attack.set(rank, newFile);
+		blocked = occupancy.test(rank, newFile);
 	}
 
 	return attack;
@@ -450,6 +450,11 @@ BitBoard PreGen::blackPawnAttack(std::size_t index) const noexcept
 BitBoard PreGen::knightAttack(std::size_t index) const noexcept
 {
 	return m_knightAttacks[index];
+}
+
+BitBoard PreGen::kingAttack(std::size_t index) const noexcept
+{
+	return m_kingAttacks[index];
 }
 
 BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const noexcept

@@ -70,6 +70,8 @@ public:
 
 	BitBoard knightAttack(std::size_t index) const noexcept;
 
+	BitBoard kingAttack(std::size_t index) const noexcept;
+
 	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const noexcept;
 
 	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const noexcept;

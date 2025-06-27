@@ -203,7 +203,7 @@ static void knightMoves(BitBoard knights, MoveList& moveList, const State& state
 		const int sourceIndex{ knights.popLeastSignificantBit() };
 		const std::uint64_t knightMoves{ preGen.knightAttack(sourceIndex).board() };
 
-		BitBoard quiets{ knightMoves & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard quiets{ knightMoves & ~state.occupancy().board() };
 		BitBoard attacks{ knightMoves & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
 		while (quiets.board())
@@ -276,9 +276,9 @@ static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) no
 	constexpr Piece king{ white ? Piece::WhiteKing : Piece::BlackKing };
 
 	const int sourceIndex{ kings.leastSignificantBit() };
-	const BitBoard kingMoves{ preGen.knightAttack(sourceIndex) };
+	const BitBoard kingMoves{ preGen.kingAttack(sourceIndex) };
 
-	BitBoard quiets{ kingMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board())};
+	BitBoard quiets{ kingMoves.board() & ~state.occupancy().board() };
 	BitBoard attacks{ kingMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board())};
 
 	while (quiets.board())
@@ -341,14 +341,6 @@ static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) no
 		BitBoard quiets{ rookMoves.board() & ~state.occupancy().board() };
 		BitBoard attacks{ rookMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
-		if constexpr (!white)
-		{
-			state.occupancy().print();
-			rookMoves.print();
-			quiets.print();
-			attacks.print();
-		}
-
 		while (quiets.board())
 		{
 			const int destinationIndex{ quiets.popLeastSignificantBit() };
@@ -374,7 +366,7 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 		const int sourceIndex{ queens.popLeastSignificantBit() };
 		const BitBoard queenMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()).board() | preGen.rookAttack(sourceIndex, state.occupancy()).board() };
 
-		BitBoard quiets{ queenMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard quiets{ queenMoves.board() & ~state.occupancy().board() };
 		BitBoard attacks{ queenMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
 		while (quiets.board())
@@ -421,4 +413,34 @@ MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 	}
 
 	return moveList;
+}
+
+BitBoard MoveGen::getWhitePawnMoves(std::size_t square) const noexcept
+{
+	return preGen.whitePawnAttack(square);
+}
+
+BitBoard MoveGen::getBlackPawnMoves(std::size_t square) const noexcept
+{
+	return preGen.blackPawnAttack(square);
+}
+
+BitBoard MoveGen::getKnightMoves(std::size_t square) const noexcept
+{
+	return preGen.knightAttack(square);
+}
+
+BitBoard MoveGen::getKingMoves(std::size_t square) const noexcept
+{
+	return preGen.kingAttack(square);
+}
+
+BitBoard MoveGen::getBishopMoves(std::size_t square, BitBoard occupancy) const noexcept
+{
+	return preGen.bishopAttack(square, occupancy);
+}
+
+BitBoard MoveGen::getRookMoves(std::size_t square, BitBoard occupancy) const noexcept
+{
+	return preGen.rookAttack(square, occupancy);
 }

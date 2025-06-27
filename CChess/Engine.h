@@ -2,6 +2,7 @@
 
 #include <string_view>
 
+#include "ChessConstants.hpp"
 #include "MoveGen.h"
 #include "State.h"
 
@@ -21,6 +22,12 @@ private:
 
 	//private methods
 	void perftRun(int depth, bool white) noexcept;
+
+	bool isWhiteKingInCheck() const noexcept;
+
+	bool isBlackKingInCheck() const noexcept;
+
+
 
 public:
 

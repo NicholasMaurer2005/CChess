@@ -16,8 +16,9 @@ struct unmakeMoveInfo
 {
 	BitBoard whiteEnpassantSquare;
 	BitBoard blackEnpassantSquare;
-	Castle m_castleRights;
-	bool kingInCheck;
+	Castle castleRights;
+	bool whiteKingInCheck;
+	bool blackKingInCheck;
 };
 
 
@@ -35,8 +36,6 @@ private:
 	std::array<BitBoard, pieceCount> m_pieceOccupancy;
 
 	Castle m_castleRights;
-
-	bool m_kingInCheck;
 
 
 
@@ -100,8 +99,6 @@ public:
 	bool castleBlackKingSide() const noexcept;
 
 	bool castleBlackQueenSide() const noexcept;
-
-	bool kingInCheck() const noexcept;
 
 	template<Piece piece>
 	BitBoard pieceOccupancyT() const noexcept

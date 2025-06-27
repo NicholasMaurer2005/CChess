@@ -2,13 +2,11 @@
 
 
 #include "Engine.h"
-#include "State.h"
-#include "PreGen.h"
 
 //TODO: renaming and namespaces
 
 int main()
 {
-	State state{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-	
+	Engine engine{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
+	engine.perft(4);
 }

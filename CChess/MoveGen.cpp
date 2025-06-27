@@ -310,7 +310,7 @@ static void bishopMoves(BitBoard bishops, MoveList& moveList, const State& state
 		const int sourceIndex{ bishops.popLeastSignificantBit() };
 		const BitBoard bishopMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()) };
 
-		BitBoard quiets{ bishopMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard quiets{ bishopMoves.board() & ~state.occupancy().board() };
 		BitBoard attacks{ bishopMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
 
 		while (quiets.board())
@@ -338,8 +338,16 @@ static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) no
 		const int sourceIndex{ rooks.popLeastSignificantBit() };
 		const BitBoard rookMoves{ preGen.rookAttack(sourceIndex, state.occupancy()) };
 
-		BitBoard quiets{ rookMoves.board() & (white ? ~state.whiteOccupancy().board() : ~state.blackOccupancy().board()) };
+		BitBoard quiets{ rookMoves.board() & ~state.occupancy().board() };
 		BitBoard attacks{ rookMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		if constexpr (!white)
+		{
+			state.occupancy().print();
+			rookMoves.print();
+			quiets.print();
+			attacks.print();
+		}
 
 		while (quiets.board())
 		{

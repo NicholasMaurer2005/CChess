@@ -41,9 +41,9 @@ void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i < depth; i++)
 	{
-		perftRun(true, i);
+		perftRun(i, true);
 		
-		std::cout << "perft depth " << i << ": " << m_perftCount << '\n';
+		std::cout << "perft ply " << i << ": " << m_perftCount << '\n';
 		m_perftCount = 0;
 	}
 

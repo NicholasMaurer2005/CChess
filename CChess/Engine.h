@@ -23,9 +23,15 @@ private:
 	//private methods
 	void perftRun(int depth, bool white) noexcept;
 
-	bool isWhiteKingInCheck() const noexcept;
+	bool whiteKingInCheck() const noexcept;
 
-	bool isBlackKingInCheck() const noexcept;
+	bool blackKingInCheck() const noexcept;
+
+	void findWhiteSquares() noexcept;
+
+	void findBlackSquares() noexcept;
+
+	bool makeLegalMove(bool white, Move move) noexcept;
 
 
 
@@ -38,5 +44,7 @@ public:
 	
 	//perft
 	void perft(int depth) noexcept;
+
+	void printMoves(bool white) noexcept;
 };
 

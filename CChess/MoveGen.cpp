@@ -228,9 +228,10 @@ static void kingCastles(MoveList& moveList, const State& state) noexcept
 	{
 		if (state.castleWhiteKingSide())
 		{
-			constexpr std::uint64_t castleMask{ 0b0000011000000000000000000000000000000000000000000000000000000000 };
+			constexpr std::uint64_t castleOccupancyMask = (1ULL << 5) | (1ULL << 6); // f1, g1
+			constexpr std::uint64_t castleAttackMask = (1ULL << 4) | (1ULL << 5) | (1ULL << 6); // e1, f1, g1
 
-			if (!(state.occupancy().board() & castleMask))
+			if (!(state.occupancy().board() & castleOccupancyMask) && !(state.blackSquares().board() & castleAttackMask))
 			{
 				moveList.pushCastle<Castle::WhiteKingSide>();
 			}
@@ -238,9 +239,10 @@ static void kingCastles(MoveList& moveList, const State& state) noexcept
 
 		if (state.castleWhiteQueenSide())
 		{
-			constexpr std::uint64_t castleMask{ 0b0111000000000000000000000000000000000000000000000000000000000000 };
+			constexpr std::uint64_t castleOccupancyMask = (1ULL << 1) | (1ULL << 2) | (1ULL << 3); // b1, c1, d1
+			constexpr std::uint64_t castleAttackMask = (1ULL << 2) | (1ULL << 3) | (1ULL << 4); // c1, d1, e1
 
-			if (!(state.occupancy().board() & castleMask))
+			if (!(state.occupancy().board() & castleOccupancyMask) && !(state.blackSquares().board() & castleAttackMask))
 			{
 				moveList.pushCastle<Castle::WhiteQueenSide>();
 			}
@@ -250,9 +252,10 @@ static void kingCastles(MoveList& moveList, const State& state) noexcept
 	{
 		if (state.castleBlackKingSide())
 		{
-			constexpr std::uint64_t castleMask{ 0b0000000000000000000000000000000000000000000000000000000000000110 };
+			constexpr std::uint64_t castleOccupancyMask = (1ULL << 61) | (1ULL << 62); // f8, g8
+			constexpr std::uint64_t castleAttackMask = (1ULL << 60) | (1ULL << 61) | (1ULL << 62); // e8, f8, g8
 
-			if (!(state.occupancy().board() & castleMask))
+			if (!(state.occupancy().board() & castleOccupancyMask) && !(state.whiteSquares().board() & castleAttackMask))
 			{
 				moveList.pushCastle<Castle::BlackKingSide>();
 			}
@@ -260,9 +263,10 @@ static void kingCastles(MoveList& moveList, const State& state) noexcept
 
 		if (state.castleBlackQueenSide())
 		{
-			constexpr std::uint64_t castleMask{ 0b0000000000000000000000000000000000000000000000000000000001110000 };
+			constexpr std::uint64_t castleOccupancyMask = (1ULL << 57) | (1ULL << 58) | (1ULL << 59); // b8, c8, d8
+			constexpr std::uint64_t castleAttackMask = (1ULL << 58) | (1ULL << 59) | (1ULL << 60); // c8, d8, e8
 
-			if (!(state.occupancy().board() & castleMask))
+			if (!(state.occupancy().board() & castleOccupancyMask) && !(state.whiteSquares().board() & castleAttackMask))
 			{
 				moveList.pushCastle<Castle::BlackQueenSide>();
 			}
@@ -294,10 +298,7 @@ static void kingMoves(BitBoard kings, MoveList& moveList, const State& state) no
 		moveList.pushAttack<king>(attackPiece, sourceIndex, attackIndex);
 	}
 
-	if (!state.kingInCheck())
-	{
-		kingCastles<white>(moveList, state);
-	}
+	kingCastles<white>(moveList, state);
 }
 
 template<bool white>

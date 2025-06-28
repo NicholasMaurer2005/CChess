@@ -32,10 +32,15 @@ private:
 	BitBoard m_blackOccupancy;
 	BitBoard m_whiteEnpassantSquare;
 	BitBoard m_blackEnpassantSquare;
+	BitBoard m_whiteSquares; 
+	BitBoard m_blackSquares;
 
 	std::array<BitBoard, pieceCount> m_pieceOccupancy;
 
 	Castle m_castleRights;
+
+	bool m_whiteKingInCheck;
+	bool m_blackKingInCheck;
 
 
 
@@ -78,6 +83,12 @@ public:
 	void unmakeMove(bool white, Move move, unmakeMoveInfo info) noexcept;
 
 
+	//setters
+	void setWhiteSquares(BitBoard squares) noexcept;
+
+	void setBlackSquares(BitBoard squares) noexcept;
+
+
 
 	//getters
 	BitBoard occupancy() const noexcept;
@@ -99,6 +110,14 @@ public:
 	bool castleBlackKingSide() const noexcept;
 
 	bool castleBlackQueenSide() const noexcept;
+
+	bool whiteKingInCheck() noexcept;
+
+	bool blackKingInCheck() noexcept;
+
+	BitBoard whiteSquares() const noexcept;
+
+	BitBoard blackSquares() const noexcept;
 
 	template<Piece piece>
 	BitBoard pieceOccupancyT() const noexcept

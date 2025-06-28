@@ -28,17 +28,42 @@ static consteval std::array<Piece, 255>  generateCharToPiece()
 
 //constructors
 State::State() noexcept
-	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights() { }
+	//occupancy
+	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(),
 
-State::State(std::string_view fen)
-	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(), m_castleRights(), m_kingInCheck()
-{ //TODO: impliment rest of FEN
+	//enpassant
+	m_whiteEnpassantSquare(), m_blackEnpassantSquare(),
+
+	//squares
+	m_whiteSquares(), m_blackSquares(),
+
+	m_castleRights(), m_whiteKingInCheck(), m_blackKingInCheck() { }
+
+
+State::State(std::string_view fen) //TODO: check for valid fens/make sure it never "fails"
+	//occupancy
+	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(),
+
+	//enpassant
+	m_whiteEnpassantSquare(), m_blackEnpassantSquare(),
+
+	//squares
+	m_whiteSquares(), m_blackSquares(),
+
+	m_castleRights(), m_whiteKingInCheck(), m_blackKingInCheck()
+{ 
 	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
+
+	std::size_t coreEndIndex{ fen.find(' ') };
+	std::string_view coreFen{ fen.substr(0, coreEndIndex) };
+	
+	const bool whiteToMove{ fen[coreEndIndex + 1] == 'w' };
+
 
 	for (std::size_t i{}; i < rankSize; ++i)
 	{
-		const std::size_t slashIndex{ fen.find('/') };
-		const std::string_view rank{ fen.substr(0, slashIndex) };
+		const std::size_t slashIndex{ coreFen.find('/') };
+		const std::string_view rank{ coreFen.substr(0, slashIndex) };
 		
 		std::size_t boardIndex = (7 - i) * 8;
 
@@ -70,7 +95,7 @@ State::State(std::string_view fen)
 			}
 		}
 
-		fen = fen.substr(slashIndex + 1);
+		coreFen = coreFen.substr(slashIndex + 1);
 	}
 }
 
@@ -79,7 +104,7 @@ State::State(std::string_view fen)
 //print
 void State::print() const noexcept
 {
-	constexpr std::array<char, pieceCount> pieceToChar{ '0', 'P', 'N', 'B', 'R', 'Q', 'K', 'X', 'n', 'b', 'r', 'q', 'k' };
+	constexpr std::array<char, pieceCount> pieceToChar{ '.', 'P', 'N', 'B', 'R', 'Q', 'K', 'X', 'n', 'b', 'r', 'q', 'k' };
 
 	std::array<Piece, boardSize> board{};
 
@@ -199,6 +224,19 @@ void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece,
 	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(attackPiece)].reset(destinationIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(promotePiece)].set(destinationIndex);
+}
+
+
+
+//setters
+void State::setWhiteSquares(BitBoard squares) noexcept
+{
+	m_whiteSquares = squares;
+}
+
+void State::setBlackSquares(BitBoard squares) noexcept
+{
+	m_blackSquares = squares;
 }
 
 
@@ -332,4 +370,26 @@ bool State::castleBlackKingSide() const noexcept
 bool State::castleBlackQueenSide() const noexcept
 {
 	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackQueenSide));
+}
+
+bool State::whiteKingInCheck() noexcept
+{
+	m_whiteKingInCheck = m_blackSquares.board() & pieceOccupancyT<Piece::WhiteKing>().board();
+	return m_whiteKingInCheck;
+}
+
+bool State::blackKingInCheck() noexcept
+{
+	m_blackKingInCheck = m_whiteSquares.board() & pieceOccupancyT<Piece::BlackKing>().board();
+	return m_blackKingInCheck;
+}
+
+BitBoard State::whiteSquares() const noexcept
+{
+	return m_whiteSquares;
+}
+
+BitBoard State::blackSquares() const noexcept
+{
+	return m_blackSquares;
 }

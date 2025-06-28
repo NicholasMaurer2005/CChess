@@ -211,22 +211,22 @@ void PreGen::generateRookRelevantBits() noexcept
 		{
 			for (int newRank{ rank + 1 }; newRank <= 6; ++newRank)
 			{
-				m_rookRelevantBits[boardIndex(file, rank)].set(newRank, rank);
+				m_rookRelevantBits[boardIndex(rank, file)].set(newRank, file);
 			}
 
 			for (int newRank{ rank - 1 }; newRank >= 1; --newRank)
 			{
-				m_rookRelevantBits[boardIndex(file, rank)].set(newRank, rank);
+				m_rookRelevantBits[boardIndex(rank, file)].set(newRank, file);
 			}
 
 			for (int newFile{ file + 1 }; newFile <= 6; ++newFile)
 			{
-				m_rookRelevantBits[boardIndex(file, rank)].set(file, newFile);
+				m_rookRelevantBits[boardIndex(rank, file)].set(rank, newFile);
 			}
 
 			for (int newFile{ file - 1 }; newFile >= 1; --newFile)
 			{
-				m_rookRelevantBits[boardIndex(file, rank)].set(file, newFile);
+				m_rookRelevantBits[boardIndex(rank, file)].set(rank, newFile);
 			}
 		}
 	}
@@ -285,7 +285,7 @@ void PreGen::generateRookMagics() noexcept
 		const std::size_t shift{ boardSize - bitCount };
 
 		const std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[i], bitCount, occupanciesCount) };
-
+		
 		while (true)
 		{
 			const std::uint64_t magic{ randomMagic() };
@@ -468,6 +468,11 @@ BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const noexc
 
 BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
+	if (!occupancy.board())
+	{
+		throw;
+	}
+
 	const std::size_t magic{ m_rookMagics[index] };
 	const std::uint64_t relevantBits{ occupancy.board() & m_rookRelevantBits[index].board() };
 	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_rookBitCount[index]) };

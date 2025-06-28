@@ -45,6 +45,10 @@ public:
 		: m_move(move) { }
 
 
+
+	//print
+	void print() const noexcept;
+
 		
 	//getters
 	Piece sourcePiece() const noexcept;

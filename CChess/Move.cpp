@@ -19,7 +19,32 @@ void Move::print() const noexcept
 		"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 	};
 
-	std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()] << '\n';
+	if (castleFlag())
+	{
+		const Castle castle{ castleType() };
+		switch (castle)
+		{
+		case Castle::WhiteKingSide:
+			std::cout << "e1g1\n";
+			break;
+
+		case Castle::WhiteQueenSide:
+			std::cout << "e1c1\n";
+			break;
+
+		case Castle::BlackKingSide:
+			std::cout << "e8g8\n";
+			break;
+
+		case Castle::BlackQueenSide:
+			std::cout << "e8c8\n";
+			break;
+		}
+	}
+	else
+	{ 
+		std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()] << '\n';
+	}
 }
 
 

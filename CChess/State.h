@@ -61,6 +61,8 @@ private:
 
 	void moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept;
 
+	void testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept;
+
 
 
 public:

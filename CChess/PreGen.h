@@ -10,6 +10,8 @@
 constexpr int maxBishopAttacks{ 512 };
 constexpr int maxRookAttacks{ 4096 };
 
+//TODO: replace magic bitcount with magic shift and store it contiguously with attack lists for better cache layout
+
 class cachealign PreGen
 {
 private:

@@ -50,7 +50,7 @@ State::State(std::string_view fen) //TODO: check for valid fens/make sure it nev
 	//squares
 	m_whiteSquares(), m_blackSquares(),
 
-	m_castleRights(), m_whiteKingInCheck(), m_blackKingInCheck()
+	m_castleRights(Castle::All), m_whiteKingInCheck(), m_blackKingInCheck()
 { 
 	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
@@ -163,12 +163,16 @@ void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexce
 
 void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
 {
+	testCastleRights(white, sourcePiece, sourceIndex);
+
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
 }
 
 void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept
 {
+	testCastleRights(white, sourcePiece, sourceIndex);
+
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
 
@@ -190,21 +194,25 @@ void State::moveCastle(Castle castle) noexcept
 	case Castle::WhiteKingSide:
 		moveQuiet(true, Piece::WhiteKing, 4, 6);
 		moveQuiet(true, Piece::WhiteRook, 7, 5);
+		m_castleRights &= ~Castle::WhiteBoth;
 		break;
 
 	case Castle::WhiteQueenSide:
 		moveQuiet(true, Piece::WhiteKing, 4, 2);
 		moveQuiet(true, Piece::WhiteRook, 0, 3);
+		m_castleRights &= ~Castle::WhiteBoth;
 		break;
 
 	case Castle::BlackKingSide:
 		moveQuiet(false, Piece::BlackKing, 60, 62);
 		moveQuiet(false, Piece::BlackRook, 63, 61);
+		m_castleRights &= ~Castle::BlackBoth;
 		break;
 
 	case Castle::BlackQueenSide:
 		moveQuiet(false, Piece::BlackKing, 60, 58);
 		moveQuiet(false, Piece::BlackRook, 56, 59);
+		m_castleRights &= ~Castle::BlackBoth;
 		break;
 	}
 }
@@ -224,6 +232,51 @@ void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece,
 	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(attackPiece)].reset(destinationIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(promotePiece)].set(destinationIndex);
+}
+
+void State::testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept
+{
+	//TODO: maybe move to move generation?
+	if (white)
+	{
+		if (!(static_cast<bool>(m_castleRights & Castle::WhiteBoth))) return;
+
+		if (sourcePiece == Piece::WhiteRook)
+		{
+			if (sourceIndex == 7)
+			{
+				m_castleRights &= ~Castle::WhiteKingSide;
+			}
+			else if (sourceIndex == 0)
+			{
+				m_castleRights &= ~Castle::WhiteQueenSide;
+			}
+		}
+		else if (sourcePiece == Piece::WhiteKing)
+		{
+			m_castleRights &= ~Castle::WhiteBoth;
+		}
+	}
+	else
+	{
+		if (!(static_cast<bool>(m_castleRights & Castle::BlackBoth))) return;
+
+		if (sourcePiece == Piece::BlackRook)
+		{
+			if (sourceIndex == 63)
+			{
+				m_castleRights &= ~Castle::BlackKingSide;
+			}
+			else if (sourceIndex == 56)
+			{
+				m_castleRights &= ~Castle::BlackQueenSide;
+			}
+		}
+		else if (sourcePiece == Piece::BlackKing)
+		{
+			m_castleRights &= ~Castle::BlackBoth;
+		}
+	}
 }
 
 
@@ -354,22 +407,22 @@ BitBoard State::blackEnpassantSquare() const noexcept
 
 bool State::castleWhiteKingSide() const noexcept
 {
-	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::WhiteKingSide));
+	return static_cast<bool>(m_castleRights & Castle::WhiteKingSide);
 }
 
 bool State::castleWhiteQueenSide() const noexcept
 {
-	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::WhiteQueenSide));
+	return static_cast<bool>(m_castleRights & Castle::WhiteQueenSide);
 }
 
 bool State::castleBlackKingSide() const noexcept
 {
-	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackKingSide));
+	return static_cast<bool>(m_castleRights & Castle::BlackKingSide);
 }
 
 bool State::castleBlackQueenSide() const noexcept
 {
-	return static_cast<bool>(static_cast<std::uint32_t>(m_castleRights) & static_cast<std::uint32_t>(Castle::BlackQueenSide));
+	return static_cast<bool>(m_castleRights & Castle::BlackQueenSide);
 }
 
 bool State::whiteKingInCheck() noexcept

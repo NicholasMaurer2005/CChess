@@ -30,6 +30,11 @@ void Engine::perftRun(int depth, bool white) noexcept
 
 		if (makeLegalMove(white, move))
 		{
+			/*move.print();
+			stateCopy.print();
+			m_state.print();
+			std::cout << "\n\n";*/
+
 			perftRun(depth - 1, !white);
 		}
 
@@ -194,12 +199,12 @@ bool Engine::makeLegalMove(bool white, Move move) noexcept
 	
 	if (white)
 	{
-		findWhiteSquares();
+		findBlackSquares();
 		return !m_state.whiteKingInCheck();
 	}
 	else
 	{
-		findBlackSquares();
+		findWhiteSquares();
 		return !m_state.blackKingInCheck();
 	}
 }

@@ -46,14 +46,14 @@ void BitBoard::set(int rank, int file) noexcept
 void BitBoard::reset(int index) noexcept
 {
 	const std::uint64_t bit{ 1ULL << index };
-	m_board &= ~bit;
+	m_board ^= bit;
 }
 
 void BitBoard::reset(int rank, int file) noexcept
 {
 	const int index{ rank * fileSize + file };
 	const std::uint64_t bit{ 1ULL << index };
-	m_board &= ~bit;
+	m_board ^= bit;
 }
 
 

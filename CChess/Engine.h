@@ -21,7 +21,7 @@ private:
 
 
 	//private methods
-	void perftRun(int depth, bool white) noexcept;
+	void perftRun(int depth, bool white, bool print) noexcept;
 
 	bool whiteKingInCheck() const noexcept;
 
@@ -38,7 +38,7 @@ private:
 public:
 
 	//constructor
-	Engine(std::string_view fen) noexcept;
+	Engine(std::string_view fen, Castle castle = Castle::All) noexcept;
 
 
 	

@@ -123,7 +123,7 @@ static void pawnEnpassants(BitBoard pawns, MoveList& moveList, const State& stat
 	constexpr Piece sourcePiece{ white ? Piece::WhitePawn : Piece::BlackPawn };
 	constexpr Piece attackPiece{ white ? Piece::BlackPawn : Piece::WhitePawn };
 
-	const BitBoard enpassantSquare{ white ? state.blackEnpassantSquare() : state.whiteEnpassantSquare() };
+	const BitBoard enpassantSquare{ state.enpassantSquare() }; //TODO: remove I am lazy atm
 
 	if (!enpassantSquare.board()) [[likely]] return; //TODO: test if [[likely]] is faster
 

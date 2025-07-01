@@ -45,7 +45,8 @@ enum class Castle : std::uint32_t //if you change type rememember to change oper
 	BlackQueenSide	= 0b1000,
 	WhiteBoth		= 0b0011,
 	BlackBoth		= 0b1100,
-	All				= 0b1111
+	All				= 0b1111,
+	None			= 0b0000
 };
 
 constexpr Castle operator& (Castle lhs, Castle rhs) noexcept

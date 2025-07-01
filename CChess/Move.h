@@ -41,7 +41,7 @@ public:
 	//constructors
 	constexpr Move() noexcept {}
 	
-	constexpr Move(std::uint32_t move)
+	constexpr Move(std::uint32_t move) //TODO: move to source file
 		: m_move(move) { }
 
 

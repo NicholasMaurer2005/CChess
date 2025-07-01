@@ -25,25 +25,25 @@ void Move::print() const noexcept
 		switch (castle)
 		{
 		case Castle::WhiteKingSide:
-			std::cout << "e1g1\n";
+			std::cout << "e1g1";
 			break;
 
 		case Castle::WhiteQueenSide:
-			std::cout << "e1c1\n";
+			std::cout << "e1c1";
 			break;
 
 		case Castle::BlackKingSide:
-			std::cout << "e8g8\n";
+			std::cout << "e8g8";
 			break;
 
 		case Castle::BlackQueenSide:
-			std::cout << "e8c8\n";
+			std::cout << "e8c8";
 			break;
 		}
 	}
 	else
 	{ 
-		std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()] << '\n';
+		std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()];
 	}
 }
 

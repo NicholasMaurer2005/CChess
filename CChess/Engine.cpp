@@ -8,17 +8,16 @@
 
 
 //constructor
-Engine::Engine(std::string_view fen) noexcept
-	: m_moveGen(), m_state(fen), m_perftCount() { }
-
+Engine::Engine(std::string_view fen, Castle castle) noexcept
+	: m_moveGen(), m_state(fen, castle), m_perftCount() { }
 
 
 //perft
-void Engine::perftRun(int depth, bool white) noexcept
+void Engine::perftRun(int depth, bool white, bool print) noexcept
 {
 	if (depth == 0)
 	{
-		++m_perftCount;
+		++m_perftCount; //TODO: maybe make recursive sum?
 		return;
 	}
 
@@ -26,16 +25,21 @@ void Engine::perftRun(int depth, bool white) noexcept
 
 	for (Move move : moves)
 	{
+		
+
 		State stateCopy{ m_state };
 
 		if (makeLegalMove(white, move))
 		{
-			/*move.print();
-			stateCopy.print();
-			m_state.print();
-			std::cout << "\n\n";*/
+			if (print)
+			{
+				move.print();
+				std::cout << '\n';
+				stateCopy.print();
+				m_state.print();
+			}
 
-			perftRun(depth - 1, !white);
+			perftRun(depth - 1, !white, false);
 		}
 
 		//unmake move
@@ -47,7 +51,7 @@ void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i <= depth; i++)
 	{
-		perftRun(i, true);
+		perftRun(i, true, false);
 		
 		std::cout << "perft ply " << i << ": " << m_perftCount << '\n';
 		m_perftCount = 0;
@@ -67,7 +71,22 @@ void Engine::printMoves(bool white) noexcept
 		if (makeLegalMove(white, move))
 		{
 			move.print();
+
+			/*if (move.sourceIndex() == 8 && move.destinationIndex() == 16)
+			{
+				std::cout << "bad move\n";
+				perftRun(1, !white, true);
+			}
+			else*/
+			{
+				perftRun(2, !white, false);
+			}
+
+			std::cout << ": " << m_perftCount << '\n';
+			m_perftCount = 0;
 		}
+
+
 
 		//unmake move
 		m_state = stateCopy;
@@ -78,31 +97,12 @@ void Engine::printMoves(bool white) noexcept
 //private methods
 bool Engine::whiteKingInCheck() const noexcept
 {
-	const std::size_t kingSquare{ static_cast<std::size_t>(m_state.pieceOccupancyT<Piece::WhiteKing>().leastSignificantBit()) };
-
-	const BitBoard attackers{
-		m_moveGen.getWhitePawnMoves(kingSquare).board() & m_state.pieceOccupancyT<Piece::BlackPawn>().board()
-		| m_moveGen.getKnightMoves(kingSquare).board() & m_state.pieceOccupancyT<Piece::BlackKnight>().board()
-		| m_moveGen.getBishopMoves(kingSquare, m_state.occupancy()).board() & (m_state.pieceOccupancyT<Piece::BlackBishop>().board() | m_state.pieceOccupancyT<Piece::BlackQueen>().board())
-		| m_moveGen.getRookMoves(kingSquare, m_state.occupancy()).board() & (m_state.pieceOccupancyT<Piece::BlackRook>().board() | m_state.pieceOccupancyT<Piece::BlackQueen>().board())
-	};
-
-	return attackers.board();
+	return m_state.pieceOccupancyT<Piece::WhiteKing>().board() & m_state.blackSquares().board();
 }
 
 bool Engine::blackKingInCheck() const noexcept
 {
-	const std::size_t kingSquare{ static_cast<std::size_t>(m_state.pieceOccupancyT<Piece::BlackKing>().leastSignificantBit()) };
-
-	const BitBoard attackers{
-		m_moveGen.getBlackPawnMoves(kingSquare).board() & m_state.pieceOccupancyT<Piece::WhitePawn>().board()
-		| m_moveGen.getKnightMoves(kingSquare).board() & m_state.pieceOccupancyT<Piece::WhiteKnight>().board()
-		| m_moveGen.getBishopMoves(kingSquare, m_state.occupancy()).board() & (m_state.pieceOccupancyT<Piece::WhiteBishop>().board() | m_state.pieceOccupancyT<Piece::WhiteQueen>().board())
-		| m_moveGen.getRookMoves(kingSquare, m_state.occupancy()).board() & (m_state.pieceOccupancyT<Piece::WhiteRook>().board() | m_state.pieceOccupancyT<Piece::WhiteQueen>().board())
-		| m_moveGen.getKingMoves(kingSquare).board() & m_state.pieceOccupancyT<Piece::WhiteKing>().board() // optional
-	};
-
-	return attackers.board();
+	return m_state.pieceOccupancyT<Piece::BlackKing>().board() & m_state.whiteSquares().board();
 }
 
 void Engine::findWhiteSquares() noexcept //TODO: maybe move to MoveGen?
@@ -197,14 +197,9 @@ bool Engine::makeLegalMove(bool white, Move move) noexcept
 {
 	m_state.makeMove(white, move);
 	
-	if (white)
-	{
-		findBlackSquares();
-		return !m_state.whiteKingInCheck();
-	}
-	else
-	{
-		findWhiteSquares();
-		return !m_state.blackKingInCheck();
-	}
+	// Always update both sides //TODO: maybe go back to testing only one side?
+	findWhiteSquares();
+	findBlackSquares();
+
+	return white? !m_state.whiteKingInCheck() : !m_state.blackKingInCheck();
 }

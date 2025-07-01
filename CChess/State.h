@@ -14,8 +14,7 @@
 
 struct unmakeMoveInfo
 {
-	BitBoard whiteEnpassantSquare;
-	BitBoard blackEnpassantSquare;
+	BitBoard enpassantSquare;
 	Castle castleRights;
 	bool whiteKingInCheck;
 	bool blackKingInCheck;
@@ -30,8 +29,7 @@ private:
 	BitBoard m_occupancy;
 	BitBoard m_whiteOccupancy;
 	BitBoard m_blackOccupancy;
-	BitBoard m_whiteEnpassantSquare;
-	BitBoard m_blackEnpassantSquare;
+	BitBoard m_enpassantSquare;
 	BitBoard m_whiteSquares; 
 	BitBoard m_blackSquares;
 
@@ -70,7 +68,7 @@ public:
 	//constructors
 	State() noexcept;
 
-	State(std::string_view fen);
+	State(std::string_view fen, Castle castle);
 
 
 
@@ -101,9 +99,7 @@ public:
 
 	BitBoard pieceOccupancy(Piece piece) const noexcept;
 
-	BitBoard whiteEnpassantSquare() const noexcept;
-
-	BitBoard blackEnpassantSquare() const noexcept;
+	BitBoard enpassantSquare() const noexcept;
 
 	bool castleWhiteKingSide() const noexcept;
 

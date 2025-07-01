@@ -32,7 +32,7 @@ State::State() noexcept
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(),
 
 	//enpassant
-	m_whiteEnpassantSquare(), m_blackEnpassantSquare(),
+	m_enpassantSquare(),
 
 	//squares
 	m_whiteSquares(), m_blackSquares(),
@@ -40,17 +40,17 @@ State::State() noexcept
 	m_castleRights(), m_whiteKingInCheck(), m_blackKingInCheck() { }
 
 
-State::State(std::string_view fen) //TODO: check for valid fens/make sure it never "fails"
+State::State(std::string_view fen, Castle castle) //TODO: check for valid fens/make sure it never "fails"
 	//occupancy
 	: m_occupancy(), m_whiteOccupancy(), m_blackOccupancy(), m_pieceOccupancy(),
 
 	//enpassant
-	m_whiteEnpassantSquare(), m_blackEnpassantSquare(),
+	m_enpassantSquare(),
 
 	//squares
 	m_whiteSquares(), m_blackSquares(),
 
-	m_castleRights(Castle::All), m_whiteKingInCheck(), m_blackKingInCheck()
+	m_castleRights(castle), m_whiteKingInCheck(), m_blackKingInCheck()
 { 
 	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
@@ -119,6 +119,8 @@ void State::print() const noexcept
 		}
 	}
 
+	const int enpassantIndex = m_enpassantSquare.board() ? m_enpassantSquare.leastSignificantBit() : 64;
+
 	for (int rank{ rankSize - 1 }; rank >= 0; --rank)
 	{
 		std::cout << (rank + 1) << "  ";
@@ -126,7 +128,15 @@ void State::print() const noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const std::size_t index{ static_cast<std::size_t>(rank * fileSize + file) };
-			std::cout << pieceToChar[static_cast<std::size_t>(board[index])] << ' ';
+
+			if (index == enpassantIndex)
+			{
+				std::cout << "e ";
+			}
+			else
+			{
+				std::cout << pieceToChar[static_cast<std::size_t>(board[index])] << ' ';
+			}
 		}
 
 		std::cout << "\n";
@@ -297,7 +307,9 @@ void State::setBlackSquares(BitBoard squares) noexcept
 //move
 unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 {
-	unmakeMoveInfo info{ m_whiteEnpassantSquare, m_blackEnpassantSquare, m_castleRights, m_whiteKingInCheck, m_blackKingInCheck };
+	unmakeMoveInfo info{ m_enpassantSquare, m_castleRights, m_whiteKingInCheck, m_blackKingInCheck };
+
+	m_enpassantSquare = BitBoard();
 
 	if (move.castleFlag()) [[unlikely]]
 	{
@@ -319,23 +331,14 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 		{
 			if (attackPiece == Piece::NoPiece)
 			{
-
 				if (move.doublePawnFlag()) [[unlikely]]
 				{
 					//double pawn push
 					const int sourceIndex{ move.sourceIndex() };
+					const int enpassantIndex{ sourceIndex + (white ? 8 : -8) };
+
+					m_enpassantSquare = BitBoard(1ULL << enpassantIndex);
 					moveQuiet(white, move.sourcePiece(), sourceIndex, move.destinationIndex());
-					
-					if (white)
-					{
-						const int enpassantIndex{ sourceIndex + 8 };
-						m_whiteEnpassantSquare = BitBoard(1ULL << enpassantIndex);
-					}
-					else
-					{
-						const int enpassantIndex{ sourceIndex - 8 };
-						m_blackEnpassantSquare = BitBoard(1ULL << enpassantIndex);
-					}
 				}
 				else
 				{
@@ -395,14 +398,9 @@ BitBoard State::pieceOccupancy(Piece piece) const noexcept
 	return m_pieceOccupancy[static_cast<std::size_t>(piece)];
 }
 
-BitBoard State::whiteEnpassantSquare() const noexcept
+BitBoard State::enpassantSquare() const noexcept
 {
-	return m_whiteEnpassantSquare;
-}
-
-BitBoard State::blackEnpassantSquare() const noexcept
-{
-	return m_blackEnpassantSquare;
+	return m_enpassantSquare;
 }
 
 bool State::castleWhiteKingSide() const noexcept

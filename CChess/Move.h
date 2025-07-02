@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <string>
 
 #include "ChessConstants.hpp"
 
@@ -47,7 +48,9 @@ public:
 
 
 	//print
-	void print() const noexcept;
+	void print() const;
+
+	std::string string() const;
 
 		
 	//getters

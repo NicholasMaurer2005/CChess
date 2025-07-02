@@ -45,6 +45,8 @@ private:
 	//private methods
 	void moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept;
 
+	void moveOccupancyCapture(bool white, int sourceIndex, int destinationIndex) noexcept;
+
 	void movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept;
 
 	void moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept;

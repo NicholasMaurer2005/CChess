@@ -9,11 +9,18 @@
 
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
-	: m_moveGen(), m_state(fen, castle), m_perftCount() { }
+	: m_moveGen(), m_state(fen, castle), m_perftCount()
+{
+	findWhiteSquares();
+	findBlackSquares();
+}
 
 
 //perft
-void Engine::perftRun(int depth, bool white, bool print) noexcept
+
+static int mates{};
+
+void Engine::perftRun(int depth, bool white) noexcept
 {
 	if (depth == 0)
 	{
@@ -23,27 +30,25 @@ void Engine::perftRun(int depth, bool white, bool print) noexcept
 
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
 
+	int legalMovesCount{};
+
 	for (Move move : moves)
 	{
-		
-
 		State stateCopy{ m_state };
 
 		if (makeLegalMove(white, move))
 		{
-			if (print)
-			{
-				move.print();
-				std::cout << '\n';
-				stateCopy.print();
-				m_state.print();
-			}
-
-			perftRun(depth - 1, !white, false);
+			++legalMovesCount;
+			perftRun(depth - 1, !white);
 		}
 
 		//unmake move
 		m_state = stateCopy;
+	}
+
+	if (legalMovesCount == 0 && (white ? whiteKingInCheck() : blackKingInCheck()))
+	{
+		++mates;
 	}
 }
 
@@ -51,13 +56,14 @@ void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i <= depth; i++)
 	{
-		perftRun(i, true, false);
+		perftRun(i, true);
 		
 		std::cout << "perft ply " << i << ": " << m_perftCount << '\n';
 		m_perftCount = 0;
 	}
 
 	std::cout << "done" << std::endl;
+	std::cout << mates << std::endl;
 }
 
 void Engine::printMoves(bool white) noexcept
@@ -71,27 +77,75 @@ void Engine::printMoves(bool white) noexcept
 		if (makeLegalMove(white, move))
 		{
 			move.print();
-
-			/*if (move.sourceIndex() == 8 && move.destinationIndex() == 16)
-			{
-				std::cout << "bad move\n";
-				perftRun(1, !white, true);
-			}
-			else*/
-			{
-				perftRun(2, !white, false);
-			}
-
-			std::cout << ": " << m_perftCount << '\n';
-			m_perftCount = 0;
 		}
-
-
 
 		//unmake move
 		m_state = stateCopy;
 	}
 }
+
+void Engine::printMoves(bool white, int depth) noexcept
+{
+	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+
+	if (moves.size() == 0 && (white ? whiteKingInCheck() : blackKingInCheck()))
+	{
+		mates++;
+		return;
+	}
+
+	for (Move move : moves)
+	{
+		State stateCopy{ m_state };
+
+		if (makeLegalMove(white, move))
+		{
+			if (move.sourceIndex() == g2 && move.destinationIndex() == g4)
+			{
+				stateCopy.whiteSquares().print();
+				m_state.whiteSquares().print();
+				std::cout << "\n\n\n";
+
+				stateCopy.blackSquares().print();
+				m_state.blackSquares().print();
+				std::cout << "\n\n\n";
+
+				stateCopy.occupancy().print();
+				m_state.occupancy().print();
+				std::cout << "\n\n\n";
+
+				stateCopy.whiteOccupancy().print();
+				m_state.whiteOccupancy().print();
+				std::cout << "\n\n\n";
+
+				stateCopy.blackOccupancy().print();
+				m_state.blackOccupancy().print();
+				std::cout << "\n\n\n";
+
+				for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
+				{
+					const Piece piece{ static_cast<Piece>(i) };
+					stateCopy.pieceOccupancy(piece).print();
+					m_state.pieceOccupancy(piece).print();
+					std::cout << "\n\n\n";
+				}
+			}
+
+			std::cout << move.string();
+
+			perftRun(1, !white);
+
+			std::cout << ": " << m_perftCount << '\n';
+			m_perftCount = 0;
+		}
+
+		//unmake move
+		m_state = stateCopy;
+	}
+
+	std::cout << "mates " << mates << std::endl;
+}
+
 
 
 //private methods
@@ -114,7 +168,7 @@ void Engine::findWhiteSquares() noexcept //TODO: maybe move to MoveGen?
 	BitBoard bishops{ m_state.pieceOccupancyT<Piece::WhiteBishop>() };
 	BitBoard rooks{ m_state.pieceOccupancyT<Piece::WhiteRook>() };
 	BitBoard queens{ m_state.pieceOccupancyT<Piece::WhiteQueen>() };
-	BitBoard kings{ m_state.pieceOccupancyT<Piece::WhiteKing>() };
+	BitBoard kings{ m_state.pieceOccupancyT<Piece::WhiteKing>() }; //TODO: refactor?
 
 	while (pawns.board())
 	{
@@ -145,6 +199,9 @@ void Engine::findWhiteSquares() noexcept //TODO: maybe move to MoveGen?
 		const int index{ queens.popLeastSignificantBit() };
 		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board() | m_moveGen.getRookMoves(index, m_state.occupancy()).board();
 	}
+
+	const int kingIndex{ kings.popLeastSignificantBit() };
+	squares |= m_moveGen.getKingMoves(kingIndex).board();
 
 	m_state.setWhiteSquares(squares);
 }
@@ -190,16 +247,29 @@ void Engine::findBlackSquares() noexcept
 		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board() | m_moveGen.getRookMoves(index, m_state.occupancy()).board();
 	}
 
+	const int kingIndex{ kings.popLeastSignificantBit() };
+	squares |= m_moveGen.getKingMoves(kingIndex).board();
+
 	m_state.setBlackSquares(squares);
 }
 
 bool Engine::makeLegalMove(bool white, Move move) noexcept
 {
+	if (move.attackPiece() == Piece::WhiteKing || move.attackPiece() == Piece::BlackKing)
+	{
+		throw;
+	}
+
 	m_state.makeMove(white, move);
 	
+
 	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares();
 	findBlackSquares();
 
-	return white? !m_state.whiteKingInCheck() : !m_state.blackKingInCheck();
+	
+
+	return white 
+		? (m_state.pieceOccupancyT<Piece::BlackKing>().board() && !m_state.whiteKingInCheck()) 
+		: (m_state.pieceOccupancyT<Piece::WhiteKing>().board() && !m_state.blackKingInCheck());
 }

@@ -3,6 +3,12 @@
 MoveList::MoveList() noexcept
 	: m_back() { }
 
+
+std::size_t MoveList::size() const noexcept
+{
+	return m_back;
+}
+
 void MoveList::sort() noexcept
 {
 

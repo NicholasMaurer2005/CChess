@@ -54,6 +54,8 @@ State::State(std::string_view fen, Castle castle) //TODO: check for valid fens/m
 { 
 	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
+
+
 	std::size_t coreEndIndex{ fen.find(' ') };
 	std::string_view coreFen{ fen.substr(0, coreEndIndex) };
 	
@@ -79,16 +81,16 @@ State::State(std::string_view fen, Castle castle) //TODO: check for valid fens/m
 				const Piece piece{ charToPiece[c] };
 				const bool white = static_cast<std::uint32_t>(piece) < static_cast<std::uint32_t>(blackPieceOffset);
 
-				m_occupancy.set(boardIndex);
-				m_pieceOccupancy[static_cast<std::size_t>(piece)].set(boardIndex);
+				m_occupancy.set(static_cast<int>(boardIndex));
+				m_pieceOccupancy[static_cast<std::size_t>(piece)].set(static_cast<int>(boardIndex));
 
 				if (white)
 				{
-					m_whiteOccupancy.set(boardIndex);
+					m_whiteOccupancy.set(static_cast<int>(boardIndex));
 				}
 				else
 				{
-					m_blackOccupancy.set(boardIndex);
+					m_blackOccupancy.set(static_cast<int>(boardIndex));
 				}
 
 				++boardIndex;
@@ -165,6 +167,24 @@ void State::moveOccupancy(bool white, int sourceIndex, int destinationIndex) noe
 	}
 }
 
+void State::moveOccupancyCapture(bool white, int sourceIndex, int destinationIndex) noexcept
+{
+	m_occupancy.reset(sourceIndex);
+
+	if (white)
+	{
+		m_whiteOccupancy.reset(sourceIndex);
+		m_whiteOccupancy.set(destinationIndex);
+		m_blackOccupancy.reset(destinationIndex);
+	}
+	else
+	{
+		m_blackOccupancy.reset(sourceIndex);
+		m_blackOccupancy.set(destinationIndex);
+		m_whiteOccupancy.reset(destinationIndex);
+	}
+}
+
 void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept
 {
 	m_pieceOccupancy[static_cast<std::size_t>(piece)].reset(sourceIndex);
@@ -183,9 +203,8 @@ void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int s
 {
 	testCastleRights(white, sourcePiece, sourceIndex);
 
-	moveOccupancy(white, sourceIndex, destinationIndex);
+	moveOccupancyCapture(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
-
 	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(destinationIndex);
 }
 
@@ -237,7 +256,7 @@ void State::moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, 
 
 void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept
 {
-	moveOccupancy(white, sourceIndex, destinationIndex);
+	moveOccupancyCapture(white, sourceIndex, destinationIndex);
 
 	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(attackPiece)].reset(destinationIndex);

@@ -18,6 +18,8 @@ public:
 
 	MoveList() noexcept;
 
+	std::size_t size() const noexcept;
+
 	//quiet
 	template<Piece piece>
 	void pushQuiet(int sourceIndex, int destinationIndex) noexcept

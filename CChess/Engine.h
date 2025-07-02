@@ -21,7 +21,7 @@ private:
 
 
 	//private methods
-	void perftRun(int depth, bool white, bool print) noexcept;
+	void perftRun(int depth, bool white) noexcept;
 
 	bool whiteKingInCheck() const noexcept;
 
@@ -46,5 +46,7 @@ public:
 	void perft(int depth) noexcept;
 
 	void printMoves(bool white) noexcept;
+
+	void printMoves(bool white, int depth) noexcept;
 };
 

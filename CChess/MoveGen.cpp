@@ -380,6 +380,27 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
+			if (attackPiece == Piece::WhiteKing || attackPiece == Piece::BlackKing)
+			{
+				throw;
+			}
+
+			if (state.pieceOccupancyT<Piece::WhiteKing>().board() == 0)
+			{
+				throw;
+			}
+
+			if (state.pieceOccupancyT<Piece::BlackKing>().board() == 0)
+			{
+				throw;
+			}
+
+			if (!(state.pieceOccupancyT<Piece::WhiteKing>().board() & state.whiteOccupancy().board()))
+			{
+				throw;
+			}
+
 			moveList.pushAttack<queen>(attackPiece, sourceIndex, attackIndex);
 		}
 	}

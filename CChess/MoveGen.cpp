@@ -163,6 +163,7 @@ static void pawnNormals(BitBoard pawns, MoveList& moveList, const State& state) 
 	while (pawns.board())
 	{
 		const int sourceIndex{ pawns.popLeastSignificantBit() };
+
 		BitBoard attack{ white 
 			? preGen.whitePawnAttack(sourceIndex).board() & state.blackOccupancy().board()
 			: preGen.blackPawnAttack(sourceIndex).board() & state.whiteOccupancy().board() };
@@ -170,7 +171,7 @@ static void pawnNormals(BitBoard pawns, MoveList& moveList, const State& state) 
 		while (attack.board())
 		{
 			const int attackIndex{ attack.popLeastSignificantBit() };
-			const Piece attackPiece{ state.findPiece<white>(attackIndex) };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 
 			moveList.pushAttack<pawn>(attackPiece, sourceIndex, attackIndex);
 		}
@@ -352,6 +353,7 @@ static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) no
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
 			moveList.pushAttack<rook>(attackPiece, sourceIndex, attackIndex);
 		}
 	}
@@ -380,26 +382,6 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 		{
 			const int attackIndex{ attacks.popLeastSignificantBit() };
 			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
-
-			if (attackPiece == Piece::WhiteKing || attackPiece == Piece::BlackKing)
-			{
-				throw;
-			}
-
-			if (state.pieceOccupancyT<Piece::WhiteKing>().board() == 0)
-			{
-				throw;
-			}
-
-			if (state.pieceOccupancyT<Piece::BlackKing>().board() == 0)
-			{
-				throw;
-			}
-
-			if (!(state.pieceOccupancyT<Piece::WhiteKing>().board() & state.whiteOccupancy().board()))
-			{
-				throw;
-			}
 
 			moveList.pushAttack<queen>(attackPiece, sourceIndex, attackIndex);
 		}

@@ -18,7 +18,37 @@ constexpr std::string_view debugFen6{ "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1
 
 int main()
 {
-	Engine engine{ startFen, Castle::All };
-	engine.perft(5);
-	//engine.printMoves(true, 3);
+	Engine engine{ debugFen5, Castle::WhiteBoth };
+	//engine.perft(6);
+	engine.printMoves(true, 2);
 }
+
+
+
+//stateCopy.whiteSquares().print();
+//m_state.whiteSquares().print();
+//std::cout << "\n\n\n";
+//
+//stateCopy.blackSquares().print();
+//m_state.blackSquares().print();
+//std::cout << "\n\n\n";
+//
+//stateCopy.occupancy().print();
+//m_state.occupancy().print();
+//std::cout << "\n\n\n";
+//
+//stateCopy.whiteOccupancy().print();
+//m_state.whiteOccupancy().print();
+//std::cout << "\n\n\n";
+//
+//stateCopy.blackOccupancy().print();
+//m_state.blackOccupancy().print();
+//std::cout << "\n\n\n";
+//
+//for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
+//{
+//	const Piece piece{ static_cast<Piece>(i) };
+//	stateCopy.pieceOccupancy(piece).print();
+//	m_state.pieceOccupancy(piece).print();
+//	std::cout << "\n\n\n";
+//}

@@ -84,15 +84,9 @@ void Engine::printMoves(bool white) noexcept
 	}
 }
 
-void Engine::printMoves(bool white, int depth) noexcept
+void Engine::printMoves(bool white, int depth, int delta) noexcept
 {
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
-
-	if (moves.size() == 0 && (white ? whiteKingInCheck() : blackKingInCheck()))
-	{
-		mates++;
-		return;
-	}
 
 	for (Move move : moves)
 	{
@@ -100,40 +94,23 @@ void Engine::printMoves(bool white, int depth) noexcept
 
 		if (makeLegalMove(white, move))
 		{
-			if (move.sourceIndex() == g2 && move.destinationIndex() == g4)
+			if (move.sourceIndex() == h2 && move.destinationIndex() == h4 && delta == 0)
 			{
-				stateCopy.whiteSquares().print();
-				m_state.whiteSquares().print();
-				std::cout << "\n\n\n";
+				std::cout << "bad start\n";
+				printMoves(!white, 1, delta = 1);
+				std::cout << "bad end\n";
+			}
 
-				stateCopy.blackSquares().print();
-				m_state.blackSquares().print();
-				std::cout << "\n\n\n";
-
-				stateCopy.occupancy().print();
-				m_state.occupancy().print();
-				std::cout << "\n\n\n";
-
-				stateCopy.whiteOccupancy().print();
-				m_state.whiteOccupancy().print();
-				std::cout << "\n\n\n";
-
-				stateCopy.blackOccupancy().print();
-				m_state.blackOccupancy().print();
-				std::cout << "\n\n\n";
-
-				for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
-				{
-					const Piece piece{ static_cast<Piece>(i) };
-					stateCopy.pieceOccupancy(piece).print();
-					m_state.pieceOccupancy(piece).print();
-					std::cout << "\n\n\n";
-				}
+			if (move.sourceIndex() == f2 && move.destinationIndex() == h1 && delta == 1)
+			{
+				std::cout << "bad start 2\n";
+				printMoves(!white, 0, delta = 1);
+				std::cout << "bad end 2\n";
 			}
 
 			std::cout << move.string();
 
-			perftRun(1, !white);
+			perftRun(depth, !white);
 
 			std::cout << ": " << m_perftCount << '\n';
 			m_perftCount = 0;
@@ -142,8 +119,6 @@ void Engine::printMoves(bool white, int depth) noexcept
 		//unmake move
 		m_state = stateCopy;
 	}
-
-	std::cout << "mates " << mates << std::endl;
 }
 
 
@@ -255,19 +230,11 @@ void Engine::findBlackSquares() noexcept
 
 bool Engine::makeLegalMove(bool white, Move move) noexcept
 {
-	if (move.attackPiece() == Piece::WhiteKing || move.attackPiece() == Piece::BlackKing)
-	{
-		throw;
-	}
-
 	m_state.makeMove(white, move);
 	
-
 	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares();
 	findBlackSquares();
-
-	
 
 	return white 
 		? (m_state.pieceOccupancyT<Piece::BlackKing>().board() && !m_state.whiteKingInCheck()) 

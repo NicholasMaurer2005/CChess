@@ -47,6 +47,8 @@ private:
 
 	void moveOccupancyCapture(bool white, int sourceIndex, int destinationIndex) noexcept;
 
+	void moveOccupancyEnpassant(bool white, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
+
 	void movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept;
 
 	void moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept;

@@ -47,6 +47,6 @@ public:
 
 	void printMoves(bool white) noexcept;
 
-	void printMoves(bool white, int depth) noexcept;
+	void printMoves(bool white, int depth, int delta = 0) noexcept;
 };
 

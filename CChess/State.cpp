@@ -185,6 +185,26 @@ void State::moveOccupancyCapture(bool white, int sourceIndex, int destinationInd
 	}
 }
 
+void State::moveOccupancyEnpassant(bool white, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept
+{
+	m_occupancy.reset(sourceIndex);
+	m_occupancy.set(destinationIndex);
+	m_occupancy.reset(enpassantIndex);
+	
+	if (white)
+	{
+		m_whiteOccupancy.reset(sourceIndex);
+		m_whiteOccupancy.set(destinationIndex);
+		m_blackOccupancy.reset(enpassantIndex);
+	}
+	else
+	{
+		m_blackOccupancy.reset(sourceIndex);
+		m_blackOccupancy.set(destinationIndex);
+		m_whiteOccupancy.reset(enpassantIndex);
+	}
+}
+
 void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept
 {
 	m_pieceOccupancy[static_cast<std::size_t>(piece)].reset(sourceIndex);
@@ -210,7 +230,7 @@ void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int s
 
 void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept
 {
-	moveOccupancy(white, sourceIndex, destinationIndex);
+	moveOccupancyEnpassant(white, sourceIndex, destinationIndex, enpassantIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
 
 	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(enpassantIndex);
@@ -338,7 +358,7 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 	else if (move.enpassantFlag()) [[unlikely]]
 	{
 		//enpassant
-		const int enpassantIndex{ move.enpassantIndex() + (white ? 24 : 32) };
+		const int enpassantIndex{ move.enpassantIndex() + (white ? 32 : 24) };
 		moveEnpassant(white, move.sourcePiece(), move.attackPiece(), move.sourceIndex(), move.destinationIndex(), enpassantIndex);
 	}
 	else

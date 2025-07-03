@@ -65,6 +65,8 @@ private:
 
 	void testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept;
 
+	void testCastleCaptureRights(bool white, Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept;
+
 
 
 public:

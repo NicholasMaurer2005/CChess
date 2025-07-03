@@ -16,12 +16,10 @@ private:
 
 	State m_state;
 
-	int m_perftCount;
-
 
 
 	//private methods
-	void perftRun(int depth, bool white) noexcept;
+	std::uint64_t perftRun(int depth, bool white) noexcept;
 
 	bool whiteKingInCheck() const noexcept;
 
@@ -47,6 +45,6 @@ public:
 
 	void printMoves(bool white) noexcept;
 
-	void printMoves(bool white, int depth, int delta = 0) noexcept;
+	void printMoves(bool white, int depth) noexcept;
 };
 

@@ -149,7 +149,7 @@ void State::print() const noexcept
 
 
 
-//private methods
+//private methods //TODO: maybe refactor? | consistant nameing PLEASE
 void State::moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept
 {
 	m_occupancy.reset(sourceIndex);
@@ -213,7 +213,7 @@ void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexce
 
 void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
 {
-	testCastleRights(white, sourcePiece, sourceIndex);
+	testCastleRights(white, sourcePiece, sourceIndex); //TODO: refactor so only one branch happens
 
 	moveOccupancy(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
@@ -221,7 +221,7 @@ void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destin
 
 void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept
 {
-	testCastleRights(white, sourcePiece, sourceIndex);
+	testCastleCaptureRights(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
 
 	moveOccupancyCapture(white, sourceIndex, destinationIndex);
 	movePiece(sourcePiece, sourceIndex, destinationIndex);
@@ -276,6 +276,7 @@ void State::moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, 
 
 void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept
 {
+	testCastleCaptureRights(white, sourcePiece, attackPiece, sourceIndex, destinationIndex);
 	moveOccupancyCapture(white, sourceIndex, destinationIndex);
 
 	m_pieceOccupancy[static_cast<std::size_t>(sourcePiece)].reset(sourceIndex);
@@ -285,7 +286,6 @@ void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece,
 
 void State::testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept
 {
-	//TODO: maybe move to move generation?
 	if (white)
 	{
 		if (!(static_cast<bool>(m_castleRights & Castle::WhiteBoth))) return;
@@ -324,6 +324,70 @@ void State::testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noe
 		else if (sourcePiece == Piece::BlackKing)
 		{
 			m_castleRights &= ~Castle::BlackBoth;
+		}
+	}
+}
+
+void State::testCastleCaptureRights(bool white, Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept
+{
+	if (white) //TODO: maybe find faster way?
+	{
+		if (sourcePiece == Piece::WhiteRook)
+		{
+			if (sourceIndex == h1)
+			{
+				m_castleRights &= ~Castle::WhiteKingSide;
+			}
+			else if (sourceIndex == a1)
+			{
+				m_castleRights &= ~Castle::WhiteQueenSide;
+			}
+		}
+		else if (sourcePiece == Piece::WhiteKing)
+		{
+			m_castleRights &= ~Castle::WhiteBoth;
+		}
+
+		if (attackPiece == Piece::BlackRook)
+		{
+			if (destinationIndex == h8)
+			{
+				m_castleRights &= ~Castle::BlackKingSide;
+			}
+			else if (destinationIndex == a8)
+			{
+				m_castleRights &= ~Castle::BlackQueenSide;
+			}
+		}
+	}
+	else
+	{
+		if (sourcePiece == Piece::BlackRook)
+		{
+			if (sourceIndex == h8)
+			{
+				m_castleRights &= ~Castle::BlackKingSide;
+			}
+			else if (sourceIndex == a8)
+			{
+				m_castleRights &= ~Castle::BlackQueenSide;
+			}
+		}
+		else if (sourcePiece == Piece::BlackKing)
+		{
+			m_castleRights &= ~Castle::BlackBoth;
+		}
+
+		if (attackPiece == Piece::WhiteRook)
+		{
+			if (destinationIndex == h1)
+			{
+				m_castleRights &= ~Castle::WhiteKingSide;
+			}
+			else if (destinationIndex == a1)
+			{
+				m_castleRights &= ~Castle::WhiteQueenSide;
+			}
 		}
 	}
 }

@@ -9,7 +9,7 @@
 
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
-	: m_moveGen(), m_state(fen, castle), m_perftCount()
+	: m_moveGen(), m_state(fen, castle)
 {
 	findWhiteSquares();
 	findBlackSquares();
@@ -17,20 +17,16 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 
 
 //perft
-
-static int mates{};
-
-void Engine::perftRun(int depth, bool white) noexcept
+std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 {
 	if (depth == 0)
 	{
-		++m_perftCount; //TODO: maybe make recursive sum?
-		return;
+		return 1ULL;
 	}
 
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
 
-	int legalMovesCount{};
+	std::uint64_t perftCount{};
 
 	for (Move move : moves)
 	{
@@ -38,32 +34,24 @@ void Engine::perftRun(int depth, bool white) noexcept
 
 		if (makeLegalMove(white, move))
 		{
-			++legalMovesCount;
-			perftRun(depth - 1, !white);
+			perftCount += perftRun(depth - 1, !white);
 		}
 
 		//unmake move
 		m_state = stateCopy;
 	}
 
-	if (legalMovesCount == 0 && (white ? whiteKingInCheck() : blackKingInCheck()))
-	{
-		++mates;
-	}
+	return perftCount;
 }
 
 void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i <= depth; i++)
 	{
-		perftRun(i, true);
-		
-		std::cout << "perft ply " << i << ": " << m_perftCount << '\n';
-		m_perftCount = 0;
+		std::cout << "perft ply " << i << ": " << perftRun(i, true) << '\n';
 	}
 
 	std::cout << "done" << std::endl;
-	std::cout << mates << std::endl;
 }
 
 void Engine::printMoves(bool white) noexcept
@@ -84,7 +72,7 @@ void Engine::printMoves(bool white) noexcept
 	}
 }
 
-void Engine::printMoves(bool white, int depth, int delta) noexcept
+void Engine::printMoves(bool white, int depth) noexcept
 {
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
 
@@ -94,26 +82,7 @@ void Engine::printMoves(bool white, int depth, int delta) noexcept
 
 		if (makeLegalMove(white, move))
 		{
-			if (move.sourceIndex() == h2 && move.destinationIndex() == h4 && delta == 0)
-			{
-				std::cout << "bad start\n";
-				printMoves(!white, 1, delta = 1);
-				std::cout << "bad end\n";
-			}
-
-			if (move.sourceIndex() == f2 && move.destinationIndex() == h1 && delta == 1)
-			{
-				std::cout << "bad start 2\n";
-				printMoves(!white, 0, delta = 1);
-				std::cout << "bad end 2\n";
-			}
-
-			std::cout << move.string();
-
-			perftRun(depth, !white);
-
-			std::cout << ": " << m_perftCount << '\n';
-			m_perftCount = 0;
+			std::cout << move.string() << ": " << perftRun(depth, !white) << '\n';
 		}
 
 		//unmake move

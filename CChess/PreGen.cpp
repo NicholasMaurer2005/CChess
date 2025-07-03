@@ -468,11 +468,6 @@ BitBoard PreGen::bishopAttack(std::size_t index, BitBoard occupancy) const noexc
 
 BitBoard PreGen::rookAttack(std::size_t index, BitBoard occupancy) const noexcept
 {
-	if (!occupancy.board())
-	{
-		throw;
-	}
-
 	const std::size_t magic{ m_rookMagics[index] };
 	const std::uint64_t relevantBits{ occupancy.board() & m_rookRelevantBits[index].board() };
 	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_rookBitCount[index]) };

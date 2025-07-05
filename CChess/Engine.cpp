@@ -37,8 +37,6 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	{
 		unmakeMoveInfo info{};
 
-		State stateCopy{ m_state };
-
 		if (makeLegalMove(white, move, info))
 		{
 			perftCount += perftRun(depth - 1, !white);

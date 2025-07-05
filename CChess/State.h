@@ -51,10 +51,10 @@ struct unmakeMoveInfo
 	std::uint8_t destinationIndex;
 	SmallPiece sourcePiece;
 	Castle castleRights;
-	SmallPiece capturePiece;
-	MoveType type;
-	std::uint8_t promoteOrCastle;
 	std::uint8_t enpassantIndex;
+	MoveType type;
+	SmallPiece capturePiece;
+	std::uint8_t promoteOrCastle;
 };
 
 
@@ -128,8 +128,14 @@ public:
 
 
 
+	//compare
+	bool operator== (const State& other) const noexcept;
+
+
 	//print
 	void print() const noexcept;
+
+	void dump() const noexcept;
 
 
 

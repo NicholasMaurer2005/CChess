@@ -16,6 +16,11 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 }
 
 
+static bool isEqual(const State& lhs, const State& rhs)
+{
+	return std::memcmp(&lhs, &rhs, sizeof(State));
+}
+
 //perft
 std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 {
@@ -30,15 +35,17 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 
 	for (Move move : moves)
 	{
+		unmakeMoveInfo info{};
+
 		State stateCopy{ m_state };
 
-		if (makeLegalMove(white, move))
+		if (makeLegalMove(white, move, info))
 		{
 			perftCount += perftRun(depth - 1, !white);
 		}
 
 		//unmake move
-		m_state = stateCopy;
+		m_state.unmakeMove(info);
 	}
 
 	return perftCount;
@@ -54,41 +61,41 @@ void Engine::perft(int depth) noexcept
 	std::cout << "done" << std::endl;
 }
 
-void Engine::printMoves(bool white) noexcept
-{
-	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
-
-	for (Move move : moves)
-	{
-		State stateCopy{ m_state };
-
-		if (makeLegalMove(white, move))
-		{
-			move.print();
-		}
-
-		//unmake move
-		m_state = stateCopy;
-	}
-}
-
-void Engine::printMoves(bool white, int depth) noexcept
-{
-	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
-
-	for (Move move : moves)
-	{
-		State stateCopy{ m_state };
-
-		if (makeLegalMove(white, move))
-		{
-			std::cout << move.string() << ": " << perftRun(depth, !white) << '\n';
-		}
-
-		//unmake move
-		m_state = stateCopy;
-	}
-}
+//void Engine::printMoves(bool white) noexcept
+//{
+//	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+//
+//	for (Move move : moves)
+//	{
+//		unmakeMoveInfo info{};
+//
+//		if (makeLegalMove(white, move, info))
+//		{
+//			move.print();
+//		}
+//
+//		//unmake move
+//		m_state.unmakeMove(white, move, info);
+//	}
+//}
+//
+//void Engine::printMoves(bool white, int depth) noexcept
+//{
+//	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+//
+//	for (Move move : moves)
+//	{
+//		unmakeMoveInfo info{};
+//
+//		if (makeLegalMove(white, move, info))
+//		{
+//			std::cout << move.string() << ": " << perftRun(depth, !white) << '\n';
+//		}
+//
+//		//unmake move
+//		m_state.unmakeMove(white, move, info);
+//	}
+//}
 
 
 
@@ -197,9 +204,9 @@ void Engine::findBlackSquares() noexcept
 	m_state.setBlackSquares(squares);
 }
 
-bool Engine::makeLegalMove(bool white, Move move) noexcept
+bool Engine::makeLegalMove(bool white, Move move, unmakeMoveInfo& info) noexcept
 {
-	m_state.makeMove(white, move);
+	info = m_state.makeMove(white, move);
 	
 	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares();

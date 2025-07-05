@@ -10,14 +10,51 @@
 #include "BitBoard.h"
 #include "MoveList.h"
 
+enum class MoveType : std::uint8_t
+{
+	WhiteQuiet,
+	WhiteCapture,
+	WhiteCastle,
+	WhitePromote,
+	WhitePromoteCapture,
+	WhiteEnpassant,
+	BlackQuiet,
+	BlackCapture,
+	BlackCastle,
+	BlackPromote,
+	BlackPromoteCapture,
+	BlackEnpassant
+};
 
+enum class SmallPiece : std::uint8_t
+{
+	NoPiece = 0,
+	WhitePawn = 1,
+	WhiteKnight = 2,
+	WhiteBishop = 3,
+	WhiteRook = 4,
+	WhiteQueen = 5,
+	WhiteKing = 6,
+	BlackPawn = 7,
+	BlackKnight = 8,
+	BlackBishop = 9,
+	BlackRook = 10,
+	BlackQueen = 11,
+	BlackKing = 12
+};
 
 struct unmakeMoveInfo
 {
-	BitBoard enpassantSquare;
+	BitBoard whiteSquares;
+	BitBoard blackSquares;
+	std::uint8_t sourceIndex;
+	std::uint8_t destinationIndex;
+	SmallPiece sourcePiece;
 	Castle castleRights;
-	bool whiteKingInCheck;
-	bool blackKingInCheck;
+	SmallPiece capturePiece;
+	MoveType type;
+	std::uint8_t promoteOrCastle;
+	std::uint8_t enpassantIndex;
 };
 
 
@@ -37,9 +74,6 @@ private:
 
 	Castle m_castleRights;
 
-	bool m_whiteKingInCheck;
-	bool m_blackKingInCheck;
-
 
 
 	//private methods
@@ -47,21 +81,37 @@ private:
 
 	void moveOccupancyCapture(bool white, int sourceIndex, int destinationIndex) noexcept;
 
-	void moveOccupancyEnpassant(bool white, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
-
 	void movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept;
 
+
+
+	//normal moves
 	void moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept;
 
 	void moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept;
 
+
+
+	//enpassant
+	void moveOccupancyEnpassant(bool white, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
+
 	void moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept;
 
+
+
+	//castle
 	void moveCastle(Castle castle) noexcept;
 
+	void unmoveCastle(Castle castle) noexcept;
+
+
+
+	//promote
 	void moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept;
 
 	void moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept;
+
+
 
 	void testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept;
 
@@ -86,7 +136,7 @@ public:
 	//move
 	unmakeMoveInfo makeMove(bool white, Move move) noexcept;
 
-	void unmakeMove(bool white, Move move, unmakeMoveInfo info) noexcept;
+	void unmakeMove(unmakeMoveInfo& info) noexcept;
 
 
 	//setters

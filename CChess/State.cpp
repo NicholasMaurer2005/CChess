@@ -37,7 +37,7 @@ State::State() noexcept
 	//squares
 	m_whiteSquares(), m_blackSquares(),
 
-	m_castleRights(), m_whiteKingInCheck(), m_blackKingInCheck() { }
+	m_castleRights() { }
 
 
 State::State(std::string_view fen, Castle castle) //TODO: check for valid fens/make sure it never "fails"
@@ -50,7 +50,7 @@ State::State(std::string_view fen, Castle castle) //TODO: check for valid fens/m
 	//squares
 	m_whiteSquares(), m_blackSquares(),
 
-	m_castleRights(castle), m_whiteKingInCheck(), m_blackKingInCheck()
+	m_castleRights(castle)
 { 
 	constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
 
@@ -185,12 +185,37 @@ void State::moveOccupancyCapture(bool white, int sourceIndex, int destinationInd
 	}
 }
 
+void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept
+{
+	m_pieceOccupancy[static_cast<std::size_t>(piece)].reset(sourceIndex);
+	m_pieceOccupancy[static_cast<std::size_t>(piece)].set(destinationIndex);
+}
+
+
+
+//normal moves
+void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
+{
+	moveOccupancy(white, sourceIndex, destinationIndex);
+	movePiece(sourcePiece, sourceIndex, destinationIndex);
+}
+
+void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept
+{
+	moveOccupancyCapture(white, sourceIndex, destinationIndex);
+	movePiece(sourcePiece, sourceIndex, destinationIndex);
+	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(destinationIndex);
+}
+
+
+
+//enpassant
 void State::moveOccupancyEnpassant(bool white, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept
 {
 	m_occupancy.reset(sourceIndex);
 	m_occupancy.set(destinationIndex);
 	m_occupancy.reset(enpassantIndex);
-	
+
 	if (white)
 	{
 		m_whiteOccupancy.reset(sourceIndex);
@@ -205,29 +230,6 @@ void State::moveOccupancyEnpassant(bool white, int sourceIndex, int destinationI
 	}
 }
 
-void State::movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept
-{
-	m_pieceOccupancy[static_cast<std::size_t>(piece)].reset(sourceIndex);
-	m_pieceOccupancy[static_cast<std::size_t>(piece)].set(destinationIndex);
-}
-
-void State::moveQuiet(bool white, Piece sourcePiece, int sourceIndex, int destinationIndex) noexcept
-{
-	testCastleRights(white, sourcePiece, sourceIndex); //TODO: refactor so only one branch happens
-
-	moveOccupancy(white, sourceIndex, destinationIndex);
-	movePiece(sourcePiece, sourceIndex, destinationIndex);
-}
-
-void State::moveCapture(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex) noexcept
-{
-	testCastleCaptureRights(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
-
-	moveOccupancyCapture(white, sourceIndex, destinationIndex);
-	movePiece(sourcePiece, sourceIndex, destinationIndex);
-	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(destinationIndex);
-}
-
 void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int sourceIndex, int destinationIndex, int enpassantIndex) noexcept
 {
 	moveOccupancyEnpassant(white, sourceIndex, destinationIndex, enpassantIndex);
@@ -236,36 +238,68 @@ void State::moveEnpassant(bool white, Piece sourcePiece, Piece capturePiece, int
 	m_pieceOccupancy[static_cast<std::size_t>(capturePiece)].reset(enpassantIndex);
 }
 
+
+
+//castle
 void State::moveCastle(Castle castle) noexcept
 {
 	switch (castle)
 	{
 	case Castle::WhiteKingSide:
-		moveQuiet(true, Piece::WhiteKing, 4, 6);
-		moveQuiet(true, Piece::WhiteRook, 7, 5);
+		moveQuiet(true, Piece::WhiteKing, e1, g1);
+		moveQuiet(true, Piece::WhiteRook, h1, f1);
 		m_castleRights &= ~Castle::WhiteBoth;
 		break;
 
 	case Castle::WhiteQueenSide:
-		moveQuiet(true, Piece::WhiteKing, 4, 2);
-		moveQuiet(true, Piece::WhiteRook, 0, 3);
+		moveQuiet(true, Piece::WhiteKing, e1, c1);
+		moveQuiet(true, Piece::WhiteRook, a1, d1);
 		m_castleRights &= ~Castle::WhiteBoth;
 		break;
 
 	case Castle::BlackKingSide:
-		moveQuiet(false, Piece::BlackKing, 60, 62);
-		moveQuiet(false, Piece::BlackRook, 63, 61);
+		moveQuiet(false, Piece::BlackKing, e8, g8);
+		moveQuiet(false, Piece::BlackRook, h8, f8);
 		m_castleRights &= ~Castle::BlackBoth;
 		break;
 
 	case Castle::BlackQueenSide:
-		moveQuiet(false, Piece::BlackKing, 60, 58);
-		moveQuiet(false, Piece::BlackRook, 56, 59);
+		moveQuiet(false, Piece::BlackKing, e8, c8);
+		moveQuiet(false, Piece::BlackRook, a8, d8);
 		m_castleRights &= ~Castle::BlackBoth;
 		break;
 	}
 }
 
+void State::unmoveCastle(Castle castle) noexcept
+{
+	switch (castle)
+	{
+	case Castle::WhiteKingSide:
+		moveQuiet(true, Piece::WhiteKing, g1, e1);
+		moveQuiet(true, Piece::WhiteRook, f1, h1);
+		break;
+
+	case Castle::WhiteQueenSide:
+		moveQuiet(true, Piece::WhiteKing, c1, e1);
+		moveQuiet(true, Piece::WhiteRook, d1, a1);
+		break;
+
+	case Castle::BlackKingSide:
+		moveQuiet(false, Piece::BlackKing, g8, e8);
+		moveQuiet(false, Piece::BlackRook, f8, h8);
+		break;
+
+	case Castle::BlackQueenSide:
+		moveQuiet(false, Piece::BlackKing, c8, e8);
+		moveQuiet(false, Piece::BlackRook, d8, a8);
+		break;
+	}
+}
+
+
+
+//promote
 void State::moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept
 {
 	moveOccupancy(white, sourceIndex, destinationIndex);
@@ -283,6 +317,8 @@ void State::moveCapturePromote(bool white, Piece sourcePiece, Piece attackPiece,
 	m_pieceOccupancy[static_cast<std::size_t>(attackPiece)].reset(destinationIndex);
 	m_pieceOccupancy[static_cast<std::size_t>(promotePiece)].set(destinationIndex);
 }
+
+
 
 void State::testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept
 {
@@ -407,65 +443,116 @@ void State::setBlackSquares(BitBoard squares) noexcept
 
 
 
-//move
+//struct unmakeMoveInfo
+//{
+//	BitBoard whiteSquares;
+//	BitBoard blackSquares;
+//	std::uint8_t sourceIndex;
+//	std::uint8_t destinationIndex;
+//	SmallPiece sourcePiece;
+//	Castle castleRights;
+//	SmallPiece capturePiece;
+//	MoveType type;
+//	std::uint8_t promoteOrCastle;
+//	std::uint8_t enpassantIndex;
+//};
+
+//move //TODO: could I make this a switch? GGGGRRRRAAATATATATATATA
 unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 {
-	unmakeMoveInfo info{ m_enpassantSquare, m_castleRights, m_whiteKingInCheck, m_blackKingInCheck };
+	const int sourceIndex{ move.sourceIndex() };
+	const int destinationIndex{ move.destinationIndex() };
+	const Piece sourcePiece{ move.sourcePiece()};
+
+	unmakeMoveInfo info{ 
+		m_whiteSquares, 
+		m_blackSquares, 
+		static_cast<uint8_t>(sourceIndex), 
+		static_cast<uint8_t>(destinationIndex),
+		static_cast<SmallPiece>(sourcePiece),
+		m_castleRights
+	};
 
 	m_enpassantSquare = BitBoard();
 
 	if (move.castleFlag()) [[unlikely]]
 	{
 		//castle
-		moveCastle(move.castleType());
+		const Castle castleType{ move.castleType() };
+
+		info.type = white ? MoveType::WhiteCastle : MoveType::BlackCastle;
+		info.promoteOrCastle = static_cast<std::uint8_t>(castleType);
+
+		moveCastle(castleType);
 	}
 	else if (move.enpassantFlag()) [[unlikely]]
 	{
 		//enpassant
 		const int enpassantIndex{ move.enpassantIndex() + (white ? 32 : 24) };
-		moveEnpassant(white, move.sourcePiece(), move.attackPiece(), move.sourceIndex(), move.destinationIndex(), enpassantIndex);
+
+		info.type = white ? MoveType::WhiteEnpassant : MoveType::BlackEnpassant;
+		info.enpassantIndex = enpassantIndex;
+
+		moveEnpassant(white, sourcePiece, move.attackPiece(), sourceIndex, destinationIndex, enpassantIndex);
 	}
 	else
 	{
 		const Piece promotePiece{ move.promotePiece() };
-		const Piece attackPiece{ move.attackPiece() };
+		const Piece capturePiece{ move.attackPiece() };
 
 		if (promotePiece == Piece::NoPiece) [[likely]]
 		{
-			if (attackPiece == Piece::NoPiece)
+			if (capturePiece == Piece::NoPiece)
 			{
 				if (move.doublePawnFlag()) [[unlikely]]
 				{
 					//double pawn push
-					const int sourceIndex{ move.sourceIndex() };
 					const int enpassantIndex{ sourceIndex + (white ? 8 : -8) };
 
+					info.type = white ? MoveType::WhiteQuiet : MoveType::BlackQuiet;
+
 					m_enpassantSquare = BitBoard(1ULL << enpassantIndex);
-					moveQuiet(white, move.sourcePiece(), sourceIndex, move.destinationIndex());
+
+					moveQuiet(white, sourcePiece, sourceIndex, destinationIndex);
+					testCastleRights(white, sourcePiece, sourceIndex); //TODO: refactor so only one branch happens
 				}
 				else
 				{
 					//normal quiet
-					moveQuiet(white, move.sourcePiece(), move.sourceIndex(), move.destinationIndex());
+					info.type = white ? MoveType::WhiteQuiet : MoveType::BlackQuiet;
+
+					moveQuiet(white, sourcePiece, sourceIndex, destinationIndex);
+					testCastleRights(white, sourcePiece, sourceIndex); //TODO: refactor so only one branch happens
 				}
 			}
 			else
 			{
 				//normal capture
-				moveCapture(white, move.sourcePiece(), move.attackPiece(), move.sourceIndex(), move.destinationIndex());
+				info.type = white ? MoveType::WhiteCapture : MoveType::BlackCapture;
+				info.capturePiece = static_cast<SmallPiece>(capturePiece);
+
+				moveCapture(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
+				testCastleCaptureRights(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
 			}
 		}
 		else
 		{
-			if (attackPiece == Piece::NoPiece)
+			if (capturePiece == Piece::NoPiece)
 			{
 				//quiet promote
+				info.type = white ? MoveType::WhitePromote : MoveType::BlackPromote;
+				info.promoteOrCastle = static_cast<std::size_t>(promotePiece);
+
 				moveQuietPromote(white, move.sourcePiece(), promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 			else
 			{
 				//capture promote
-				moveCapturePromote(white, move.sourcePiece(), attackPiece, promotePiece, move.sourceIndex(), move.destinationIndex());
+				info.type = white ? MoveType::WhitePromoteCapture : MoveType::BlackPromoteCapture;
+				info.capturePiece = static_cast<SmallPiece>(capturePiece);
+				info.promoteOrCastle = static_cast<std::size_t>(promotePiece);
+
+				moveCapturePromote(white, move.sourcePiece(), capturePiece, promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 		}
 	}
@@ -473,9 +560,198 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 	return info;
 }
 
-void State::unmakeMove(bool white, Move move, unmakeMoveInfo info) noexcept
-{
 
+
+void State::unmakeMove(unmakeMoveInfo& info) noexcept
+{
+	m_whiteSquares = info.whiteSquares;
+	m_blackSquares = info.blackSquares;
+	m_castleRights = info.castleRights;
+
+	switch (info.type)
+	{
+	case MoveType::WhiteQuiet:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.sourceIndex);
+		m_whiteOccupancy.reset(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::WhiteCapture:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_whiteOccupancy.set(info.sourceIndex);
+		m_whiteOccupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.capturePiece)].set(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::WhiteCastle:
+		//castle
+		unmoveCastle(static_cast<Castle>(info.promoteOrCastle));
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::WhitePromote:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.sourceIndex);
+		m_whiteOccupancy.reset(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.promoteOrCastle)].reset(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::WhitePromoteCapture:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_whiteOccupancy.set(info.sourceIndex);
+		m_whiteOccupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.promoteOrCastle)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.capturePiece)].set(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::WhiteEnpassant:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.sourceIndex);
+		m_whiteOccupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.enpassantIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(Piece::BlackPawn)].set(info.enpassantIndex);
+		//enpassant index
+		m_enpassantSquare = 1ULL << info.destinationIndex;
+		break;
+
+	case MoveType::BlackQuiet:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.sourceIndex);
+		m_blackOccupancy.reset(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::BlackCapture:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_blackOccupancy.set(info.sourceIndex);
+		m_blackOccupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.capturePiece)].set(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::BlackCastle:
+		//castle
+		unmoveCastle(static_cast<Castle>(info.promoteOrCastle));
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::BlackPromote:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.sourceIndex);
+		m_blackOccupancy.reset(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.promoteOrCastle)].reset(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::BlackPromoteCapture:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_blackOccupancy.set(info.sourceIndex);
+		m_blackOccupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.destinationIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.promoteOrCastle)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.capturePiece)].set(info.destinationIndex);
+		//enpassant index
+		if (info.enpassantIndex != 64)
+		{
+			m_enpassantSquare = 1ULL << info.enpassantIndex;
+		}
+		break;
+
+	case MoveType::BlackEnpassant:
+		//occupancy
+		m_occupancy.set(info.sourceIndex);
+		m_occupancy.reset(info.destinationIndex);
+		m_blackOccupancy.set(info.sourceIndex);
+		m_blackOccupancy.reset(info.destinationIndex);
+		m_whiteOccupancy.set(info.enpassantIndex);
+		//piece
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].set(info.sourceIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(info.sourcePiece)].reset(info.destinationIndex);
+		m_pieceOccupancy[static_cast<std::size_t>(Piece::WhitePawn)].set(info.enpassantIndex);
+		//enpassant index
+		m_enpassantSquare = 1ULL << info.destinationIndex;
+		break;
+	}
 }
 
 
@@ -528,14 +804,12 @@ bool State::castleBlackQueenSide() const noexcept
 
 bool State::whiteKingInCheck() noexcept
 {
-	m_whiteKingInCheck = m_blackSquares.board() & pieceOccupancyT<Piece::WhiteKing>().board();
-	return m_whiteKingInCheck;
+	return m_blackSquares.board() & pieceOccupancyT<Piece::WhiteKing>().board();
 }
 
 bool State::blackKingInCheck() noexcept
 {
-	m_blackKingInCheck = m_whiteSquares.board() & pieceOccupancyT<Piece::BlackKing>().board();
-	return m_blackKingInCheck;
+	return m_whiteSquares.board() & pieceOccupancyT<Piece::BlackKing>().board();
 }
 
 BitBoard State::whiteSquares() const noexcept

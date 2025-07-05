@@ -37,7 +37,7 @@ constexpr int whitePieceOffset{ 1 };
 constexpr int blackPieceOffset{ 7 };
 
 //TODO: maybe move to its own header file?
-enum class Castle : std::uint32_t //if you change type rememember to change operators
+enum class Castle : std::uint8_t //if you change type rememember to change operators
 {
 	WhiteKingSide	= 0b0001,
 	WhiteQueenSide	= 0b0010,
@@ -51,17 +51,17 @@ enum class Castle : std::uint32_t //if you change type rememember to change oper
 
 constexpr Castle operator& (Castle lhs, Castle rhs) noexcept
 {
-	return static_cast<Castle>(static_cast<std::uint32_t>(lhs) & static_cast<std::uint32_t>(rhs));
+	return static_cast<Castle>(static_cast<std::uint8_t>(lhs) & static_cast<std::uint8_t>(rhs));
 }
 
 constexpr Castle operator^ (Castle lhs, Castle rhs) noexcept
 {
-	return static_cast<Castle>(static_cast<std::uint32_t>(lhs) ^ static_cast<std::uint32_t>(rhs));
+	return static_cast<Castle>(static_cast<std::uint8_t>(lhs) ^ static_cast<std::uint8_t>(rhs));
 }
 
 constexpr Castle operator~ (Castle c) noexcept
 {
-	return static_cast<Castle>(~static_cast<std::uint32_t>(c));
+	return static_cast<Castle>(~static_cast<std::uint8_t>(c));
 }
 
 constexpr Castle& operator&= (Castle& lhs, Castle rhs) noexcept

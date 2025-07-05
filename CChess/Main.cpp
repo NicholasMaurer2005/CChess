@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string_view>
+#include <chrono>
 
 
 #include "Engine.h"
@@ -19,6 +20,14 @@ constexpr std::string_view debugFen6{ "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1
 int main()
 {
 	Engine engine{ startFen, Castle::All };
-	engine.perft(8);
+
+	const auto start{ std::chrono::high_resolution_clock::now() };
+
+	engine.perft(6);
+
+	const auto end{ std::chrono::high_resolution_clock::now() };
+	const std::chrono::duration<double> elapsed{ end - start };
+	std::cout << elapsed.count() << std::endl;
+
 	//engine.printMoves(true, 2);
 }

@@ -29,7 +29,7 @@ private:
 
 	void findBlackSquares() noexcept;
 
-	bool makeLegalMove(bool white, Move move) noexcept;
+	bool makeLegalMove(bool white, Move move, unmakeMoveInfo& info) noexcept;
 
 
 

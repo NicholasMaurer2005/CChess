@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <atomic>
 
 #include "ChessConstants.hpp"
 #include "MoveGen.h"
@@ -13,8 +14,12 @@ class Engine
 private:
 
 	MoveGen m_moveGen; //TODO: maybe make static?
-
 	State m_state;
+	bool m_whiteToMove;
+
+	//search
+	std::atomic_bool m_searching;
+	bool m_gameOver;
 
 
 
@@ -31,12 +36,23 @@ private:
 
 	bool makeLegalMove(bool white, Move move) noexcept;
 
+	int searchRun(int depth, bool white) noexcept;
 
 
 public:
 
 	//constructor
 	Engine(std::string_view fen, Castle castle = Castle::All) noexcept;
+
+
+
+	//search
+	Move search() noexcept;
+
+
+
+	//game
+	void play() noexcept;
 
 
 	

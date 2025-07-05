@@ -1,25 +1,126 @@
 #include "Engine.h"
 
 #include <iostream>
+#include <limits>
+#include <cstdlib>
 
 #include "MoveList.h"
 #include "Move.h"
+#include "Evaluate.h"
 
 
 
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
-	: m_moveGen(), m_state(fen, castle)
+	: m_moveGen(), m_state(fen, castle), m_searching(), m_whiteToMove(true), m_gameOver()
 {
 	findWhiteSquares();
 	findBlackSquares();
 }
 
 
-static bool isEqual(const State& lhs, const State& rhs)
+
+//search
+int Engine::searchRun(int depth, bool white) noexcept
 {
-	return std::memcmp(&lhs, &rhs, sizeof(State));
+	if (depth == 0) return evaluate(m_state);
+
+	int bestScore{ std::numeric_limits<int>::min() };
+
+	MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+	int legalMoves{};
+
+	for (Move move : moves)
+	{
+		const State stateCopy{ m_state };
+
+		if (makeLegalMove(white, move))
+		{
+			++legalMoves;
+			bestScore = std::max(bestScore, -searchRun(depth - 1, !white));
+		}
+
+		//unmake move
+		m_state = stateCopy;
+	}
+
+	//check for mate
+	if (legalMoves == 0)
+	{
+		const int checkMateScore{ white ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max() };
+		const bool kingInCheck{ white ? whiteKingInCheck() : blackKingInCheck() };
+		return kingInCheck ? checkMateScore : 0;
+	}
+	else
+	{
+		return bestScore;
+	}
 }
+	
+Move Engine::search() noexcept
+{
+	int bestScore{ std::numeric_limits<int>::min() };
+	Move bestMove{ 0 };
+
+	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+	int legalMoves{};
+
+	for (Move move : moves)
+	{
+		const State stateCopy{ m_state };
+
+		if (makeLegalMove(m_whiteToMove, move))
+		{
+			++legalMoves;
+
+			const int score{ -searchRun(5, !m_whiteToMove) };
+
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestMove = move;
+			}
+		}
+
+		//unmake move
+		m_state = stateCopy;
+	}
+
+	//check for mate
+	if (legalMoves == 0)
+	{
+		m_gameOver = true;
+	}
+
+	return bestMove;
+}
+
+
+
+//game
+void Engine::play() noexcept
+{
+	while (true)
+	{
+		//draw board
+		system("cls");
+		m_state.print();
+
+		const Move bestMove{ search() };
+		
+		if (m_gameOver)
+		{
+			return;
+		}
+		else
+		{
+			m_state.makeMove(m_whiteToMove, bestMove);
+			m_whiteToMove = !m_whiteToMove;
+		}
+	}
+}
+
+
 
 //perft
 std::uint64_t Engine::perftRun(int depth, bool white) noexcept

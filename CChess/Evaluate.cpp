@@ -26,7 +26,7 @@ static int pieceEvaluation(State& state) noexcept
 	return evaluation;
 }
 
-static int evaluate(State& state) noexcept
+int evaluate(State& state) noexcept
 {
 	return pieceEvaluation(state);
 }

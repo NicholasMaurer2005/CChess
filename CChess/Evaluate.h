@@ -4,4 +4,4 @@
 
 
 
-static int evaluate(State& state) noexcept;
+int evaluate(State& state) noexcept;

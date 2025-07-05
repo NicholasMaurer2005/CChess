@@ -520,21 +520,11 @@ void State::setBlackSquares(BitBoard squares) noexcept
 
 
 //move //TODO: could I make this a switch? GGGGRRRRAAATATATATATATA
-unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
+void State::makeMove(bool white, Move move) noexcept
 {
 	const int sourceIndex{ move.sourceIndex() };
 	const int destinationIndex{ move.destinationIndex() };
 	const Piece sourcePiece{ move.sourcePiece()};
-
-	unmakeMoveInfo info{ 
-		m_whiteSquares, 
-		m_blackSquares, 
-		static_cast<uint8_t>(sourceIndex), 
-		static_cast<uint8_t>(destinationIndex),
-		static_cast<SmallPiece>(sourcePiece),
-		m_castleRights,
-		m_enpassantSquare.board() ? static_cast<std::uint8_t>(m_enpassantSquare.leastSignificantBit()) : static_cast<std::uint8_t>(64)
-	};
 
 	m_enpassantSquare = BitBoard();
 
@@ -542,20 +532,12 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 	{
 		//castle
 		const Castle castleType{ move.castleType() };
-
-		info.type = white ? MoveType::WhiteCastle : MoveType::BlackCastle;
-		info.promoteOrCastle = static_cast<std::uint8_t>(castleType);
-
 		moveCastle(castleType);
 	}
 	else if (move.enpassantFlag()) [[unlikely]]
 	{
 		//enpassant
 		const int enpassantIndex{ move.enpassantIndex() + (white ? 32 : 24) };
-
-		info.type = white ? MoveType::WhiteEnpassant : MoveType::BlackEnpassant;
-		info.enpassantIndex = enpassantIndex;
-
 		moveEnpassant(white, sourcePiece, move.attackPiece(), sourceIndex, destinationIndex, enpassantIndex);
 	}
 	else
@@ -571,9 +553,6 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 				{
 					//double pawn push
 					const int enpassantIndex{ sourceIndex + (white ? 8 : -8) };
-
-					info.type = white ? MoveType::WhiteQuiet : MoveType::BlackQuiet;
-
 					m_enpassantSquare = BitBoard(1ULL << enpassantIndex);
 
 					moveQuiet(white, sourcePiece, sourceIndex, destinationIndex);
@@ -582,8 +561,6 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 				else
 				{
 					//normal quiet
-					info.type = white ? MoveType::WhiteQuiet : MoveType::BlackQuiet;
-
 					moveQuiet(white, sourcePiece, sourceIndex, destinationIndex);
 					testCastleRights(white, sourcePiece, sourceIndex); //TODO: refactor so only one branch happens
 				}
@@ -591,9 +568,6 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 			else
 			{
 				//normal capture
-				info.type = white ? MoveType::WhiteCapture : MoveType::BlackCapture;
-				info.capturePiece = static_cast<SmallPiece>(capturePiece);
-
 				moveCapture(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
 				testCastleCaptureRights(white, sourcePiece, capturePiece, sourceIndex, destinationIndex);
 			}
@@ -603,24 +577,15 @@ unmakeMoveInfo State::makeMove(bool white, Move move) noexcept
 			if (capturePiece == Piece::NoPiece)
 			{
 				//quiet promote
-				info.type = white ? MoveType::WhitePromote : MoveType::BlackPromote;
-				info.promoteOrCastle = static_cast<std::uint8_t>(promotePiece);
-
 				moveQuietPromote(white, move.sourcePiece(), promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 			else
 			{
 				//capture promote
-				info.type = white ? MoveType::WhitePromoteCapture : MoveType::BlackPromoteCapture;
-				info.capturePiece = static_cast<SmallPiece>(capturePiece);
-				info.promoteOrCastle = static_cast<std::uint8_t>(promotePiece);
-
 				moveCapturePromote(white, move.sourcePiece(), capturePiece, promotePiece, move.sourceIndex(), move.destinationIndex());
 			}
 		}
 	}
-
-	return info;
 }
 
 void State::unmakeMove(unmakeMoveInfo& info) noexcept

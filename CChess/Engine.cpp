@@ -35,15 +35,15 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 
 	for (Move move : moves)
 	{
-		unmakeMoveInfo info{};
+		const State stateCopy{ m_state };
 
-		if (makeLegalMove(white, move, info))
+		if (makeLegalMove(white, move))
 		{
 			perftCount += perftRun(depth - 1, !white);
 		}
 
 		//unmake move
-		m_state.unmakeMove(info);
+		m_state = stateCopy;
 	}
 
 	return perftCount;
@@ -202,9 +202,9 @@ void Engine::findBlackSquares() noexcept
 	m_state.setBlackSquares(squares);
 }
 
-bool Engine::makeLegalMove(bool white, Move move, unmakeMoveInfo& info) noexcept
+bool Engine::makeLegalMove(bool white, Move move) noexcept
 {
-	info = m_state.makeMove(white, move);
+	m_state.makeMove(white, move);
 	
 	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares();

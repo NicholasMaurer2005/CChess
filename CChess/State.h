@@ -140,8 +140,9 @@ public:
 
 
 	//move
-	unmakeMoveInfo makeMove(bool white, Move move) noexcept;
+	void makeMove(bool white, Move move) noexcept;
 
+	// :(
 	void unmakeMove(unmakeMoveInfo& info) noexcept;
 
 

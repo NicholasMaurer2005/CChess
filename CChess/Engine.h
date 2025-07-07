@@ -34,9 +34,7 @@ private:
 
 	void findBlackSquares() noexcept;
 
-	bool makeLegalMove(bool white, Move move) noexcept;
-
-	int searchRun(int depth, bool white) noexcept;
+	bool makeLegalMove(State& state, bool white, Move move) noexcept;
 
 
 public:
@@ -47,6 +45,8 @@ public:
 
 
 	//search
+	void searchRun(State& state, int& score, int depth, bool white, int alpha, int beta) noexcept;
+
 	Move search() noexcept;
 
 

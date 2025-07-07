@@ -54,6 +54,8 @@ public:
 
 		
 	//getters
+	std::uint32_t move() const noexcept;
+
 	Piece sourcePiece() const noexcept;
 
 	Piece attackPiece() const noexcept;

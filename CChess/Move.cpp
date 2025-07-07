@@ -73,6 +73,11 @@ std::string Move::string() const
 
 
 //getters
+std::uint32_t Move::move() const noexcept
+{
+	return m_move;
+}
+
 Piece Move::sourcePiece() const noexcept
 {
 	return static_cast<Piece>(m_move & sourcePieceMask);

@@ -3,11 +3,16 @@
 #include <iostream>
 #include <limits>
 #include <cstdlib>
+#include <vector>
+#include <ranges>
 
 #include "MoveList.h"
 #include "Move.h"
 #include "Evaluate.h"
 
+
+static constexpr int bestValue{ std::numeric_limits<int>::max() - 1 };
+static constexpr int worstValue{ std::numeric_limits<int>::min() + 1 };
 
 
 //constructor
@@ -21,69 +26,83 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 
 
 //search
-int Engine::searchRun(int depth, bool white) noexcept
+void Engine::searchRun(State& state, int& score, int depth, bool white, int alpha, int beta) noexcept
 {
-	if (depth == 0) return evaluate(m_state);
+	if (depth == 0)
+	{
+		score = white ? -evaluate(state) : evaluate(state);
+		return;
+	}
 
-	int bestScore{ std::numeric_limits<int>::min() };
-
-	MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+	MoveList moves{ m_moveGen.generateMoves(white, state) };
+	int bestScore{ worstValue };
 	int legalMoves{};
 
 	for (Move move : moves)
 	{
-		const State stateCopy{ m_state };
+		const State stateCopy{ state };
 
-		if (makeLegalMove(white, move))
+		if (makeLegalMove(state, white, move))
 		{
 			++legalMoves;
-			bestScore = std::max(bestScore, -searchRun(depth - 1, !white));
+			int score{};
+			searchRun(state, score, depth - 1, !white, -beta, -alpha);
+			bestScore = std::max(bestScore, score);
+			alpha = std::max(alpha, score);
+
+			if (alpha >= beta)
+			{
+				break;
+			}
 		}
 
 		//unmake move
-		m_state = stateCopy;
+		state = stateCopy;
 	}
 
 	//check for mate
 	if (legalMoves == 0)
 	{
-		const int checkMateScore{ white ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max() };
 		const bool kingInCheck{ white ? whiteKingInCheck() : blackKingInCheck() };
-		return kingInCheck ? checkMateScore : 0;
+		score = kingInCheck ? -worstValue : 0;
 	}
 	else
 	{
-		return bestScore;
+		score = -bestScore;
 	}
+
+	return;
 }
-	
+
 Move Engine::search() noexcept
 {
-	int bestScore{ std::numeric_limits<int>::min() };
-	Move bestMove{ 0 };
+	struct MoveResult 
+	{
+		State state;
+		Move move;
+		int score;
+	};
 
 	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+	//TODO: maybe change to array? 
+	std::vector<MoveResult> moveResults;
+	moveResults.reserve(moves.size());
+
 	int legalMoves{};
 
 	for (Move move : moves)
 	{
-		const State stateCopy{ m_state };
+		moveResults.emplace_back(m_state, move, 0);
 
-		if (makeLegalMove(m_whiteToMove, move))
+		if (makeLegalMove(moveResults.back().state, m_whiteToMove, move))
 		{
 			++legalMoves;
-
-			const int score{ -searchRun(5, !m_whiteToMove) };
-
-			if (score > bestScore)
-			{
-				bestScore = score;
-				bestMove = move;
-			}
+			searchRun(moveResults.back().state, moveResults.back().score, 5, !m_whiteToMove, -bestValue, -worstValue);
 		}
-
-		//unmake move
-		m_state = stateCopy;
+		else
+		{
+			moveResults.pop_back();
+		}
 	}
 
 	//check for mate
@@ -92,7 +111,7 @@ Move Engine::search() noexcept
 		m_gameOver = true;
 	}
 
-	return bestMove;
+	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
 }
 
 
@@ -114,8 +133,15 @@ void Engine::play() noexcept
 		}
 		else
 		{
-			m_state.makeMove(m_whiteToMove, bestMove);
-			m_whiteToMove = !m_whiteToMove;
+			if (bestMove.move() == 0)
+			{
+				m_gameOver = true;
+			}
+			else
+			{
+				m_state.makeMove(m_whiteToMove, bestMove);
+				m_whiteToMove = !m_whiteToMove;
+			}
 		}
 	}
 }
@@ -138,7 +164,7 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	{
 		const State stateCopy{ m_state };
 
-		if (makeLegalMove(white, move))
+		if (makeLegalMove(m_state, white, move))
 		{
 			perftCount += perftRun(depth - 1, !white);
 		}
@@ -303,9 +329,9 @@ void Engine::findBlackSquares() noexcept
 	m_state.setBlackSquares(squares);
 }
 
-bool Engine::makeLegalMove(bool white, Move move) noexcept
+bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 {
-	m_state.makeMove(white, move);
+	state.makeMove(white, move);
 	
 	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares();

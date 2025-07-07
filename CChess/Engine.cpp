@@ -74,6 +74,7 @@ void Engine::searchRun(State& state, int& score, int depth, bool white, int alph
 	return;
 }
 
+//exception in release mode. king missing when trying to call popLeastSignificantBit()
 Move Engine::search() noexcept
 {
 	struct MoveResult 

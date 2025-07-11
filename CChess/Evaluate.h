@@ -4,4 +4,4 @@
 
 
 
-int evaluate(State& state) noexcept;
+int evaluate(const State& state) noexcept;

@@ -2,7 +2,7 @@
 
 
 
-static int pieceEvaluation(State& state) noexcept
+static int pieceEvaluation(const State& state) noexcept
 {
 	constexpr int pawnValue{ 100 };
 	constexpr int knightValue{ 300 };
@@ -12,7 +12,7 @@ static int pieceEvaluation(State& state) noexcept
 
 	const int evaluation{
 		static_cast<int>(state.pieceOccupancyT<Piece::WhitePawn>().bitCount()) * pawnValue
-		+ static_cast<int>(state.pieceOccupancyT<Piece::WhiteKnight>().bitCount()) *knightValue
+		+ static_cast<int>(state.pieceOccupancyT<Piece::WhiteKnight>().bitCount()) * knightValue
 		+ static_cast<int>(state.pieceOccupancyT<Piece::WhiteBishop>().bitCount()) * bishopValue
 		+ static_cast<int>(state.pieceOccupancyT<Piece::WhiteRook>().bitCount()) * rookValue
 		+ static_cast<int>(state.pieceOccupancyT<Piece::WhiteQueen>().bitCount()) * queenValue
@@ -26,7 +26,7 @@ static int pieceEvaluation(State& state) noexcept
 	return evaluation;
 }
 
-int evaluate(State& state) noexcept
+int evaluate(const State& state) noexcept
 {
 	return pieceEvaluation(state);
 }

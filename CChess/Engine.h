@@ -6,6 +6,7 @@
 #include "ChessConstants.hpp"
 #include "MoveGen.h"
 #include "State.h"
+#include "ThreadPool.h"
 
 
 
@@ -16,6 +17,7 @@ private:
 	MoveGen m_moveGen; //TODO: maybe make static?
 	State m_state;
 	bool m_whiteToMove;
+	ThreadPool m_threadPool;
 
 	//search
 	std::atomic_bool m_searching;
@@ -45,7 +47,7 @@ public:
 
 
 	//search
-	void searchRun(State& state, int& score, int depth, bool white, int alpha, int beta) noexcept;
+	void searchRun(const State& state, int& score, int depth, bool white, int alpha, int beta) noexcept;
 
 	Move search() noexcept;
 

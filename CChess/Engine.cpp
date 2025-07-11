@@ -17,7 +17,11 @@ static constexpr int worstValue{ std::numeric_limits<int>::min() + 1 };
 
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
-	: m_moveGen(), m_state(fen, castle), m_searching(), m_whiteToMove(true), m_gameOver()
+	: m_moveGen(), m_state(fen, castle), m_searching(), m_whiteToMove(true), m_gameOver(), 
+	m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) 
+		{
+			searchRun(state, score, depth, white, alpha, beta);
+		})
 {
 	findWhiteSquares();
 	findBlackSquares();
@@ -26,7 +30,7 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 
 
 //search
-void Engine::searchRun(State& state, int& score, int depth, bool white, int alpha, int beta) noexcept
+void Engine::searchRun(const State& state, int& score, int depth, bool white, int alpha, int beta) noexcept
 {
 	if (depth == 0)
 	{
@@ -40,13 +44,13 @@ void Engine::searchRun(State& state, int& score, int depth, bool white, int alph
 
 	for (Move move : moves)
 	{
-		const State stateCopy{ state };
+		State stateCopy{ state };
 
-		if (makeLegalMove(state, white, move))
+		if (makeLegalMove(stateCopy, white, move))
 		{
 			++legalMoves;
 			int score{};
-			searchRun(state, score, depth - 1, !white, -beta, -alpha);
+			searchRun(stateCopy, score, depth - 1, !white, -beta, -alpha);
 			bestScore = std::max(bestScore, score);
 			alpha = std::max(alpha, score);
 
@@ -55,9 +59,6 @@ void Engine::searchRun(State& state, int& score, int depth, bool white, int alph
 				break;
 			}
 		}
-
-		//unmake move
-		state = stateCopy;
 	}
 
 	//check for mate
@@ -98,7 +99,7 @@ Move Engine::search() noexcept
 		if (makeLegalMove(moveResults.back().state, m_whiteToMove, move))
 		{
 			++legalMoves;
-			searchRun(moveResults.back().state, moveResults.back().score, 5, !m_whiteToMove, -bestValue, -worstValue);
+			m_threadPool.assign(moveResults.back().state, moveResults.back().score, 6, !m_whiteToMove, -bestValue, -worstValue);
 		}
 		else
 		{
@@ -111,6 +112,9 @@ Move Engine::search() noexcept
 	{
 		m_gameOver = true;
 	}
+
+	m_threadPool.start();
+	m_threadPool.wait();
 
 	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
 }
@@ -339,6 +343,6 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 	findBlackSquares();
 
 	return white 
-		? (m_state.pieceOccupancyT<Piece::BlackKing>().board() && !m_state.whiteKingInCheck()) 
-		: (m_state.pieceOccupancyT<Piece::WhiteKing>().board() && !m_state.blackKingInCheck());
+		? (state.pieceOccupancyT<Piece::BlackKing>().board() && !state.whiteKingInCheck()) 
+		: (state.pieceOccupancyT<Piece::WhiteKing>().board() && !state.blackKingInCheck());
 }

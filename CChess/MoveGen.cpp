@@ -448,6 +448,33 @@ static void pawnNormalCaptures(BitBoard pawns, CaptureList& captureList, const S
 }
 
 template<bool white>
+static void pawnEnpassants(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece sourcePiece{ white ? Piece::WhitePawn : Piece::BlackPawn };
+	constexpr Piece attackPiece{ white ? Piece::BlackPawn : Piece::WhitePawn };
+
+	const BitBoard enpassantSquare{ state.enpassantSquare() }; //TODO: remove I am lazy atm
+
+	if (!enpassantSquare.board()) [[likely]] return; //TODO: test if [[likely]] is faster
+
+	while (pawns.board())
+	{
+		const int sourceIndex{ pawns.popLeastSignificantBit() };
+		BitBoard attacks{ white
+			? preGen.whitePawnAttack(sourceIndex).board() & enpassantSquare.board()
+			: preGen.blackPawnAttack(sourceIndex).board() & enpassantSquare.board() };
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+
+			captureList.pushEnpassant<sourcePiece, attackPiece>(sourceIndex, attackIndex, white ? attackIndex - 8 : attackIndex + 8);
+		}
+	}
+}
+
+
+template<bool white>
 static void pawnCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
 {
 	const BitBoard pawnPromoteMoves(pawnPromotesMask<white>(pawns));
@@ -494,8 +521,6 @@ static void kingCaptures(BitBoard kings, CaptureList& captureList, const State& 
 		const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
 		captureList.pushAttack<king>(attackPiece, sourceIndex, attackIndex);
 	}
-
-	kingCastles<white>(captureList, state);
 }
 
 template<bool white>

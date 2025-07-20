@@ -430,7 +430,6 @@ static void pawnNormalCaptures(BitBoard pawns, CaptureList& captureList, const S
 	//attacks
 	while (pawns.board())
 	{
-		constexpr bool white{};
 		const int sourceIndex{ pawns.popLeastSignificantBit() };
 
 		BitBoard attack{ white

@@ -240,7 +240,7 @@ void Engine::play() noexcept
 
 
 //perft
-std::uint64_t Engine::perftRun(int depth, bool white) noexcept
+std::uint64_t Engine::perftRun(int depth, bool white, std::uint64_t& captures) noexcept
 {
 	if (depth == 0)
 	{
@@ -248,6 +248,7 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	}
 
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+	const CaptureList captureMoves{ m_moveGen.generateCaptures(white, m_state) };
 
 	std::uint64_t perftCount{};
 
@@ -257,11 +258,27 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 
 		if (makeLegalMove(m_state, white, move))
 		{
-			perftCount += perftRun(depth - 1, !white);
+			perftCount += perftRun(depth - 1, !white, captures);
 		}
 
 		//unmake move
 		m_state = stateCopy;
+	}
+
+	if (depth == 1)
+	{
+		for (Move move : captureMoves)
+		{
+			const State stateCopy{ m_state };
+
+			if (makeLegalMove(m_state, white, move))
+			{
+				++captures;
+			}
+
+			//unmake move
+			m_state = stateCopy;
+		}
 	}
 
 	return perftCount;
@@ -271,7 +288,9 @@ void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i <= depth; i++)
 	{
-		std::cout << "perft ply " << i << ": " << perftRun(i, true) << '\n';
+		std::uint64_t captures{};
+
+		std::cout << "perft ply " << i << ": " << perftRun(i, true, captures) << ", " << captures << '\n';
 	}
 
 	std::cout << "done" << std::endl;

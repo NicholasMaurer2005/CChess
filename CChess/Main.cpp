@@ -14,7 +14,8 @@ constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN
 
 int main()
 {
-	Engine engine{ startFen, Castle::All };
+	Engine engine{ "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R", Castle::All};
 
-	engine.play();
+	engine.perft(6);
+	//engine.play();
 }

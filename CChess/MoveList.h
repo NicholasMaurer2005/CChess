@@ -6,7 +6,7 @@
 #include "Move.h"
 
 constexpr std::size_t maxLegalMoves{ 218 };
-constexpr std::size_t maxLegalCaptures{ 15 };
+constexpr std::size_t maxLegalCaptures{ 30 };
 
 template<std::size_t listSize>
 class cachealign MoveListT 

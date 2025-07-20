@@ -34,7 +34,7 @@ private:
 
 
 	//private methods
-	std::uint64_t perftRun(int depth, bool white) noexcept;
+	std::uint64_t perftRun(int depth, bool white, std::uint64_t& captures) noexcept;
 
 	bool whiteKingInCheck() const noexcept;
 

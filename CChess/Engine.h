@@ -9,19 +9,27 @@
 #include "ThreadPool.h"
 
 
+struct SearchInfo {
+	int depth;
+	int evaluation;
+};
 
 class Engine
 {
 private:
 
+	//engine
 	MoveGen m_moveGen; //TODO: maybe make static?
 	State m_state;
 	bool m_whiteToMove;
-	ThreadPool m_threadPool;
 
 	//search
-	std::atomic_bool m_searching;
 	bool m_gameOver;
+	std::atomic_bool m_stopSearch;
+	int m_searchDepth;
+
+	//thead pool
+	ThreadPool m_threadPool;
 
 
 
@@ -48,6 +56,10 @@ public:
 
 	//search
 	void searchRun(const State& state, int& score, int depth, bool white, int alpha, int beta) noexcept;
+
+	Move searchStartAsync(int depth) noexcept;
+
+	Move searchStart(int depth) noexcept;
 
 	Move search() noexcept;
 

@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <vector>
 #include <ranges>
+#include <thread>
+#include <chrono>
 
 #include "MoveList.h"
 #include "Move.h"
@@ -13,13 +15,18 @@
 
 static constexpr int bestValue{ std::numeric_limits<int>::max() - 1 };
 static constexpr int worstValue{ std::numeric_limits<int>::min() + 1 };
-
+static constexpr int maxDepth{ std::numeric_limits<int>::max() };
 
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
-	: m_moveGen(), m_state(fen, castle), m_searching(), m_whiteToMove(true), m_gameOver(), 
-	m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) 
-		{
+	//engine
+	: m_moveGen(), m_state(fen, castle), m_whiteToMove(true), 
+
+	//search
+	m_gameOver(), m_stopSearch(), m_searchDepth(),
+
+	//thread pool
+	m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) {
 			searchRun(state, score, depth, white, alpha, beta);
 		})
 {
@@ -32,6 +39,9 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 //search
 void Engine::searchRun(const State& state, int& score, int depth, bool white, int alpha, int beta) noexcept
 {
+	thread_local std::uint32_t stopSearchCount{};
+	++stopSearchCount;
+
 	if (depth == 0)
 	{
 		score = white ? -evaluate(state) : evaluate(state);
@@ -48,6 +58,12 @@ void Engine::searchRun(const State& state, int& score, int depth, bool white, in
 
 		if (makeLegalMove(stateCopy, white, move))
 		{
+			//check every 16384 calls
+			if ((stopSearchCount & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
+			{
+				return;
+			}
+
 			++legalMoves;
 			int score{};
 			searchRun(stateCopy, score, depth - 1, !white, -beta, -alpha);
@@ -65,7 +81,7 @@ void Engine::searchRun(const State& state, int& score, int depth, bool white, in
 	if (legalMoves == 0)
 	{
 		const bool kingInCheck{ white ? whiteKingInCheck() : blackKingInCheck() };
-		score = kingInCheck ? -worstValue : 0;
+		score = kingInCheck ? bestValue : 0;
 	}
 	else
 	{
@@ -76,7 +92,7 @@ void Engine::searchRun(const State& state, int& score, int depth, bool white, in
 }
 
 //exception in release mode. king missing when trying to call popLeastSignificantBit()
-Move Engine::search() noexcept
+Move Engine::searchStartAsync(int depth) noexcept
 {
 	struct MoveResult 
 	{
@@ -99,7 +115,7 @@ Move Engine::search() noexcept
 		if (makeLegalMove(moveResults.back().state, m_whiteToMove, move))
 		{
 			++legalMoves;
-			m_threadPool.assign(moveResults.back().state, moveResults.back().score, 6, !m_whiteToMove, -bestValue, -worstValue);
+			m_threadPool.assign(moveResults.back().state, moveResults.back().score, depth, !m_whiteToMove, -bestValue, -worstValue);
 		}
 		else
 		{
@@ -119,6 +135,73 @@ Move Engine::search() noexcept
 	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
 }
 
+Move Engine::searchStart(int depth) noexcept
+{
+	struct MoveResult
+	{
+		State state;
+		Move move;
+		int score;
+	};
+
+	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+	//TODO: maybe change to array? 
+	std::vector<MoveResult> moveResults;
+	moveResults.reserve(moves.size());
+
+	int legalMoves{};
+
+	for (Move move : moves)
+	{
+		moveResults.emplace_back(m_state, move, 0);
+
+		if (makeLegalMove(moveResults.back().state, m_whiteToMove, move))
+		{
+			++legalMoves;
+			m_threadPool.assign(moveResults.back().state, moveResults.back().score, depth, !m_whiteToMove, -bestValue, -worstValue);
+		}
+		else
+		{
+			moveResults.pop_back();
+		}
+	}
+
+	//check for mate
+	if (legalMoves == 0)
+	{
+		m_gameOver = true;
+	}
+
+	m_threadPool.start();
+	m_threadPool.wait();
+
+	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
+}
+
+Move Engine::search() noexcept
+{
+	m_stopSearch = false;
+
+	std::jthread timer{ [this]() {
+			std::this_thread::sleep_for(std::chrono::seconds(3));
+			m_stopSearch.store(true, std::memory_order_relaxed);
+		} 
+	};
+
+	Move bestMove;
+
+	for (int i{ 1 }; i < maxDepth; i++)
+	{
+		bestMove = searchStartAsync(i);
+
+		if (m_stopSearch)
+		{
+			m_searchDepth = i;
+			return bestMove;
+		}
+	}
+}
+
 
 
 //game
@@ -129,6 +212,9 @@ void Engine::play() noexcept
 		//draw board
 		system("cls");
 		m_state.print();
+		std::cout << "depth: " << m_searchDepth << '\n';
+		//std::cin.get();
+
 
 		const Move bestMove{ search() };
 		

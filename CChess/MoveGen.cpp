@@ -390,6 +390,206 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 
 
 
+//CAPTURE MOVES
+
+template<bool white>
+static void pawnPromoteCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
+	constexpr Piece knight{ white ? Piece::WhiteKnight : Piece::BlackKnight };
+	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
+	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
+	constexpr Piece pawn{ white ? Piece::WhitePawn : Piece::BlackPawn };
+
+	while (pawns.board())
+	{
+		const int sourceIndex{ pawns.popLeastSignificantBit() };
+
+		BitBoard pawnAttacks{ white
+			? (preGen.whitePawnAttack(sourceIndex).board() & state.blackOccupancy().board())
+			: (preGen.blackPawnAttack(sourceIndex).board() & state.whiteOccupancy().board()) };
+
+		while (pawnAttacks.board())
+		{
+			const int attackIndex{ pawnAttacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
+			captureList.pushAttackPromote<pawn, queen>(attackPiece, sourceIndex, attackIndex);
+			captureList.pushAttackPromote<pawn, knight>(attackPiece, sourceIndex, attackIndex);
+			captureList.pushAttackPromote<pawn, bishop>(attackPiece, sourceIndex, attackIndex);
+			captureList.pushAttackPromote<pawn, rook>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+template<bool white>
+static void pawnNormalCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece pawn{ white ? Piece::WhitePawn : Piece::BlackPawn };
+
+	//attacks
+	while (pawns.board())
+	{
+		constexpr bool white{};
+		const int sourceIndex{ pawns.popLeastSignificantBit() };
+
+		BitBoard attack{ white
+			? preGen.whitePawnAttack(sourceIndex).board() & state.blackOccupancy().board()
+			: preGen.blackPawnAttack(sourceIndex).board() & state.whiteOccupancy().board() };
+
+		while (attack.board())
+		{
+			const int attackIndex{ attack.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
+			captureList.pushAttack<pawn>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+template<bool white>
+static void pawnCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
+{
+	const BitBoard pawnPromoteMoves(pawnPromotesMask<white>(pawns));
+	const BitBoard pawnEnpassantMoves(pawnEnpassantsMask<white>(pawns));
+	const BitBoard pawnNormalMoves(pawns.board() & ~pawnPromoteMoves.board());
+
+	pawnPromoteCaptures<white>(pawnPromoteMoves, captureList, state);
+	pawnEnpassants<white>(pawnEnpassantMoves, captureList, state);
+	pawnNormalCaptures<white>(pawnNormalMoves, captureList, state);
+}
+
+template<bool white>
+static void knightCaptures(BitBoard knights, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece knight{ white ? Piece::WhiteKnight : Piece::BlackKnight };
+
+	while (knights.board())
+	{
+		const int sourceIndex{ knights.popLeastSignificantBit() };
+		const std::uint64_t knightMoves{ preGen.knightAttack(sourceIndex).board() };
+		BitBoard attacks{ knightMoves & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+			captureList.pushAttack<knight>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+template<bool white>
+static void kingCaptures(BitBoard kings, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece king{ white ? Piece::WhiteKing : Piece::BlackKing };
+
+	const int sourceIndex{ kings.leastSignificantBit() };
+	const BitBoard kingMoves{ preGen.kingAttack(sourceIndex) };
+	BitBoard attacks{ kingMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+	while (attacks.board())
+	{
+		const int attackIndex{ attacks.popLeastSignificantBit() };
+		const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+		captureList.pushAttack<king>(attackPiece, sourceIndex, attackIndex);
+	}
+
+	kingCastles<white>(captureList, state);
+}
+
+template<bool white>
+static void bishopCaptures(BitBoard bishops, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece bishop{ white ? Piece::WhiteBishop : Piece::BlackBishop };
+
+	while (bishops.board())
+	{
+		const int sourceIndex{ bishops.popLeastSignificantBit() };
+		const BitBoard bishopMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()) };
+		BitBoard attacks{ bishopMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+			captureList.pushAttack<bishop>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+template<bool white>
+static void rookCaptures(BitBoard rooks, CaptureList& captureList, const State& state) noexcept
+{
+	constexpr Piece rook{ white ? Piece::WhiteRook : Piece::BlackRook };
+
+	while (rooks.board())
+	{
+		const int sourceIndex{ rooks.popLeastSignificantBit() };
+		const BitBoard rookMoves{ preGen.rookAttack(sourceIndex, state.occupancy()) };
+		BitBoard attacks{ rookMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
+			captureList.pushAttack<rook>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+template<bool white>
+static void queenCaptures(BitBoard queens, CaptureList& captureList, const State& state) noexcept //TODO: maybe make no loop for queen? always one queen per side
+{
+	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
+
+	while (queens.board())
+	{
+		const int sourceIndex{ queens.popLeastSignificantBit() };
+		const BitBoard queenMoves{ preGen.bishopAttack(sourceIndex, state.occupancy()).board() | preGen.rookAttack(sourceIndex, state.occupancy()).board() };
+		BitBoard attacks{ queenMoves.board() & (white ? state.blackOccupancy().board() : state.whiteOccupancy().board()) };
+
+		while (attacks.board())
+		{
+			const int attackIndex{ attacks.popLeastSignificantBit() };
+			const Piece attackPiece{ state.findPiece<!white>(attackIndex) };
+
+			captureList.pushAttack<queen>(attackPiece, sourceIndex, attackIndex);
+		}
+	}
+}
+
+
+
+CaptureList MoveGen::generateCaptures(bool white, const State& state) const noexcept
+{
+	CaptureList captureList;
+
+	if (white) //TODO: maybe remove if statement and make template?
+	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
+		pawnCaptures<true>(state.pieceOccupancyT<Piece::WhitePawn>(), captureList, state);
+		knightCaptures<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), captureList, state);
+		bishopCaptures<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), captureList, state);
+		rookCaptures<true>(state.pieceOccupancyT<Piece::WhiteRook>(), captureList, state);
+		queenCaptures<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), captureList, state);
+		kingCaptures<true>(state.pieceOccupancyT<Piece::WhiteKing>(), captureList, state);
+	}
+	else
+	{
+		pawnCaptures<false>(state.pieceOccupancyT<Piece::BlackPawn>(), captureList, state);
+		knightCaptures<false>(state.pieceOccupancyT<Piece::BlackKnight>(), captureList, state);
+		bishopCaptures<false>(state.pieceOccupancyT<Piece::BlackBishop>(), captureList, state);
+		rookCaptures<false>(state.pieceOccupancyT<Piece::BlackRook>(), captureList, state);
+		queenCaptures<false>(state.pieceOccupancyT<Piece::BlackQueen>(), captureList, state);
+		kingCaptures<false>(state.pieceOccupancyT<Piece::BlackKing>(), captureList, state);
+	}
+
+	return captureList;
+}
+
+
+
 //public
 MoveGen::MoveGen() noexcept {}
 

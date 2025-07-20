@@ -1,9 +1,10 @@
 #include "ThreadPool.h"
 
 #include <functional>
+#include <iostream>
 
 ThreadPool::ThreadPool(std::function<void(const State& state, int& score, int depth, bool white, int alpha, int beta)> searchRun) noexcept
-	: m_tasks(), m_mutex(), m_threadCV(), m_doneCV(), m_stopping(), m_taskCount(), m_searchRun(searchRun)
+	: m_tasks(), m_mutex(), m_threadCV(), m_doneCV(), m_stopping(), m_taskCount(), m_searchRun(searchRun), m_activeThreads()
 {
 	for (auto& thread : m_threads)
 	{
@@ -52,14 +53,16 @@ void ThreadPool::worker() noexcept
 
 		const SearchTask task{ std::move(m_tasks.front()) };  
 		m_tasks.pop();  
-		lock.unlock();  
+		lock.unlock();
+		++m_activeThreads;
 
-		m_searchRun(task.state, task.score, task.depth, task.white, task.alpha, task.beta);  
+		m_searchRun(task.state, task.score, task.depth, task.white, task.alpha, task.beta);
 
 		{
 			std::lock_guard lock{ m_mutex };
 
 			--m_taskCount;
+			--m_activeThreads;
 
 			if (m_taskCount == 0)
 			{

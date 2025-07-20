@@ -12,6 +12,8 @@ public:
 
 	MoveList generateMoves(bool white, const State& state) const noexcept;
 
+	CaptureList generateCaptures(bool white, const State& state) const noexcept;
+
 	BitBoard getWhitePawnMoves(std::size_t square) const noexcept;
 
 	BitBoard getBlackPawnMoves(std::size_t square) const noexcept;

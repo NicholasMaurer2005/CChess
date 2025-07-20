@@ -161,7 +161,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Move.cpp" />
     <ClCompile Include="MoveGen.cpp" />
-    <ClCompile Include="MoveList.cpp" />
     <ClCompile Include="PreGen.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="ThreadPool.cpp" />

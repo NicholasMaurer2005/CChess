@@ -33,8 +33,9 @@ private:
 	std::condition_variable m_threadCV;
 	std::condition_variable m_doneCV;
 	std::atomic_bool m_stopping;
-	bool m_searchStop;
+	std::atomic_bool m_searchStop;
 	int m_taskCount;
+	int m_activeThreads;
 	std::function<void(const State&, int&, int, bool, int, int)> m_searchRun;
 
 	void worker() noexcept;

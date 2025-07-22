@@ -8,10 +8,10 @@
 #include "State.h"
 #include "ThreadPool.h"
 
-
-struct SearchInfo {
-	int depth;
-	int evaluation;
+struct cachealign ScoredMove
+{
+	Move move;
+	int score;
 };
 
 class Engine
@@ -29,7 +29,7 @@ private:
 	int m_searchDepth;
 
 	//thead pool
-	ThreadPool m_threadPool;
+	//ThreadPool m_threadPool;
 
 
 
@@ -46,6 +46,9 @@ private:
 
 	bool makeLegalMove(State& state, bool white, Move move) noexcept;
 
+	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
+
+	void searchStart(int depth, std::vector<ScoredMove>& scoredMoves) noexcept;
 
 public:
 
@@ -55,11 +58,7 @@ public:
 
 
 	//search
-	void searchRun(const State& state, int& score, int depth, bool white, int alpha, int beta) noexcept;
-
-	Move searchStartAsync(int depth) noexcept;
-
-	Move searchStart(int depth) noexcept;
+	//Move searchStartAsync(int depth) noexcept;
 
 	Move search() noexcept;
 
@@ -72,9 +71,5 @@ public:
 	
 	//perft
 	void perft(int depth) noexcept;
-
-	void printMoves(bool white) noexcept;
-
-	void printMoves(bool white, int depth) noexcept;
 };
 

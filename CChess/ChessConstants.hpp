@@ -9,7 +9,6 @@ constexpr int rankSize{ 8 };
 
 #define cachealign alignas(std::hardware_destructive_interference_size)
 
-//TODO: maybe add board square enum?
 
 
 // The reason NoPiece is 0 is because the Move class tests if a move is an attack or quite based on whether attackPiece() is 

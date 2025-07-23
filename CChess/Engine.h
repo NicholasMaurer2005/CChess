@@ -40,11 +40,13 @@ private:
 
 	bool blackKingInCheck() const noexcept;
 
-	void findWhiteSquares() noexcept;
+	void findWhiteSquares(State& state) noexcept;
 
-	void findBlackSquares() noexcept;
+	void findBlackSquares(State& state) noexcept;
 
 	bool makeLegalMove(State& state, bool white, Move move) noexcept;
+
+	int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
 
 	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
 

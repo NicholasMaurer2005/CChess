@@ -10,6 +10,7 @@
 #include <format>
 #include <string>
 #include <algorithm>
+#include <cassert>
 
 #include "MoveList.h"
 #include "Move.h"
@@ -101,8 +102,8 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 			searchRun(state, score, depth, white, alpha, beta);
 		})*/
 {
-	findWhiteSquares();
-	findBlackSquares();
+	findWhiteSquares(m_state);
+	findBlackSquares(m_state);
 }
 
 
@@ -162,16 +163,16 @@ bool Engine::blackKingInCheck() const noexcept
 	return m_state.pieceOccupancyT<Piece::BlackKing>().board() & m_state.whiteSquares().board();
 }
 
-void Engine::findWhiteSquares() noexcept //TODO: maybe move to MoveGen?
+void Engine::findWhiteSquares(State& state) noexcept //TODO: maybe move to MoveGen?
 {
 	std::uint64_t squares{};
 
-	BitBoard pawns{ m_state.pieceOccupancyT<Piece::WhitePawn>() };
-	BitBoard knights{ m_state.pieceOccupancyT<Piece::WhiteKnight>() };
-	BitBoard bishops{ m_state.pieceOccupancyT<Piece::WhiteBishop>() };
-	BitBoard rooks{ m_state.pieceOccupancyT<Piece::WhiteRook>() };
-	BitBoard queens{ m_state.pieceOccupancyT<Piece::WhiteQueen>() };
-	BitBoard kings{ m_state.pieceOccupancyT<Piece::WhiteKing>() }; //TODO: refactor?
+	BitBoard pawns{ state.pieceOccupancyT<Piece::WhitePawn>() };
+	BitBoard knights{ state.pieceOccupancyT<Piece::WhiteKnight>() };
+	BitBoard bishops{ state.pieceOccupancyT<Piece::WhiteBishop>() };
+	BitBoard rooks{ state.pieceOccupancyT<Piece::WhiteRook>() };
+	BitBoard queens{ state.pieceOccupancyT<Piece::WhiteQueen>() };
+	BitBoard kings{ state.pieceOccupancyT<Piece::WhiteKing>() };
 
 	while (pawns.board())
 	{
@@ -188,37 +189,37 @@ void Engine::findWhiteSquares() noexcept //TODO: maybe move to MoveGen?
 	while (bishops.board())
 	{
 		const int index{ bishops.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board();
 	}
 
 	while (rooks.board())
 	{
 		const int index{ rooks.popLeastSignificantBit() };
-		squares |= m_moveGen.getRookMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getRookMoves(index, state.occupancy()).board();
 	}
 
 	while (queens.board())
 	{
 		const int index{ queens.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board() | m_moveGen.getRookMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };
 	squares |= m_moveGen.getKingMoves(kingIndex).board();
 
-	m_state.setWhiteSquares(squares);
+	state.setWhiteSquares(squares & ~state.whiteOccupancy().board());
 }
 
-void Engine::findBlackSquares() noexcept
+void Engine::findBlackSquares(State& state) noexcept
 {
 	std::uint64_t squares{};
 
-	BitBoard pawns{ m_state.pieceOccupancyT<Piece::BlackPawn>() };
-	BitBoard knights{ m_state.pieceOccupancyT<Piece::BlackKnight>() };
-	BitBoard bishops{ m_state.pieceOccupancyT<Piece::BlackBishop>() };
-	BitBoard rooks{ m_state.pieceOccupancyT<Piece::BlackRook>() };
-	BitBoard queens{ m_state.pieceOccupancyT<Piece::BlackQueen>() };
-	BitBoard kings{ m_state.pieceOccupancyT<Piece::BlackKing>() };
+	BitBoard pawns{ state.pieceOccupancyT<Piece::BlackPawn>() };
+	BitBoard knights{ state.pieceOccupancyT<Piece::BlackKnight>() };
+	BitBoard bishops{ state.pieceOccupancyT<Piece::BlackBishop>() };
+	BitBoard rooks{ state.pieceOccupancyT<Piece::BlackRook>() };
+	BitBoard queens{ state.pieceOccupancyT<Piece::BlackQueen>() };
+	BitBoard kings{ state.pieceOccupancyT<Piece::BlackKing>() };
 
 	while (pawns.board())
 	{
@@ -235,25 +236,25 @@ void Engine::findBlackSquares() noexcept
 	while (bishops.board())
 	{
 		const int index{ bishops.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board();
 	}
 
 	while (rooks.board())
 	{
 		const int index{ rooks.popLeastSignificantBit() };
-		squares |= m_moveGen.getRookMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getRookMoves(index, state.occupancy()).board();
 	}
 
 	while (queens.board())
 	{
 		const int index{ queens.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, m_state.occupancy()).board() | m_moveGen.getRookMoves(index, m_state.occupancy()).board();
+		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };
 	squares |= m_moveGen.getKingMoves(kingIndex).board();
 
-	m_state.setBlackSquares(squares);
+	state.setBlackSquares(squares & ~state.blackOccupancy().board());
 }
 
 bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
@@ -261,8 +262,8 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 	state.makeMove(white, move);
 
 	// Always update both sides //TODO: maybe go back to testing only one side?
-	findWhiteSquares();
-	findBlackSquares();
+	findWhiteSquares(state);
+	findBlackSquares(state);
 
 	return white
 		? (state.pieceOccupancyT<Piece::BlackKing>().board() && !state.whiteKingInCheck())
@@ -317,6 +318,60 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 //	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
 //}
 
+
+//TODO: maybe check checks too get it?
+int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
+{
+	//track how many recursive calls have happened, 
+	thread_local int stopSearchCheck{};
+	++stopSearchCheck;
+
+	const int standardPat{ white ? evaluate(state) : -evaluate(state) };
+
+	if (standardPat >= beta)
+	{
+		return standardPat;
+	}
+
+	const CaptureList moves{ m_moveGen.generateCaptures(white, state) };
+	int legalMoves{};
+	int bestScore{ worstValue };
+
+	for (Move move : moves)
+	{
+		State stateCopy{ state };
+
+		if (makeLegalMove(stateCopy, white, move))
+		{
+			//check every 16384 calls if time is up, if it is stop the search
+			if ((stopSearchCheck & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
+			{
+				return 0;
+			}
+
+			++legalMoves;
+			
+			const int score{ -quiescenceSearch(stateCopy, -beta, -alpha, !white) };
+			bestScore = std::max(bestScore, score);
+			alpha = std::max(alpha, score);
+
+			if (alpha >= beta)
+			{
+				break;
+			}
+		}
+	}
+
+	if (legalMoves)
+	{
+		return bestScore;
+	}
+	else
+	{
+		return standardPat;
+	}
+}
+
 int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept
 {
 	//track how many recursive calls have happened, 
@@ -326,7 +381,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	//leaf of search, evaluate position
 	if (depth == 0)
 	{
-		return white ? evaluate(state) : -evaluate(state);
+		return quiescenceSearch(state, alpha, beta, white);
 	}
 
 	int bestScore{ worstValue };
@@ -424,7 +479,7 @@ Move Engine::search() noexcept
 
 	m_stopSearch = false;
 	std::jthread timer{ [&]() {
-		std::this_thread::sleep_for(std::chrono::seconds(10));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 		m_stopSearch.store(true, std::memory_order_relaxed);
 		}
 	};

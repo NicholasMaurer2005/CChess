@@ -91,10 +91,10 @@ static Move playerMove(MoveList& moves)
 //constructor
 Engine::Engine(std::string_view fen, Castle castle) noexcept
 	//engine
-	: m_moveGen(), m_state(fen, castle), m_whiteToMove(true), 
+	: m_moveGen(), m_state(fen, castle), m_whiteToMove(true), m_info(),
 
 	//search
-	m_gameOver(), m_stopSearch(), m_searchDepth()
+	m_gameOver(), m_stopSearch()
 
 	//thread pool
 	/*m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) {
@@ -290,9 +290,6 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 //	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
 //}
 
-
-//TODO: maybe check checks too get it?
-
 //int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
 //{
 //	//track how many recursive calls have happened, 
@@ -444,7 +441,7 @@ ScoredMove Engine::searchStart(int depth) noexcept
 
 Move Engine::search() noexcept
 {
-	Move bestMove{ 0 };
+	ScoredMove bestMove{ 0, 0 };
 
 	m_stopSearch = false;
 	std::jthread timer{ [&]() {
@@ -457,19 +454,23 @@ Move Engine::search() noexcept
 	{
 		const ScoredMove scoredMove{ searchStart(i) };
 
-		if (m_stopSearch)
+		if (m_stopSearch || scoredMove.move.move() == 0)
 		{
-			return bestMove;
+			return bestMove.move;
 		}
 		else
 		{
-			bestMove = scoredMove.move;
-			m_searchDepth = i;
-			std::cout << std::format("{}: {}\n", scoredMove.move.string(), scoredMove.score);
+			bestMove = scoredMove;
+
+			m_info.lastMove = scoredMove.move;
+			m_info.searchDepth = i;
+			m_info.evaluation = scoredMove.score;
+			//std::cout << std::format("{}: {}\n", scoredMove.move.string(), scoredMove.score);
 		}
 	}
 
-	return bestMove;
+	//this should never excecute
+	return bestMove.move;
 }
 
 
@@ -482,7 +483,7 @@ void Engine::play() noexcept
 		//draw board
 		system("cls");
 		m_state.print();
-		std::cout << std::format("depth: {}\n", m_searchDepth);
+		std::cout << std::format("move: {}\ndepth: {}\nevaluation: {}\n", m_info.lastMove.string(), m_info.searchDepth, m_info.evaluation);
 
 		if (m_gameOver)
 		{
@@ -523,7 +524,6 @@ void Engine::play() noexcept
 				}
 				else
 				{
-					bestMove.print();
 					m_state.makeMove(m_whiteToMove, bestMove);
 					m_whiteToMove = !m_whiteToMove;
 				}

@@ -15,6 +15,13 @@ struct ScoredMove
 	int score;
 };
 
+struct EngineInfo
+{
+	Move lastMove;
+	int searchDepth;
+	int evaluation;
+};
+
 class Engine
 {
 private:
@@ -23,11 +30,11 @@ private:
 	MoveGen m_moveGen; //TODO: maybe make static?
 	State m_state;
 	bool m_whiteToMove;
+	EngineInfo m_info;
 
 	//search
 	bool m_gameOver;
 	std::atomic_bool m_stopSearch;
-	int m_searchDepth;
 
 	//thead pool
 	//ThreadPool m_threadPool;

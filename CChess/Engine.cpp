@@ -18,8 +18,9 @@
 
 
 
-static constexpr int bestValue{ 999999 };
-static constexpr int worstValue{ -999999 };
+static constexpr int bestValue{ 9999999 };
+static constexpr int worstValue{ -9999999 };
+static constexpr int checkmateScore{ -999999 };
 static constexpr int maxDepth{ std::numeric_limits<int>::max() };
 
 constexpr int nick{ -worstValue };
@@ -394,7 +395,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 		//check for white or black checkmate
 		if (white ? state.whiteKingInCheck() : state.blackKingInCheck())
 		{
-			return worstValue + depth;
+			return checkmateScore - depth;
 		}
 		else
 		{
@@ -447,7 +448,7 @@ Move Engine::search() noexcept
 
 	m_stopSearch = false;
 	std::jthread timer{ [&]() {
-		std::this_thread::sleep_for(std::chrono::seconds(10));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 		m_stopSearch.store(true, std::memory_order_relaxed);
 		}
 	};

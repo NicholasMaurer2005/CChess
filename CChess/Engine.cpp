@@ -17,10 +17,12 @@
 #include "Evaluate.h"
 
 
-//TODO: maybe change to like 99999 \ -99999?
-static constexpr int bestValue{ std::numeric_limits<int>::max() - 1 };
-static constexpr int worstValue{ std::numeric_limits<int>::min() + 1 };
+
+static constexpr int bestValue{ 999999 };
+static constexpr int worstValue{ -999999 };
 static constexpr int maxDepth{ std::numeric_limits<int>::max() };
+
+constexpr int nick{ -worstValue };
 
 static int squareToIndex(std::string_view square)
 {
@@ -130,16 +132,6 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	}
 
 	return perftCount;
-}
-
-bool Engine::whiteKingInCheck() const noexcept
-{
-	return m_state.pieceOccupancyT<Piece::WhiteKing>().board() & m_state.blackSquares().board();
-}
-
-bool Engine::blackKingInCheck() const noexcept
-{
-	return m_state.pieceOccupancyT<Piece::BlackKing>().board() & m_state.whiteSquares().board();
 }
 
 void Engine::findWhiteSquares(State& state) noexcept //TODO: maybe move to MoveGen?
@@ -400,9 +392,9 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	if (legalMoves == 0)
 	{
 		//check for white or black checkmate
-		if (white ? whiteKingInCheck() : blackKingInCheck())
+		if (white ? state.whiteKingInCheck() : state.blackKingInCheck())
 		{
-			return worstValue;
+			return worstValue + depth;
 		}
 		else
 		{
@@ -413,7 +405,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	return bestScore;
 }
 
-Move Engine::searchStart(int depth) noexcept
+ScoredMove Engine::searchStart(int depth) noexcept
 {
 	Move bestMove{ 0 };
 	int bestScore{ worstValue };
@@ -446,7 +438,7 @@ Move Engine::searchStart(int depth) noexcept
 		}
 	}
 
-	return bestMove;
+	return { bestMove, bestScore };
 }
 
 Move Engine::search() noexcept
@@ -462,7 +454,7 @@ Move Engine::search() noexcept
 
 	for (int i{ 1 }; i < maxDepth; ++i)
 	{
-		const Move move{ searchStart(i) };
+		const ScoredMove scoredMove{ searchStart(i) };
 
 		if (m_stopSearch)
 		{
@@ -470,9 +462,9 @@ Move Engine::search() noexcept
 		}
 		else
 		{
-			bestMove = move;
+			bestMove = scoredMove.move;
 			m_searchDepth = i;
-			bestMove.print();
+			std::cout << std::format("{}: {}\n", scoredMove.move.string(), scoredMove.score);
 		}
 	}
 

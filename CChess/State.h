@@ -172,9 +172,9 @@ public:
 
 	bool castleBlackQueenSide() const noexcept;
 
-	bool whiteKingInCheck() noexcept;
+	bool whiteKingInCheck() const noexcept;
 
-	bool blackKingInCheck() noexcept;
+	bool blackKingInCheck() const noexcept;
 
 	BitBoard whiteSquares() const noexcept;
 

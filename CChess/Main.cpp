@@ -11,10 +11,10 @@
 //TODO: for build -> performace guided optimization
 
 constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-constexpr std::string_view debugFen{ "rnb1kbnr/pp2pppp/8/Pqpp4/8/8/1PPPPPPP/R1BQKBNR" }; //Castle::All
+constexpr std::string_view debugFen{ "Q7/4k3/7Q/8/8/3N4/2NK4/8" }; //Castle::None
 
 int main()
 {
-	Engine engine{ startFen, Castle::All };
+	Engine engine{ debugFen, Castle::None };
 	engine.play();
 }

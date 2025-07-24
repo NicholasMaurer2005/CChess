@@ -800,12 +800,12 @@ bool State::castleBlackQueenSide() const noexcept
 	return static_cast<bool>(m_castleRights & Castle::BlackQueenSide);
 }
 
-bool State::whiteKingInCheck() noexcept
+bool State::whiteKingInCheck() const noexcept
 {
 	return m_blackSquares.board() & pieceOccupancyT<Piece::WhiteKing>().board();
 }
 
-bool State::blackKingInCheck() noexcept
+bool State::blackKingInCheck() const noexcept
 {
 	return m_whiteSquares.board() & pieceOccupancyT<Piece::BlackKing>().board();
 }

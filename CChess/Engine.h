@@ -9,6 +9,11 @@
 #include "ThreadPool.h"
 
 
+struct ScoredMove
+{
+	Move move;
+	int score;
+};
 
 class Engine
 {
@@ -32,10 +37,6 @@ private:
 	//private methods
 	std::uint64_t perftRun(int depth, bool white) noexcept;
 
-	bool whiteKingInCheck() const noexcept;
-
-	bool blackKingInCheck() const noexcept;
-
 	void findWhiteSquares(State& state) noexcept;
 
 	void findBlackSquares(State& state) noexcept;
@@ -46,7 +47,7 @@ private:
 
 	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
 
-	Move searchStart(int depth) noexcept;
+	ScoredMove searchStart(int depth) noexcept;
 
 public:
 

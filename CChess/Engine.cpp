@@ -17,14 +17,10 @@
 #include "Evaluate.h"
 
 
+//TODO: maybe change to like 99999 \ -99999?
 static constexpr int bestValue{ std::numeric_limits<int>::max() - 1 };
 static constexpr int worstValue{ std::numeric_limits<int>::min() + 1 };
 static constexpr int maxDepth{ std::numeric_limits<int>::max() };
-
-static bool ScoredMoveGreater(ScoredMove& lhs, ScoredMove& rhs)
-{
-	return lhs.score > rhs.score;
-}
 
 static int squareToIndex(std::string_view square)
 {
@@ -109,7 +105,7 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 
 
 //private methods
-std::uint64_t Engine::perftRun(int depth, bool white, std::uint64_t& captures) noexcept
+std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 {
 	if (depth == 0)
 	{
@@ -117,7 +113,6 @@ std::uint64_t Engine::perftRun(int depth, bool white, std::uint64_t& captures) n
 	}
 
 	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
-	const CaptureList captureMoves{ m_moveGen.generateCaptures(white, m_state) };
 
 	std::uint64_t perftCount{};
 
@@ -127,27 +122,11 @@ std::uint64_t Engine::perftRun(int depth, bool white, std::uint64_t& captures) n
 
 		if (makeLegalMove(m_state, white, move))
 		{
-			perftCount += perftRun(depth - 1, !white, captures);
+			perftCount += perftRun(depth - 1, !white);
 		}
 
 		//unmake move
 		m_state = stateCopy;
-	}
-
-	if (depth == 1)
-	{
-		for (Move move : captureMoves)
-		{
-			const State stateCopy{ m_state };
-
-			if (makeLegalMove(m_state, white, move))
-			{
-				++captures;
-			}
-
-			//unmake move
-			m_state = stateCopy;
-		}
 	}
 
 	return perftCount;
@@ -320,57 +299,58 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 
 
 //TODO: maybe check checks too get it?
-int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
-{
-	//track how many recursive calls have happened, 
-	thread_local int stopSearchCheck{};
-	++stopSearchCheck;
 
-	const int standardPat{ white ? evaluate(state) : -evaluate(state) };
-
-	if (standardPat >= beta)
-	{
-		return standardPat;
-	}
-
-	const CaptureList moves{ m_moveGen.generateCaptures(white, state) };
-	int legalMoves{};
-	int bestScore{ worstValue };
-
-	for (Move move : moves)
-	{
-		State stateCopy{ state };
-
-		if (makeLegalMove(stateCopy, white, move))
-		{
-			//check every 16384 calls if time is up, if it is stop the search
-			if ((stopSearchCheck & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
-			{
-				return 0;
-			}
-
-			++legalMoves;
-			
-			const int score{ -quiescenceSearch(stateCopy, -beta, -alpha, !white) };
-			bestScore = std::max(bestScore, score);
-			alpha = std::max(alpha, score);
-
-			if (alpha >= beta)
-			{
-				break;
-			}
-		}
-	}
-
-	if (legalMoves)
-	{
-		return bestScore;
-	}
-	else
-	{
-		return standardPat;
-	}
-}
+//int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
+//{
+//	//track how many recursive calls have happened, 
+//	thread_local int stopSearchCheck{};
+//	++stopSearchCheck;
+//
+//	const int standardPat{ white ? evaluate(state) : -evaluate(state) };
+//
+//	if (standardPat >= beta)
+//	{
+//		return standardPat;
+//	}
+//
+//	const CaptureList moves{ m_moveGen.generateCaptures(white, state) };
+//	int legalMoves{};
+//	int bestScore{ worstValue };
+//
+//	for (Move move : moves)
+//	{
+//		State stateCopy{ state };
+//
+//		if (makeLegalMove(stateCopy, white, move))
+//		{
+//			//check every 16384 calls if time is up, if it is stop the search
+//			if ((stopSearchCheck & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
+//			{
+//				return 0;
+//			}
+//
+//			++legalMoves;
+//			
+//			const int score{ -quiescenceSearch(stateCopy, -beta, -alpha, !white) };
+//			bestScore = std::max(bestScore, score);
+//			alpha = std::max(alpha, score);
+//
+//			if (alpha >= beta)
+//			{
+//				break;
+//			}
+//		}
+//	}
+//
+//	if (legalMoves)
+//	{
+//		return bestScore;
+//	}
+//	else
+//	{
+//		return standardPat;
+//	}
+//}
 
 int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept
 {
@@ -381,12 +361,15 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	//leaf of search, evaluate position
 	if (depth == 0)
 	{
-		return quiescenceSearch(state, alpha, beta, white);
+		//return quiescenceSearch(state, alpha, beta, white);
+		return white ? evaluate(state) : -evaluate(state);
 	}
 
 	int bestScore{ worstValue };
 	int legalMoves{};
-	const MoveList moves{ m_moveGen.generateMoves(white, state) };
+
+	MoveList moves{ m_moveGen.generateMoves(white, state) };
+	moves.sort();
 	
 	for (Move move : moves)
 	{
@@ -430,63 +413,56 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	return bestScore;
 }
 
-//TODO: make seperate function for finding initial moves
-void Engine::searchStart(int depth, std::vector<ScoredMove>& scoredMoves) noexcept
+Move Engine::searchStart(int depth) noexcept
 {
-	int alpha{ worstValue };
+	Move bestMove{ 0 };
+	int bestScore{ worstValue };
+	int alpha = worstValue;
+	constexpr int beta = bestValue;
 
-	if (scoredMoves.empty())
+	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+	moves.sort();
+
+	for (Move move : moves)
 	{
-		int bestScore{ worstValue };
-		MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+		State stateCopy{ m_state };
 
-		//store moves and scores //TODO: switch to stack allocation
-		scoredMoves.reserve(moves.size());
-
-		for (Move move : moves)
+		if (makeLegalMove(stateCopy, m_whiteToMove, move))
 		{
-			State stateCopy{ m_state };
+			const int score{ -searchRun(stateCopy, depth - 1, -beta, -alpha, !m_whiteToMove) };
 
-			if (makeLegalMove(stateCopy, m_whiteToMove, move))
+			if (score > bestScore)
 			{
-				const int score{ -searchRun(stateCopy, depth - 1, worstValue, -alpha, !m_whiteToMove) };
-				scoredMoves.emplace_back(move, score);
+				bestScore = score;
+				bestMove = move;
+			}
 
-				alpha = std::max(alpha, score);
+			alpha = std::max(alpha, score);
+
+			if (alpha >= beta) [[unlikely]]
+			{
+				break;
 			}
 		}
 	}
-	else
-	{
-		for (auto& scoredMove : scoredMoves)
-		{
-			State stateCopy{ m_state };
-			makeLegalMove(stateCopy, m_whiteToMove, scoredMove.move);
 
-			const int score{ -searchRun(stateCopy, depth - 1, worstValue, bestValue, !m_whiteToMove) };
-			scoredMove.score = score;
-			alpha = std::max(alpha, score);
-		}
-	}
-
-	std::ranges::sort(scoredMoves, ScoredMoveGreater);
+	return bestMove;
 }
 
 Move Engine::search() noexcept
 {
-	Move bestMove{};
-	std::vector<ScoredMove> scoredMoves;
+	Move bestMove{ 0 };
 
 	m_stopSearch = false;
 	std::jthread timer{ [&]() {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::seconds(10));
 		m_stopSearch.store(true, std::memory_order_relaxed);
 		}
 	};
 
 	for (int i{ 1 }; i < maxDepth; ++i)
 	{
-		searchStart(i, scoredMoves);
+		const Move move{ searchStart(i) };
 
 		if (m_stopSearch)
 		{
@@ -494,8 +470,9 @@ Move Engine::search() noexcept
 		}
 		else
 		{
-			bestMove = scoredMoves.front().move;
+			bestMove = move;
 			m_searchDepth = i;
+			bestMove.print();
 		}
 	}
 
@@ -569,9 +546,7 @@ void Engine::perft(int depth) noexcept
 {
 	for (int i{ 1 }; i <= depth; i++)
 	{
-		std::uint64_t captures{};
-
-		std::cout << "perft ply " << i << ": " << perftRun(i, true, captures) << ", " << captures << '\n';
+		std::cout << std::format("perft depth: {} - {}\n", i, perftRun(i, true));
 	}
 
 	std::cout << "done" << std::endl;

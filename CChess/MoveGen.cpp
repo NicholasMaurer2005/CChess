@@ -643,6 +643,7 @@ MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 	return moveList;
 }
 
+
 BitBoard MoveGen::getWhitePawnMoves(std::size_t square) const noexcept
 {
 	return preGen.whitePawnAttack(square);

@@ -8,11 +8,7 @@
 #include "State.h"
 #include "ThreadPool.h"
 
-struct cachealign ScoredMove
-{
-	Move move;
-	int score;
-};
+
 
 class Engine
 {
@@ -34,7 +30,7 @@ private:
 
 
 	//private methods
-	std::uint64_t perftRun(int depth, bool white, std::uint64_t& captures) noexcept;
+	std::uint64_t perftRun(int depth, bool white) noexcept;
 
 	bool whiteKingInCheck() const noexcept;
 
@@ -46,11 +42,11 @@ private:
 
 	bool makeLegalMove(State& state, bool white, Move move) noexcept;
 
-	int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
+	//int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
 
 	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
 
-	void searchStart(int depth, std::vector<ScoredMove>& scoredMoves) noexcept;
+	Move searchStart(int depth) noexcept;
 
 public:
 

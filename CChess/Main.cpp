@@ -11,7 +11,7 @@
 //TODO: for build -> performace guided optimization
 
 constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-constexpr std::string_view debugFen{ "8/3n1k1p/3p1p2/2pq4/P1N5/1K5P/8/8" }; //Castle::None
+constexpr std::string_view debugFen{ "rnb1kbnr/pp2pppp/8/Pqpp4/8/8/1PPPPPPP/R1BQKBNR" }; //Castle::All
 
 int main()
 {

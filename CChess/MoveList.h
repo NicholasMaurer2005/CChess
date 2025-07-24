@@ -8,6 +8,38 @@
 constexpr std::size_t maxLegalMoves{ 218 };
 constexpr std::size_t maxLegalCaptures{ 30 };
 
+//TODO: maybe make source file just for this?
+static int moveScore(Move move) noexcept
+{
+	static constexpr std::array<int, pieceCount* pieceCount> mvvLva{
+		//   X   P   N   B   R   Q   K     p,  n,  b,  r,  q,  k
+		/*X*/00, 00, 00, 00, 00, 00, 00,   00, 00, 00, 00, 00, 00,
+		/*P*/00, 00, 00, 00, 00, 00, 00,   61, 51, 41, 31, 21, 11,
+		/*N*/00, 00, 00, 00, 00, 00, 00,   62, 52, 42, 32, 22, 12,
+		/*B*/00, 00, 00, 00, 00, 00, 00,   63, 53, 43, 33, 23, 13,
+		/*R*/00, 00, 00, 00, 00, 00, 00,   64, 54, 44, 34, 24, 14,
+		/*Q*/00, 00, 00, 00, 00, 00, 00,   65, 55, 45, 35, 25, 15,
+		/*K*/00, 00, 00, 00, 00, 00, 00,   00, 00, 00, 00, 00, 00,
+
+		/*p*/00, 61, 51, 41, 31, 21, 11,   00, 00, 00, 00, 00, 00,
+		/*n*/00, 62, 52, 42, 32, 22, 12,   00, 00, 00, 00, 00, 00,
+		/*b*/00, 63, 53, 43, 33, 23, 13,   00, 00, 00, 00, 00, 00,
+		/*r*/00, 64, 54, 44, 34, 24, 14,   00, 00, 00, 00, 00, 00,
+		/*q*/00, 65, 55, 45, 35, 25, 15,   00, 00, 00, 00, 00, 00,
+		/*k*/00, 00, 00, 00, 00, 00, 00,   00, 00, 00, 00, 00, 00
+	};
+
+	const std::size_t sourcePiece{ static_cast<std::size_t>(move.sourcePiece()) };
+	const std::size_t capturePiece{ static_cast<std::size_t>(move.attackPiece()) };
+
+	return mvvLva[capturePiece * pieceCount + sourcePiece];
+}
+
+static bool MoveGreater(Move lhs, Move rhs) noexcept
+{
+	return moveScore(lhs) > moveScore(rhs);
+}
+
 template<std::size_t listSize>
 class cachealign MoveListT 
 {
@@ -27,7 +59,7 @@ public:
 
 	void sort() noexcept 
 	{
-		// sorting logic
+		std::sort(m_moves.begin(), m_moves.begin() + m_back, MoveGreater);
 	}
 
 	std::array<Move, listSize>::const_iterator begin() const noexcept 

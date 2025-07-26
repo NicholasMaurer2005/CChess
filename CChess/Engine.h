@@ -7,24 +7,28 @@
 #include "MoveGen.h"
 #include "State.h"
 #include "ThreadPool.h"
+#include "KillerMoveHistory.h"
 
 
-struct ScoredMove
-{
-	Move move;
-	int score;
-};
-
-struct EngineInfo
-{
-	Move lastMove;
-	int searchDepth;
-	int evaluation;
-};
 
 class Engine
 {
 private:
+
+	struct ScoredMove
+	{
+		Move move;
+		int score;
+	};
+
+	struct EngineInfo
+	{
+		Move lastMove;
+		int searchDepth;
+		int evaluation;
+	};
+
+
 
 	//engine
 	MoveGen m_moveGen; //TODO: maybe make static?
@@ -35,6 +39,8 @@ private:
 	//search
 	bool m_gameOver;
 	std::atomic_bool m_stopSearch;
+	KillerMoveHistory m_killerMoves;
+
 
 	//thead pool
 	//ThreadPool m_threadPool;

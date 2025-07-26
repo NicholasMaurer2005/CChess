@@ -4,6 +4,7 @@
 
 #include "ChessConstants.hpp"
 #include "Move.h"
+#include "KillerMoveHistory.h"
 
 constexpr std::size_t maxLegalMoves{ 218 };
 constexpr std::size_t maxLegalCaptures{ 30 };
@@ -32,12 +33,21 @@ static int moveScore(Move move) noexcept
 	const std::size_t sourcePiece{ static_cast<std::size_t>(move.sourcePiece()) };
 	const std::size_t capturePiece{ static_cast<std::size_t>(move.attackPiece()) };
 
-	return mvvLva[capturePiece * pieceCount + sourcePiece];
+	const int score{ mvvLva[capturePiece * pieceCount + sourcePiece] };
+	return score + (move.promotePiece() != Piece::NoPiece ? 1 : 0);
 }
 
-static bool MoveGreater(Move lhs, Move rhs) noexcept
+static bool MoveGreater(Move lhs, Move rhs, KillerMoves killerMoves) noexcept
 {
-	return moveScore(lhs) > moveScore(rhs);
+	const bool lhsKiller{ lhs.move() == killerMoves.first.move() || lhs.move() == killerMoves.second.move() };
+	const int lhsStaticScore{ moveScore(lhs) };
+	const int lhsScore = lhsKiller ? 1000 : lhsStaticScore;
+
+	const bool rhsKiller{ rhs.move() == killerMoves.first.move() || rhs.move() == killerMoves.second.move() };
+	const int rhsStaticScore{ moveScore(rhs) };
+	const int rhsScore = rhsKiller ? 1000 : rhsStaticScore;
+
+	return lhsScore > rhsScore;
 }
 
 template<std::size_t listSize>
@@ -45,8 +55,8 @@ class cachealign MoveListT
 {
 private:
 
-	std::array<Move, listSize> m_moves;
 	std::size_t m_back;
+	std::array<Move, listSize> m_moves;
 
 public:
 
@@ -57,9 +67,9 @@ public:
 		return m_back;
 	}
 
-	void sort() noexcept 
+	void sort(KillerMoves killerMoves) noexcept
 	{
-		std::sort(m_moves.begin(), m_moves.begin() + m_back, MoveGreater);
+		std::sort(m_moves.begin(), m_moves.begin() + m_back, [killerMoves](Move lhs, Move rhs) { return MoveGreater(lhs, rhs, killerMoves); });
 	}
 
 	std::array<Move, listSize>::const_iterator begin() const noexcept 

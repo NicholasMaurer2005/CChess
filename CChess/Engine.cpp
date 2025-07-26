@@ -21,7 +21,6 @@
 static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
-static constexpr int maxDepth{ std::numeric_limits<int>::max() };
 
 constexpr int nick{ -worstValue };
 
@@ -94,7 +93,7 @@ Engine::Engine(std::string_view fen, Castle castle) noexcept
 	: m_moveGen(), m_state(fen, castle), m_whiteToMove(true), m_info(),
 
 	//search
-	m_gameOver(), m_stopSearch()
+	m_gameOver(), m_stopSearch(), m_killerMoves()
 
 	//thread pool
 	/*m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) {
@@ -359,7 +358,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	int legalMoves{};
 
 	MoveList moves{ m_moveGen.generateMoves(white, state) };
-	moves.sort();
+	moves.sort(m_killerMoves.killerMoves(depth));
 	
 	for (Move move : moves)
 	{
@@ -381,6 +380,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 
 			if (alpha >= beta)
 			{
+				m_killerMoves.push(depth, move);
 				break;
 			}
 		}
@@ -403,15 +403,16 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	return bestScore;
 }
 
-ScoredMove Engine::searchStart(int depth) noexcept
+Engine::ScoredMove Engine::searchStart(int depth) noexcept
 {
 	Move bestMove{ 0 };
 	int bestScore{ worstValue };
 	int alpha = worstValue;
 	constexpr int beta = bestValue;
 
+
 	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
-	moves.sort();
+	moves.sort(m_killerMoves.killerMoves(depth));
 
 	for (Move move : moves)
 	{
@@ -425,6 +426,7 @@ ScoredMove Engine::searchStart(int depth) noexcept
 			{
 				bestScore = score;
 				bestMove = move;
+				m_killerMoves.push(depth, move);
 			}
 
 			alpha = std::max(alpha, score);
@@ -441,6 +443,9 @@ ScoredMove Engine::searchStart(int depth) noexcept
 
 Move Engine::search() noexcept
 {
+	//TODO: maybe find better way to reset?
+	m_killerMoves = KillerMoveHistory();
+
 	ScoredMove bestMove{ 0, 0 };
 
 	m_stopSearch = false;
@@ -450,8 +455,10 @@ Move Engine::search() noexcept
 		}
 	};
 
-	for (int i{ 1 }; i < maxDepth; ++i)
+	for (int i{ 1 }; i < maxSearchDepth; ++i)
 	{
+		m_killerMoves.setPlyDepth(i);
+
 		const ScoredMove scoredMove{ searchStart(i) };
 
 		if (m_stopSearch || scoredMove.move.move() == 0)

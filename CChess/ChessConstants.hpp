@@ -6,6 +6,7 @@
 constexpr int boardSize{ 64 };
 constexpr int fileSize{ 8 };
 constexpr int rankSize{ 8 };
+constexpr int maxSearchDepth{ 50 };
 
 #define cachealign alignas(std::hardware_destructive_interference_size)
 

@@ -133,7 +133,7 @@ public:
 
 
 	//print
-	void print(bool flipped) const noexcept;
+	void print() const noexcept;
 
 	void dump() const noexcept;
 

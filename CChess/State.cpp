@@ -119,7 +119,7 @@ bool State::operator==(const State& other) const noexcept
 
 
 //print
-void State::print(bool flipped) const noexcept
+void State::print() const noexcept
 {
 	constexpr std::array<char, pieceCount> pieceToChar{ '.', 'P', 'N', 'B', 'R', 'Q', 'K', 'X', 'n', 'b', 'r', 'q', 'k' };
 

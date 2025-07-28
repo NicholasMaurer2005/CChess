@@ -12,7 +12,7 @@ extern "C" {
 	/* ENGINE */
 
 	//create new instance of engine. must be called before any other function
-	void engine_create() CCHESS_NOEXCEPT;
+	int engine_create() CCHESS_NOEXCEPT;
 
 	//destroy engine. call to free up the engines resources
 	void engine_destroy() CCHESS_NOEXCEPT;
@@ -42,13 +42,6 @@ extern "C" {
 	//is 1 it will search for white, if "white" is 0 it will search for black. the engine is 
 	//not responsible for freeing the memory of "source" and "destination"
 	void engine_search_color(int white, int* source, int* destination) CCHESS_NOEXCEPT;
-
-	//search and make the best move for the side to play
-	void engine_search_and_move() CCHESS_NOEXCEPT;
-
-	//search and make the best move for the side "white". if "white" is 1 it will for white, 
-	//if "white" is 0 it will search for black
-	void engine_search_color_and_move(int white) CCHESS_NOEXCEPT;
 
 
 

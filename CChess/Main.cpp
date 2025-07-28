@@ -15,6 +15,5 @@ constexpr std::string_view debugFen{ "Q7/4k3/7Q/8/8/3N4/2NK4/8" }; //Castle::Non
 
 int main()
 {
-	Engine engine{ startFen, Castle::All };
-	engine.play();
+	Engine engine;
 }

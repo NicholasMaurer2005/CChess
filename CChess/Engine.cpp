@@ -11,6 +11,7 @@
 #include <string>
 #include <algorithm>
 #include <cassert>
+#include <string_view>
 
 #include "MoveList.h"
 #include "Move.h"
@@ -18,12 +19,17 @@
 
 
 
+//constants
 static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
+constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
+constexpr int defaultSearchMilliseconds{ 3000 };
 
-constexpr int nick{ -worstValue };
+static State startState{ startFen, Castle::All };
 
+
+//static helpers
 static int squareToIndex(std::string_view square)
 {
 	const int rank{ static_cast<int>(square[1] - '1') };
@@ -87,21 +93,20 @@ static Move playerMove(MoveList& moves)
 	
 }
 
+
+
 //constructor
-Engine::Engine(std::string_view fen, Castle castle) noexcept
-	//engine
-	: m_moveGen(), m_state(fen, castle), m_whiteToMove(true), m_info(),
+Engine::Engine() noexcept
+//engine
+	: m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(),
 
 	//search
-	m_gameOver(), m_stopSearch(), m_killerMoves()
-
-	//thread pool
-	/*m_threadPool([this](const State& state, int& score, int depth, bool white, int alpha, int beta) {
-			searchRun(state, score, depth, white, alpha, beta);
-		})*/
+	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds)
 {
 	findWhiteSquares(m_state);
 	findBlackSquares(m_state);
+
+	m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
 }
 
 
@@ -241,105 +246,57 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
 		: (state.pieceOccupancyT<Piece::WhiteKing>().board() && !state.blackKingInCheck());
 }
 
+int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
+{
+	//track how many recursive calls have happened, 
+	thread_local int stopSearchCheck{};
+	++stopSearchCheck;
 
+	const int standardPat{ white ? evaluate(state) : -evaluate(state) };
 
+	if (standardPat >= beta)
+	{
+		return standardPat;
+	}
 
-//search
+	const CaptureList moves{ m_moveGen.generateCaptures(white, state) };
+	int legalMoves{};
+	int bestScore{ worstValue };
 
-//Move Engine::searchStartAsync(int depth) noexcept
-//{
-//	struct MoveResult 
-//	{
-//		State state;
-//		Move move;
-//		int score;
-//	};
-//
-//	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
-//	//TODO: maybe change to array? 
-//	std::vector<MoveResult> moveResults;
-//	moveResults.reserve(moves.size());
-//
-//	int legalMoves{};
-//
-//	for (Move move : moves)
-//	{
-//		moveResults.emplace_back(m_state, move, 0);
-//
-//		if (makeLegalMove(moveResults.back().state, m_whiteToMove, move))
-//		{
-//			++legalMoves;
-//			m_threadPool.assign(moveResults.back().state, moveResults.back().score, depth, !m_whiteToMove, -bestValue, -worstValue);
-//		}
-//		else
-//		{
-//			moveResults.pop_back();
-//		}
-//	}
-//
-//	//check for mate
-//	if (legalMoves == 0)
-//	{
-//		m_gameOver = true;
-//	}
-//
-//	m_threadPool.start();
-//	m_threadPool.wait();
-//
-//	return std::ranges::max_element(moveResults, [](MoveResult lhs, MoveResult rhs) { return lhs.score < rhs.score; })->move;
-//}
+	for (Move move : moves)
+	{
+		State stateCopy{ state };
 
-//int Engine::quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept
-//{
-//	//track how many recursive calls have happened, 
-//	thread_local int stopSearchCheck{};
-//	++stopSearchCheck;
-//
-//	const int standardPat{ white ? evaluate(state) : -evaluate(state) };
-//
-//	if (standardPat >= beta)
-//	{
-//		return standardPat;
-//	}
-//
-//	const CaptureList moves{ m_moveGen.generateCaptures(white, state) };
-//	int legalMoves{};
-//	int bestScore{ worstValue };
-//
-//	for (Move move : moves)
-//	{
-//		State stateCopy{ state };
-//
-//		if (makeLegalMove(stateCopy, white, move))
-//		{
-//			//check every 16384 calls if time is up, if it is stop the search
-//			if ((stopSearchCheck & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
-//			{
-//				return 0;
-//			}
-//
-//			++legalMoves;
-//			
-//			const int score{ -quiescenceSearch(stateCopy, -beta, -alpha, !white) };
-//			bestScore = std::max(bestScore, score);
-//			alpha = std::max(alpha, score);
-//
-//			if (alpha >= beta)
-//			{
-//				break;
-//			}
-//		}
-//	}
-//
-//	if (legalMoves)
-//	{
-//		return bestScore;
-//	}
-//	else
-//	{
-//		return standardPat;
-//	}
-//}
+		if (makeLegalMove(stateCopy, white, move))
+		{
+			//check every 16384 calls if time is up, if it is stop the search
+			if ((stopSearchCheck & 0x3FFF) == 0 && m_stopSearch.load(std::memory_order_relaxed))
+			{
+				return 0;
+			}
+
+			++legalMoves;
+			
+			const int score{ -quiescenceSearch(stateCopy, -beta, -alpha, !white) };
+			bestScore = std::max(bestScore, score);
+			alpha = std::max(alpha, score);
+
+			if (alpha >= beta)
+			{
+				break;
+			}
+		}
+	}
+
+	if (legalMoves)
+	{
+		return bestScore;
+	}
+	else
+	{
+		return standardPat;
+	}
+}
 
 int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept
 {
@@ -403,7 +360,7 @@ int Engine::searchRun(const State& state, int depth, int alpha, int beta, bool w
 	return bestScore;
 }
 
-Engine::ScoredMove Engine::searchStart(int depth) noexcept
+Engine::ScoredMove Engine::searchStart(bool white, int depth) noexcept
 {
 	Move bestMove{ 0 };
 	int bestScore{ worstValue };
@@ -411,16 +368,16 @@ Engine::ScoredMove Engine::searchStart(int depth) noexcept
 	constexpr int beta = bestValue;
 
 
-	MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
+	MoveList moves{ m_moveGen.generateMoves(white, m_state) };
 	moves.sort(m_killerMoves.killerMoves(depth));
 
 	for (Move move : moves)
 	{
 		State stateCopy{ m_state };
 
-		if (makeLegalMove(stateCopy, m_whiteToMove, move))
+		if (makeLegalMove(stateCopy, white, move))
 		{
-			const int score{ -searchRun(stateCopy, depth - 1, -beta, -alpha, !m_whiteToMove) };
+			const int score{ -searchRun(stateCopy, depth - 1, -beta, -alpha, !white) };
 
 			if (score > bestScore)
 			{
@@ -441,7 +398,19 @@ Engine::ScoredMove Engine::searchStart(int depth) noexcept
 	return { bestMove, bestScore };
 }
 
-Move Engine::search() noexcept
+
+
+//getters
+std::string Engine::stateFen() const noexcept
+{
+	std::string fen;
+
+
+
+	return fen;
+}
+
+Move Engine::search(bool white) noexcept
 {
 	//TODO: maybe find better way to reset?
 	m_killerMoves = KillerMoveHistory();
@@ -450,7 +419,7 @@ Move Engine::search() noexcept
 
 	m_stopSearch = false;
 	std::jthread timer{ [&]() {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(m_searchMilliseconds));
 		m_stopSearch.store(true, std::memory_order_relaxed);
 		}
 	};
@@ -459,7 +428,7 @@ Move Engine::search() noexcept
 	{
 		m_killerMoves.setPlyDepth(i);
 
-		const ScoredMove scoredMove{ searchStart(i) };
+		const ScoredMove scoredMove{ searchStart(white, i) };
 
 		if (m_stopSearch || scoredMove.move.move() == 0)
 		{
@@ -480,62 +449,40 @@ Move Engine::search() noexcept
 	return bestMove.move;
 }
 
-
-
-//game
-void Engine::play() noexcept
+Move Engine::search() noexcept
 {
-	while (true)
+	return search(m_whiteToMove);
+}
+
+
+
+//setters
+void Engine::setState(const State& state) noexcept
+{
+	m_state = state;
+}
+
+void Engine::setStartState() noexcept
+{
+	m_state = startState;
+}
+
+bool Engine::makeMove(int source, int destination) noexcept
+{
+	const auto it{ std::find_if(m_legalMoves.begin(), m_legalMoves.end(), [source, destination](Move move) {
+		   return move.sourceIndex() == source && move.destinationIndex() == destination;
+	   }) };
+
+	if (it != m_legalMoves.end() && makeLegalMove(m_state, m_whiteToMove, *it))
 	{
-		//draw board
-		system("cls");
-		m_state.print();
-		std::cout << std::format("move: {}\ndepth: {}\nevaluation: {}\n", m_info.lastMove.string(), m_info.searchDepth, m_info.evaluation);
+		m_whiteToMove = !m_whiteToMove;
+		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
 
-		if (m_gameOver)
-		{
-			return;
-		}
-		else
-		{
-			if (!m_whiteToMove)
-			{
-				while (true)
-				{
-					//player move
-					MoveList moves{ m_moveGen.generateMoves(m_whiteToMove, m_state) };
-					const Move move{ playerMove(moves) };
-					State stateCopy{ m_state };
-
-					if (move.move() != 0 && makeLegalMove(stateCopy, m_whiteToMove, move))
-					{
-						m_state = stateCopy;
-						m_whiteToMove = !m_whiteToMove;
-						break;
-					}
-					else
-					{
-						std::cout << "not a legal move\n";
-					}
-				}
-			}
-			else
-			{
-				std::cout << "thinking\n";
-
-				Move bestMove{ search() };
-
-				if (bestMove.move() == 0)
-				{
-					m_gameOver = true;
-				}
-				else
-				{
-					m_state.makeMove(m_whiteToMove, bestMove);
-					m_whiteToMove = !m_whiteToMove;
-				}
-			}
-		}
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 

@@ -13,6 +13,8 @@
 
 class Engine
 {
+
+//private structs
 private:
 
 	struct ScoredMove
@@ -30,22 +32,26 @@ private:
 
 
 
+//private properties
+private:
+
 	//engine
 	MoveGen m_moveGen; //TODO: maybe make static?
 	State m_state;
 	bool m_whiteToMove;
 	EngineInfo m_info;
+	MoveList m_legalMoves;
 
 	//search
 	bool m_gameOver;
 	std::atomic_bool m_stopSearch;
 	KillerMoveHistory m_killerMoves;
+	int m_searchMilliseconds;
 
 
-	//thead pool
-	//ThreadPool m_threadPool;
 
-
+//private methods
+private:
 
 	//private methods
 	std::uint64_t perftRun(int depth, bool white) noexcept;
@@ -56,28 +62,36 @@ private:
 
 	bool makeLegalMove(State& state, bool white, Move move) noexcept;
 
-	//int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
+	int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
 
 	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
 
-	ScoredMove searchStart(int depth) noexcept;
+	ScoredMove searchStart(bool white, int depth) noexcept;
+
+
 
 public:
 
 	//constructor
-	Engine(std::string_view fen, Castle castle = Castle::All) noexcept;
+	Engine() noexcept;
 
 
 
-	//search
-	//Move searchStartAsync(int depth) noexcept;
+	//getters
+	std::string stateFen() const noexcept;
+
+	Move search(bool white) noexcept;
 
 	Move search() noexcept;
 
+	void setStartState() noexcept;
 
 
-	//game
-	void play() noexcept;
+
+	//setters
+	void setState(const State& state) noexcept;
+
+	bool makeMove(int source, int destination) noexcept;
 
 
 	

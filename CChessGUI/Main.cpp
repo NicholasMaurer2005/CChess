@@ -1,9 +1,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <CChess.h>
 
 int main()
 {
+	engine_create();
+	int source{};
+	int destination{};
+	engine_search(&source, &destination);
+
+
+
 	//initialize glfw
 	if (!glfwInit())
 	{
@@ -41,4 +49,7 @@ int main()
 
 		glfwPollEvents();
 	}
+
+	glfwTerminate();
+	engine_destroy();
 }

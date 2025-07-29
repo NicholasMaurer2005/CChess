@@ -51,8 +51,9 @@ const char* engine_get_position() CCHESS_NOEXCEPT
 {
 	const std::string fen{ engine->stateFen() };
 
-	char* data{ new char[fen.length() + 1] };
-	std::strcpy(data, fen.c_str());
+	const std::size_t length{ fen.length() + 1 };
+	char* data{ new char[length] };
+	std::memcpy(data, fen.c_str(), length);
 
 	return data;
 }

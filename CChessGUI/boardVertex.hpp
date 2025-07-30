@@ -2,7 +2,7 @@
 #include <string_view>
 namespace ctl
 {
-constexpr std::string_view vertex{
+constexpr std::string_view boardVertex{
 "#version 330 core\n"
 "\n"
 "layout (location = 0) in vec2 aPosition;\n"

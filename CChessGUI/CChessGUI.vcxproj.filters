@@ -21,20 +21,30 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PieceSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fragment.hpp">
+    <ClInclude Include="boardFragment.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vertex.hpp">
+    <ClInclude Include="boardVertex.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PieceSprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="fragment.glsl" />
-    <CustomBuild Include="vertex.glsl" />
+    <CustomBuild Include="boardFragment.glsl" />
+    <CustomBuild Include="boardVertex.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pieceFragment.glsl" />
+    <None Include="pieceVertex.glsl" />
   </ItemGroup>
 </Project>

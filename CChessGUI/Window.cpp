@@ -1,7 +1,7 @@
 #include "Window.h"
 
-#include "vertex.hpp"
-#include "fragment.hpp"
+#include "boardVertex.hpp"
+#include "boardFragment.hpp"
 
 #include <iostream>
 #include <stb_image.h>
@@ -46,7 +46,7 @@ static GLuint generateShaderProgram() noexcept
 {
 	//vertex
 	GLuint vertex{ glCreateShader(GL_VERTEX_SHADER) };
-	const GLchar* vertexData{ ctl::vertex.data() };
+	const GLchar* vertexData{ ctl::boardVertex.data() };
 	glShaderSource(vertex, 1, &vertexData, NULL);
 	glCompileShader(vertex);
 
@@ -61,7 +61,7 @@ static GLuint generateShaderProgram() noexcept
 
 	//fragment
 	GLuint fragment{ glCreateShader(GL_FRAGMENT_SHADER) };
-	const GLchar* fragmentData{ ctl::fragment.data() };
+	const GLchar* fragmentData{ ctl::boardFragment.data() };
 	glShaderSource(fragment, 1, &fragmentData, NULL);
 	glCompileShader(fragment);
 
@@ -80,6 +80,9 @@ static GLuint generateShaderProgram() noexcept
 	glAttachShader(shader, fragment);
 	glLinkProgram(shader);
 
+	glDeleteShader(vertex);
+	glDeleteShader(fragment);
+
 	return shader;
 }
 
@@ -95,7 +98,7 @@ void Window::initGLFW() noexcept
 	}
 
 	//create window
-	m_window = glfwCreateWindow(1280, 720, "proof of concept", NULL, NULL);
+	m_window = glfwCreateWindow(m_width, m_height, "proof of concept", NULL, NULL);
 
 	if (!m_window)
 	{
@@ -113,10 +116,10 @@ void Window::initGLFW() noexcept
 	}
 }
 
-void Window::initShader() noexcept
+void Window::initBoardShader() noexcept
 {
-	m_shader = generateShaderProgram();
-	glUseProgram(m_shader);
+	m_boardShader = generateShaderProgram();
+	glUseProgram(m_boardShader);
 }
 
 void Window::initBoardBuffer() noexcept
@@ -151,6 +154,31 @@ void Window::initBoardTexture() noexcept
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
+void Window::initPieceShader() noexcept
+{
+	static constexpr float pieceBufferData[]{
+		-0.125f, -0.125f, 0.0f, 0.0f,
+		0.125f, -0.125f, 0.125f, 0.0f,
+		-0.125f, 0.125f, 0.0f, 0.125f,
+		0.125f, -0.125f, 0.125f, 0.0f,
+		0.125f, 0.125f, 0.125f, 0.125f,
+		-0.125f, 0.125f, 0.0f, 0.125f
+	};
+
+	glGenBuffers(1, &m_pieceBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_pieceBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pieceBufferData), &pieceBufferData, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+}
+
+void Window::initPieceBuffer() noexcept
+{
+	
+}
+
 void Window::initPieceTextures() noexcept
 {
 
@@ -159,22 +187,33 @@ void Window::initPieceTextures() noexcept
 
 
 //public methods
-Window::Window() noexcept
-	: m_window(), m_shader(), m_boardTexture(), m_boardBuffer()
+Window::Window(int width, int height) noexcept
+//window
+	: m_window(), m_width(width), m_height(height),
+
+	//board
+	m_boardShader(), m_boardTexture(), m_boardBuffer(),
+
+	//pieces
+	m_pieceShader(), m_pieceBuffer(), m_pieceTexture()
 {
 	initGLFW();
 
-	initShader();
-
+	initBoardShader();
 	initBoardBuffer();
-
 	initBoardTexture();
 
+	initPieceShader();
+	initPieceBuffer();
 	initPieceTextures();
 }
 
 Window::~Window() noexcept
 {
+	glDeleteProgram(m_boardShader);
+	glDeleteBuffers(1, &m_boardBuffer);
+	glDeleteTextures(1, &m_boardTexture);
+
 	glfwTerminate();
 }
 

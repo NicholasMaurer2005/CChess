@@ -2,7 +2,7 @@
 #include <string_view>
 namespace ctl
 {
-constexpr std::string_view fragment{
+constexpr std::string_view boardFragment{
 "#version 330 core\n"
 "\n"
 "in vec2 TexCoord;\n"

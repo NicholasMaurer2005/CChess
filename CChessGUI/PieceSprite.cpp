@@ -8,49 +8,49 @@ static_assert(sizeof(PieceSprite) == 64);
 
 static constexpr float squareOffset{ 0.125f };
 
-static constexpr float textureSheetWidth{ 608.0f };
-static constexpr float textureSheetHeight{ 546.0f };
-static constexpr float pieceSize{ 150.0f };
-static constexpr float pieceTextureWidth{ pieceSize / textureSheetWidth };
-static constexpr float pieceTextureHeight{ pieceSize / textureSheetHeight };
+static constexpr int textureSheetWidth{ 600 };
+static constexpr int textureSheetHeight{ 450 };
+static constexpr int pieceSize{ 150 };
+static constexpr float pieceTextureWidth{ static_cast<float>(pieceSize) / textureSheetWidth };
+static constexpr float pieceTextureHeight{ static_cast<float>(pieceSize) / textureSheetHeight };
 
 
-static constexpr int whitePawnX{ 1 };
-static constexpr int whitePawnY{ 153 };
+static constexpr int whitePawnX{ 450 };
+static constexpr int whitePawnY{ 0 };
 
-static constexpr int whiteKnightX{ 305 };
-static constexpr int whiteKnightY{ 305 };
+static constexpr int whiteKnightX{ 300 };
+static constexpr int whiteKnightY{ 300 };
 
-static constexpr int whiteBishopX{ 1 };
-static constexpr int whiteBishopY{ 305 };
+static constexpr int whiteBishopX{ 0 };
+static constexpr int whiteBishopY{ 300 };
 
-static constexpr int whiteRookX{ 457 };
-static constexpr int whiteRookY{ 305 };
+static constexpr int whiteRookX{ 450 };
+static constexpr int whiteRookY{ 300 };
 
-static constexpr int whiteQueenX{ 547 };
-static constexpr int whiteQueenY{ 153 };
+static constexpr int whiteQueenX{ 450 };
+static constexpr int whiteQueenY{ 150 };
 
-static constexpr int whiteKingX{ 153 };
-static constexpr int whiteKingY{ 305 };
+static constexpr int whiteKingX{ 150 };
+static constexpr int whiteKingY{ 300 };
 
 
-static constexpr int blackPawnX{ 1 };
-static constexpr int blackPawnY{ 153 };
+static constexpr int blackPawnX{ 0 };
+static constexpr int blackPawnY{ 150 };
 
-static constexpr int blackKnightX{ 305 };
-static constexpr int blackKnightY{ 1 };
+static constexpr int blackKnightX{ 300 };
+static constexpr int blackKnightY{ 0 };
 
-static constexpr int blackBishopX{ 1 };
-static constexpr int blackBishopY{ 1 };
+static constexpr int blackBishopX{ 0 };
+static constexpr int blackBishopY{ 0 };
 
-static constexpr int blackRookX{ 305 };
-static constexpr int blackRookY{ 153 };
+static constexpr int blackRookX{ 300 };
+static constexpr int blackRookY{ 150 };
 
-static constexpr int blackQueenX{ 153 };
-static constexpr int blackQueenY{ 153 };
+static constexpr int blackQueenX{ 150 };
+static constexpr int blackQueenY{ 150 };
 
-static constexpr int blackKingX{ 153 };
-static constexpr int blackKingY{ 1 };
+static constexpr int blackKingX{ 150 };
+static constexpr int blackKingY{ 0 };
 
 struct alignas(32) TextureCoords
 {
@@ -59,14 +59,18 @@ struct alignas(32) TextureCoords
 
 static consteval TextureCoords generateTextureCoords(int x, int y)
 {
-	const float normalizedX{ x / textureSheetWidth };
-	const float normalizedY{ y / textureSheetHeight };
+	const float normalizedX{ static_cast<float>(x) / textureSheetWidth };
+	const float normalizedY{ static_cast<float>(y) / textureSheetHeight };
 
 	return {
+		//bottem right
+		normalizedX, normalizedY + pieceTextureHeight,
+		//top right
 		normalizedX, normalizedY,
+		//top left
 		normalizedX + pieceTextureWidth, normalizedY,
-		normalizedX + pieceTextureWidth, normalizedY + pieceTextureHeight,
-		normalizedX, normalizedY + pieceTextureHeight
+		//bottem left
+		normalizedX + pieceTextureWidth, normalizedY + pieceTextureHeight
 	};
 }
 
@@ -112,15 +116,22 @@ PieceSprite::PieceSprite(int rank, int file, Piece piece) noexcept
 
 void PieceSprite::move(int rank, int file) noexcept
 {
-	m_posX1 = file * squareOffset;
-	m_posY1 = rank * squareOffset;
+	const float topLeftX{ file * squareOffset };
+	const float topLeftY{ rank * squareOffset };
 
-	m_posX2 = m_posX1 + squareOffset;
-	m_posY2 = m_posY1;
+	//top left
+	m_posX1 = 2.0f * topLeftX - 1.0f;
+	m_posY1 = 2.0f * topLeftY - 1.0f;
 
-	m_posX3 = m_posX1 + squareOffset;
-	m_posY3 = m_posY1 + squareOffset;
+	//bottem left
+	m_posX2 = 2.0f * topLeftX - 1.0f;
+	m_posY2 = 2.0f * (topLeftY + squareOffset) - 1.0f;
 
-	m_posX4 = m_posX1;
-	m_posY4 = m_posY1 + squareOffset;
+	//bottem right
+	m_posX3 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_posY3 = 2.0f * (topLeftY + squareOffset) - 1.0f;
+
+	//top right
+	m_posX4 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_posY4 = 2.0f * topLeftY - 1.0f;
 }

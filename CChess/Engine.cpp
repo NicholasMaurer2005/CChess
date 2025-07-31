@@ -24,7 +24,7 @@ static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
 constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-constexpr int defaultSearchMilliseconds{ 3000 };
+constexpr int defaultSearchMilliseconds{ 500 };
 
 static State startState{ startFen, Castle::All };
 
@@ -452,6 +452,27 @@ Move Engine::search(bool white) noexcept
 Move Engine::search() noexcept
 {
 	return search(m_whiteToMove);
+}
+
+std::string Engine::getCharPosition() const noexcept
+{
+	constexpr std::array<char, pieceCount> pieceToChar{ ' ', 'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k' };
+
+	std::string position;
+	position.assign(boardSize, ' ');
+
+	for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
+	{
+		BitBoard occupancy{ m_state.pieceOccupancy(static_cast<Piece>(i)) };
+
+		while (occupancy.board())
+		{
+			const int index{ occupancy.popLeastSignificantBit() };
+			position[index] = pieceToChar[i];
+		}
+	}
+
+	return position;
 }
 
 

@@ -3,12 +3,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cstdint>
-#include <array>
 #include <cstddef>
+#include <array>
+#include <vector>
+#include <string_view>
 
 #include "PieceSprite.h"
-
-
 
 class Window
 {
@@ -25,12 +25,17 @@ private:
 	GLuint m_boardShader;
 	GLuint m_boardTexture;
 	GLuint m_boardBuffer;
+	GLuint m_boardVAO;
 
 	//pieces
 	GLuint m_pieceShader;
 	GLuint m_pieceBuffer;
 	GLuint m_pieceTexture;
-	std::array<PieceSprite, 32> m_pieces;
+	GLuint m_pieceVAO;
+	GLuint m_pieceEBO;
+	GLsizei m_pieceBufferCount;
+	int m_maxPieceBufferSize;
+	
 
 
 //private methods
@@ -48,7 +53,7 @@ private:
 
 	void initPieceBuffer() noexcept;
 
-	void initPieceTextures() noexcept;
+	void initPieceTexture() noexcept;
 	
 
 
@@ -62,5 +67,7 @@ public:
 	bool open() noexcept;
 
 	void draw() noexcept;
+
+	void buffer(std::string_view board) noexcept;
 };
 

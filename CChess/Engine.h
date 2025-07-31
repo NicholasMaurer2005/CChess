@@ -86,6 +86,8 @@ public:
 
 	void setStartState() noexcept;
 
+	std::string getCharPosition() const noexcept;
+
 
 
 	//setters

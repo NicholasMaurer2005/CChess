@@ -47,13 +47,24 @@ int engine_position_fen(const char* fen) CCHESS_NOEXCEPT
 	}
 }
 
-const char* engine_get_position() CCHESS_NOEXCEPT
+CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT
 {
 	const std::string fen{ engine->stateFen() };
 
 	const std::size_t length{ fen.length() + 1 };
 	char* data{ new char[length] };
 	std::memcpy(data, fen.c_str(), length);
+
+	return data;
+}
+
+CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT
+{
+	const std::string position{ engine->getCharPosition() };
+	
+	const std::size_t length{ position.length() + 1 };
+	char* data{ new char[length] };
+	std::memcpy(data, position.data(), length);
 
 	return data;
 }

@@ -5,6 +5,7 @@
 
 //noexcept define
 #define CCHESS_NOEXCEPT noexcept
+#define CCHESS_NODISCARD [[nodiscard]]
 
 extern "C" {
 #endif
@@ -27,8 +28,14 @@ extern "C" {
 	int engine_position_fen(const char* fen) CCHESS_NOEXCEPT;
 
 	//return engine position as FEN notation string. the engine is not responsible for freeing the
-	//memory of the returned FEN
-	const char* engine_get_position() CCHESS_NOEXCEPT;
+	//memory of the returned const char*
+	CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT;
+
+	//return engine position as a char[64] array. this matches the chess board with each piece 
+	//represented with a letter, e.g. 'P' for white pawn, 'r' for black rook. no-piece is represented
+	// by ' '. the engine is not responsible for freeing the memory of the returned const char*
+	//TODO: maybe find a better way? with my gui this will have 3 allocations and 2 copies of the data
+	CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT;
 
 
 

@@ -15,7 +15,8 @@ enum class Piece : std::size_t
 	BlackBishop = 8,
 	BlackRook = 9,
 	BlackQueen = 10,
-	BlackKing = 11
+	BlackKing = 11,
+	NoPiece = 12
 };
 
 class alignas(64) PieceSprite

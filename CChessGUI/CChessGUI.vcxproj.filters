@@ -38,13 +38,17 @@
     <ClInclude Include="PieceSprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pieceFragment.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pieceVertex.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="boardFragment.glsl" />
     <CustomBuild Include="boardVertex.glsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="pieceFragment.glsl" />
-    <None Include="pieceVertex.glsl" />
+    <CustomBuild Include="pieceFragment.glsl" />
+    <CustomBuild Include="pieceVertex.glsl" />
   </ItemGroup>
 </Project>

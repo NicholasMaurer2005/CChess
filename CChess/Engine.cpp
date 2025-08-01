@@ -24,7 +24,7 @@ static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
 constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-constexpr int defaultSearchMilliseconds{ 500 };
+constexpr int defaultSearchMilliseconds{ 3000 };
 
 static State startState{ startFen, Castle::All };
 
@@ -91,6 +91,39 @@ static Move playerMove(MoveList& moves)
 		return 0;
 	}
 	
+}
+
+static Move getCastleMove(int sourceSquare, int destinationSquare)
+{
+	constexpr Move whiteKingSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::WhiteKingSide) };
+	constexpr Move whiteQueenSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::WhiteQueenSide) };
+	constexpr Move blackKingSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::BlackKingSide) };
+	constexpr Move blackQueenSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::BlackQueenSide) };
+
+	if (sourceSquare == e1)
+	{
+		if (destinationSquare == g1)
+		{
+			return whiteKingSide;
+		}
+		else if (destinationSquare == c1)
+		{
+			return whiteQueenSide;
+		}
+	}
+	else if (sourceSquare == e8)
+	{
+		if (destinationSquare == g8)
+		{
+			return blackKingSide;
+		}
+		else if (destinationSquare == c8)
+		{
+			return blackQueenSide;
+		}
+	}
+
+	return 0;
 }
 
 
@@ -475,6 +508,11 @@ std::string Engine::getCharPosition() const noexcept
 	return position;
 }
 
+int Engine::searchMilliseconds() const noexcept
+{
+	return m_searchMilliseconds;
+}
+
 
 
 //setters
@@ -490,23 +528,32 @@ void Engine::setStartState() noexcept
 
 bool Engine::makeMove(int source, int destination) noexcept
 {
-	const auto it{ std::find_if(m_legalMoves.begin(), m_legalMoves.end(), [source, destination](Move move) {
-		   return move.sourceIndex() == source && move.destinationIndex() == destination;
+	const Move castleMove{ getCastleMove(source, destination) };
+
+	const auto it{ std::find_if(m_legalMoves.begin(), m_legalMoves.end(), [source, destination, castleMove](Move move) {
+		   return (move.sourceIndex() == source && move.destinationIndex() == destination) || (move.move() == castleMove.move());
 	   }) };
 
-	if (it != m_legalMoves.end() && makeLegalMove(m_state, m_whiteToMove, *it))
+	State stateCopy{ m_state };
+
+	if (it != m_legalMoves.end() && makeLegalMove(stateCopy, m_whiteToMove, *it))
 	{
+		m_state = stateCopy;
 		m_whiteToMove = !m_whiteToMove;
 		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
-
+		
 		return true;
 	}
-	else
+	else 
 	{
 		return false;
 	}
 }
 
+void Engine::setSearchMilliseconds(int milliseconds) noexcept
+{
+	m_searchMilliseconds = milliseconds;
+}
 
 
 //perft

@@ -35,6 +35,10 @@ private:
 	GLuint m_pieceEBO;
 	GLsizei m_pieceBufferCount;
 	int m_maxPieceBufferSize;
+
+	//player move
+	int m_sourceSquare;
+	bool m_hasSource;
 	
 
 
@@ -55,6 +59,9 @@ private:
 
 	void initPieceTexture() noexcept;
 	
+	void playerMove(int rank, int file) noexcept;
+
+	void drawBoard() noexcept;
 
 
 //public methods
@@ -69,5 +76,7 @@ public:
 	void draw() noexcept;
 
 	void buffer(std::string_view board) noexcept;
+
+	void handleClick(double mouseX, double mouseY) noexcept;
 };
 

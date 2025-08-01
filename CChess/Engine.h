@@ -88,12 +88,16 @@ public:
 
 	std::string getCharPosition() const noexcept;
 
+	int searchMilliseconds() const noexcept;
+
 
 
 	//setters
 	void setState(const State& state) noexcept;
 
 	bool makeMove(int source, int destination) noexcept;
+
+	void setSearchMilliseconds(int milliseconds) noexcept;
 
 
 	

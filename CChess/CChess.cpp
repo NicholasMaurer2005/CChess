@@ -69,6 +69,16 @@ CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT
 	return data;
 }
 
+void engine_set_search_milliseconds(int milliseconds) CCHESS_NOEXCEPT
+{
+	engine->setSearchMilliseconds(milliseconds);
+}
+
+int engine_get_search_milliseconds() CCHESS_NOEXCEPT
+{
+	return engine->searchMilliseconds();
+}
+
 void engine_search(int* source, int* destination) CCHESS_NOEXCEPT
 {
 	const Move bestMove{ engine->search() };

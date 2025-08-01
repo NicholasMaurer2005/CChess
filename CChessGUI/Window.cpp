@@ -10,6 +10,9 @@
 #include <chrono>
 #include <format>
 #include <string>
+#include <CChess.h>
+#include <memory>
+#include <filesystem>
 
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -147,6 +150,21 @@ static GLuint generateShaderProgram(std::string_view vertexSource, std::string_v
 	return shader;
 }
 
+static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
+	{
+		double mouseX{};
+		double mouseY{};
+
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+
+		Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
+		user->handleClick(mouseX, mouseY);
+	}
+
+}
+
 
 
 //private methods
@@ -175,6 +193,9 @@ void Window::initGLFW() noexcept
 		std::cerr << "failed to initialize glew" << std::endl;
 		glfwTerminate();
 	}
+
+	glfwSetWindowUserPointer(m_window, this);
+	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
 }
 
 void Window::initBoardShader() noexcept
@@ -244,7 +265,8 @@ void Window::initPieceTexture() noexcept
 	int height{};
 	int channels{};
 
-	unsigned char* data{ stbi_load("pieceTextures.png", &width, &height, &channels, STBI_rgb_alpha) };
+	unsigned char* data{ stbi_load("pieceTextures.png", &width, &height, &channels, STBI_rgb_alpha)};
+
 	const GLint format{ channels == 4 ? GL_RGBA : GL_RGB };
 
 	glGenTextures(1, &m_pieceTexture);
@@ -256,16 +278,62 @@ void Window::initPieceTexture() noexcept
 	stbi_image_free(data);
 }
 
+void Window::playerMove(int rank, int file) noexcept
+{
+	const int square{ rank * 8 + file };
+
+	if (m_hasSource)
+	{
+		if (engine_move(m_sourceSquare, square))
+		{
+			//TODO: find a better way this works for now
+			drawBoard();
+			draw();
+
+			int engineSource{};
+			int engineDestination{};
+
+			engine_search(&engineSource, &engineDestination);
+			engine_move(engineSource, engineDestination);
+
+			drawBoard();
+		}
+		else
+		{
+			std::cout << "not a legal move\n";
+		}
+
+		m_hasSource = false;
+		
+	}
+	else
+	{
+		m_sourceSquare = square;
+		m_hasSource = true;
+	}
+}
+
+void Window::drawBoard() noexcept
+{
+	std::unique_ptr<const char> position{ engine_get_char_position() };
+	buffer(position.get());
+}
+
+
+
 //public methods
 Window::Window(int width, int height) noexcept
-	//window
+//window
 	: m_window(), m_width(width), m_height(height),
 
 	//board
 	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(),
 
 	//pieces
-	m_pieceShader(), m_pieceBuffer(), m_pieceTexture(), m_pieceVAO(), m_pieceEBO(), m_pieceBufferCount(), m_maxPieceBufferSize()
+	m_pieceShader(), m_pieceBuffer(), m_pieceTexture(), m_pieceVAO(), m_pieceEBO(), m_pieceBufferCount(), m_maxPieceBufferSize(),
+
+	//move
+	m_sourceSquare(), m_hasSource()
 {
 	initGLFW();
 
@@ -346,8 +414,6 @@ void Window::buffer(std::string_view board) noexcept
 		}
 	}
 
-	
-
 	m_pieceBufferCount = boardData.size();
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_pieceBuffer);
@@ -365,3 +431,15 @@ void Window::buffer(std::string_view board) noexcept
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, boardData.size() * 6 * sizeof(GLuint), indexBuffer.data(), GL_STATIC_DRAW);
 	}
 }
+
+void Window::handleClick(double mouseX, double mouseY) noexcept
+{
+	const float normalizedX{ static_cast<float>(mouseX) / m_width };
+	const float normalizedY{ static_cast<float>(mouseY) / m_height };
+
+	const int rank{ static_cast<int>(8.0f - 8.0f * normalizedY) };
+	const int file{ static_cast<int>(8 * normalizedX) };
+
+	playerMove(rank, file);
+}
+

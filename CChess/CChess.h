@@ -37,6 +37,10 @@ extern "C" {
 	//TODO: maybe find a better way? with my gui this will have 3 allocations and 2 copies of the data
 	CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT;
 
+	void engine_set_search_milliseconds(int milliseconds) CCHESS_NOEXCEPT;
+
+	int engine_get_search_milliseconds() CCHESS_NOEXCEPT;
+
 
 
 	/* SEARCH */

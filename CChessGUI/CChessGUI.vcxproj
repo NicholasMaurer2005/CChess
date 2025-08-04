@@ -211,6 +211,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CChessGUI.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PieceSprite.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -274,6 +275,7 @@
   <ItemGroup>
     <ClInclude Include="boardFragment.hpp" />
     <ClInclude Include="boardVertex.hpp" />
+    <ClInclude Include="CChessGUI.h" />
     <ClInclude Include="pieceFragment.hpp" />
     <ClInclude Include="PieceSprite.h" />
     <ClInclude Include="pieceVertex.hpp" />

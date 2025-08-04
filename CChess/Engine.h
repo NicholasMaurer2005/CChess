@@ -10,6 +10,11 @@
 #include "KillerMoveHistory.h"
 
 
+struct SearchInfo
+{
+	int searchDepth;
+	int evaluation;
+};
 
 class Engine
 {
@@ -23,13 +28,6 @@ private:
 		int score;
 	};
 
-	struct EngineInfo
-	{
-		Move lastMove;
-		int searchDepth;
-		int evaluation;
-	};
-
 
 
 //private properties
@@ -39,8 +37,9 @@ private:
 	MoveGen m_moveGen; //TODO: maybe make static?
 	State m_state;
 	bool m_whiteToMove;
-	EngineInfo m_info;
+	SearchInfo m_info;
 	MoveList m_legalMoves;
+	Move m_lastMove;
 
 	//search
 	bool m_gameOver;
@@ -56,11 +55,11 @@ private:
 	//private methods
 	std::uint64_t perftRun(int depth, bool white) noexcept;
 
-	void findWhiteSquares(State& state) noexcept;
+	void findWhiteSquares(State& state) const noexcept;
 
-	void findBlackSquares(State& state) noexcept;
+	void findBlackSquares(State& state) const noexcept;
 
-	bool makeLegalMove(State& state, bool white, Move move) noexcept;
+	bool makeLegalMove(State& state, bool white, Move move) const noexcept;
 
 	int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
 
@@ -84,11 +83,15 @@ public:
 
 	Move search() noexcept;
 
-	void setStartState() noexcept;
-
 	std::string getCharPosition() const noexcept;
 
 	int searchMilliseconds() const noexcept;
+
+	bool gameOver() const noexcept;
+
+	Move getLastMove() const noexcept;
+
+	const SearchInfo& searchInfo() const noexcept;
 
 
 
@@ -98,6 +101,12 @@ public:
 	bool makeMove(int source, int destination) noexcept;
 
 	void setSearchMilliseconds(int milliseconds) noexcept;
+
+	void setStartState() noexcept;
+
+	void engineMove(bool white) noexcept;
+
+	void engineMove() noexcept;
 
 
 	

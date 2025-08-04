@@ -131,7 +131,7 @@ static Move getCastleMove(int sourceSquare, int destinationSquare)
 //constructor
 Engine::Engine() noexcept
 //engine
-	: m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(),
+	: m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(), m_lastMove(),
 
 	//search
 	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds)
@@ -172,7 +172,7 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	return perftCount;
 }
 
-void Engine::findWhiteSquares(State& state) noexcept //TODO: maybe move to MoveGen?
+void Engine::findWhiteSquares(State& state) const noexcept //TODO: maybe move to MoveGen?
 {
 	std::uint64_t squares{};
 
@@ -219,7 +219,7 @@ void Engine::findWhiteSquares(State& state) noexcept //TODO: maybe move to MoveG
 	state.setWhiteSquares(squares & ~state.whiteOccupancy().board());
 }
 
-void Engine::findBlackSquares(State& state) noexcept
+void Engine::findBlackSquares(State& state) const noexcept
 {
 	std::uint64_t squares{};
 
@@ -266,7 +266,7 @@ void Engine::findBlackSquares(State& state) noexcept
 	state.setBlackSquares(squares & ~state.blackOccupancy().board());
 }
 
-bool Engine::makeLegalMove(State& state, bool white, Move move) noexcept
+bool Engine::makeLegalMove(State& state, bool white, Move move) const noexcept
 {
 	state.makeMove(white, move);
 
@@ -462,18 +462,23 @@ Move Engine::search(bool white) noexcept
 		m_killerMoves.setPlyDepth(i);
 
 		const ScoredMove scoredMove{ searchStart(white, i) };
+		bool noLegalMoves{ scoredMove.move.move() == 0 };
 
-		if (m_stopSearch || scoredMove.move.move() == 0)
+		if (m_stopSearch || noLegalMoves)
 		{
+			if (noLegalMoves)
+			{
+				m_gameOver == true;
+			}
+
 			return bestMove.move;
 		}
 		else
 		{
 			bestMove = scoredMove;
 
-			m_info.lastMove = scoredMove.move;
 			m_info.searchDepth = i;
-			m_info.evaluation = scoredMove.score;
+			m_info.evaluation = white ? scoredMove.score : -scoredMove.score;
 			//std::cout << std::format("{}: {}\n", scoredMove.move.string(), scoredMove.score);
 		}
 	}
@@ -513,6 +518,38 @@ int Engine::searchMilliseconds() const noexcept
 	return m_searchMilliseconds;
 }
 
+bool Engine::gameOver() const noexcept
+{
+	if (m_gameOver)
+	{
+		return true;
+	}
+	else
+	{
+		for (Move move : m_legalMoves)
+		{
+			State stateCopy{ m_state };
+
+			if (makeLegalMove(stateCopy, m_whiteToMove, move))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+Move Engine::getLastMove() const noexcept
+{
+	return m_lastMove;
+}
+
+const SearchInfo& Engine::searchInfo() const noexcept
+{
+	return m_info;
+}
+
 
 
 //setters
@@ -538,9 +575,12 @@ bool Engine::makeMove(int source, int destination) noexcept
 
 	if (it != m_legalMoves.end() && makeLegalMove(stateCopy, m_whiteToMove, *it))
 	{
+		const Move move{ *it };
+
 		m_state = stateCopy;
 		m_whiteToMove = !m_whiteToMove;
 		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
+		m_lastMove = move;
 		
 		return true;
 	}
@@ -554,6 +594,25 @@ void Engine::setSearchMilliseconds(int milliseconds) noexcept
 {
 	m_searchMilliseconds = milliseconds;
 }
+
+void Engine::engineMove(bool white) noexcept
+{
+	const Move bestMove{ search(white) };
+
+	if (bestMove.move() != 0)
+	{
+		m_state.makeMove(white, bestMove);
+		m_whiteToMove = !m_whiteToMove;
+		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
+		m_lastMove = bestMove;
+	}
+}
+
+void Engine::engineMove() noexcept
+{
+	engineMove(m_whiteToMove);
+}
+
 
 
 //perft

@@ -2,13 +2,9 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <cstdint>
-#include <cstddef>
-#include <array>
-#include <vector>
 #include <string_view>
 
-#include "PieceSprite.h"
+
 
 class Window
 {
@@ -20,6 +16,7 @@ private:
 	GLFWwindow* m_window;
 	int m_width;
 	int m_height;
+	bool m_flipped;
 
 	//board
 	GLuint m_boardShader;
@@ -28,55 +25,80 @@ private:
 	GLuint m_boardVAO;
 
 	//pieces
-	GLuint m_pieceShader;
-	GLuint m_pieceBuffer;
-	GLuint m_pieceTexture;
-	GLuint m_pieceVAO;
-	GLuint m_pieceEBO;
-	GLsizei m_pieceBufferCount;
-	int m_maxPieceBufferSize;
-
-	//player move
-	int m_sourceSquare;
-	bool m_hasSource;
+	GLuint m_piecesShader;
+	GLuint m_piecesTexture;
+	GLuint m_piecesBuffer;
+	GLuint m_piecesVAO;
+	GLuint m_piecesEBO;
+	GLsizei m_piecesBufferCount;
+	int m_maxPiecesBufferSize;
 	
 
 
 //private methods
 private:
 
+	//init GLFW
 	void initGLFW() noexcept;
 
+
+
+	//init board
 	void initBoardShader() noexcept;
 
 	void initBoardBuffer() noexcept;
 
 	void initBoardTexture() noexcept;
 
+
+
+	//init pieces
 	void initPieceShader() noexcept;
 
 	void initPieceBuffer() noexcept;
 
 	void initPieceTexture() noexcept;
-	
-	void playerMove(int rank, int file) noexcept;
 
-	void drawBoard() noexcept;
 
 
 //public methods
 public:
 
+	//constructors
 	Window(int width, int height) noexcept;
 
 	~Window() noexcept;
 
+
+
+	//window
 	bool open() noexcept;
 
 	void draw() noexcept;
 
-	void buffer(std::string_view board) noexcept;
+	void resize(int width, int height) noexcept;
 
-	void handleClick(double mouseX, double mouseY) noexcept;
+
+
+	//getters
+	int width() const noexcept;
+
+	int height() const noexcept;
+
+
+
+	//setters
+	void setWindowUser(void* user) noexcept;
+
+	void setMouseButtonCallback(GLFWmousebuttonfun callback) noexcept;
+
+	void setWindowSizeCallback(GLFWwindowsizefun callback) noexcept;
+
+
+
+	//buffer
+	void bufferBoard(bool flipped) const noexcept;
+
+	void bufferPieces(std::string_view board) noexcept;
 };
 

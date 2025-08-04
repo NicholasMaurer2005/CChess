@@ -26,8 +26,13 @@ static int pieceEvaluation(const State& state) noexcept
 	return evaluation;
 }
 
+static int spaceEvaluation(const State& state)
+{
+	return static_cast<int>(state.whiteSquares().bitCount() - state.blackSquares().bitCount());
+}
+
 int evaluate(const State& state) noexcept
 {
-	return pieceEvaluation(state);
+	return pieceEvaluation(state) + spaceEvaluation(state);
 }
 

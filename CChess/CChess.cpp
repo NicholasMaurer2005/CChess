@@ -20,12 +20,14 @@ int engine_create() CCHESS_NOEXCEPT
 	else
 	{
 		engine = new Engine();
+		return 1;
 	}
 }
 
 void engine_destroy() CCHESS_NOEXCEPT
 {
 	delete engine;
+	engine = nullptr;
 }
 
 void engine_position_start() CCHESS_NOEXCEPT
@@ -87,6 +89,11 @@ void engine_search(int* source, int* destination) CCHESS_NOEXCEPT
 	*destination = bestMove.destinationIndex();
 }
 
+void engine_search_and_move() CCHESS_NOEXCEPT
+{
+	engine->engineMove();
+}
+
 void engine_search_color(int white, int* source, int* destination) CCHESS_NOEXCEPT
 {
 	const Move bestMove{ engine->search(static_cast<bool>(white)) };
@@ -95,7 +102,27 @@ void engine_search_color(int white, int* source, int* destination) CCHESS_NOEXCE
 	*destination = bestMove.destinationIndex();
 }
 
+void engine_search_color_and_move(int white) CCHESS_NOEXCEPT
+{
+	engine->engineMove(white);
+}
+
 int engine_move(int source, int destination) CCHESS_NOEXCEPT
 {
 	return engine->makeMove(source, destination);
+}
+
+void engine_get_last_move(int* source, int* destination) CCHESS_NOEXCEPT
+{
+	const Move lastMove{ engine->getLastMove() };
+	*source = lastMove.sourceIndex();
+	*destination = lastMove.destinationIndex();
+}
+
+void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT
+{
+	const SearchInfo& info{ engine->searchInfo() };
+
+	*depth = info.searchDepth;
+	*evaluation = info.evaluation;
 }

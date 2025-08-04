@@ -49,11 +49,19 @@ extern "C" {
 	//engine is not responsible for freeing the memory of "source" and "destination"
 	void engine_search(int* source, int* destination) CCHESS_NOEXCEPT;
 
+	//search for the best move for the side to play and make that move
+	void engine_search_and_move() CCHESS_NOEXCEPT;
+
 	//search for the best move for side "white" and write to "source" and "destination". if "white" 
 	//is 1 it will search for white, if "white" is 0 it will search for black. the engine is 
 	//not responsible for freeing the memory of "source" and "destination"
 	void engine_search_color(int white, int* source, int* destination) CCHESS_NOEXCEPT;
 
+	//search for the best move for side "white" and make that move. if "white" 
+	//is 1 it will search for white, if "white" is 0 it will search for black.
+	void engine_search_color_and_move(int white) CCHESS_NOEXCEPT;
+
+	void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT;
 
 
 	/* MOVE */
@@ -61,6 +69,8 @@ extern "C" {
 	//make move. if move is legal it will make the move and return 1. if the move is not legal it
 	//will do nothing and return 0
 	int engine_move(int source, int destination) CCHESS_NOEXCEPT;
+
+	void engine_get_last_move(int* source, int* destination) CCHESS_NOEXCEPT;
 
 
 #ifdef __cplusplus

@@ -1,23 +1,26 @@
 #include "Window.h"
 
+#include "PieceSprite.h"
 #include "boardVertex.hpp"
 #include "boardFragment.hpp"
 #include "pieceVertex.hpp"
 #include "pieceFragment.hpp"
 
-#include <iostream>
-#include <array>
-#include <chrono>
-#include <format>
-#include <string>
-#include <CChess.h>
-#include <memory>
-#include <filesystem>
 
+#include <cstdint>
+#include <array>
+#include <cstddef>
+#include <iostream>
+#include <chrono>
+#include <string>
+#include <format>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+
+
+//TODO: maybe move to own header file?
 struct alignas(4) Pixel
 {
 	std::uint8_t r, g, b, a;
@@ -25,19 +28,29 @@ struct alignas(4) Pixel
 
 
 
-//static helpers
-static consteval std::array<Pixel, 64> generateBoardTexture()
+//constants
+constexpr int boardSize{ 64 };
+constexpr int rankSize{ 8 };
+constexpr int fileSize{ 8 };
+constexpr int charToPieceTableSize{ 256 };
+constexpr int pieceIndexBufferSize{ 192 };
+constexpr int maxPieceCount{ 32 };
+
+
+/* Static Helpers */
+
+static consteval std::array<Pixel, boardSize> generateBoardTexture()
 {
-	std::array<Pixel, 64> board{};
+	std::array<Pixel, boardSize> board{};
 
 	constexpr Pixel lightSquare{ 235, 236, 207, 255 };
 	constexpr Pixel darkSquare{ 120, 149, 78, 255 };
 
-	for (std::size_t rank{}; rank < 8; ++rank)
+	for (std::size_t rank{}; rank < rankSize; ++rank)
 	{
-		for (std::size_t file{}; file < 8; ++file)
+		for (std::size_t file{}; file < fileSize; ++file)
 		{
-			const std::size_t index{ rank * 8 + file };
+			const std::size_t index{ rank * fileSize + file };
 			const std::size_t square{ rank + file };
 
 			if (square % 2)
@@ -54,9 +67,9 @@ static consteval std::array<Pixel, 64> generateBoardTexture()
 	return board;
 }
 
-static consteval std::array<Piece, 256> generateCharToPiece()
+static consteval std::array<Piece, charToPieceTableSize> generateCharToPiece()
 {
-	std::array<Piece, 256> array{};
+	std::array<Piece, charToPieceTableSize> array{};
 	array.fill(Piece::NoPiece);
 
 	array['P'] = Piece::WhitePawn;
@@ -75,12 +88,12 @@ static consteval std::array<Piece, 256> generateCharToPiece()
 	return array;
 }
 
-static consteval std::array<GLuint, 192> generatePieceIndexBuffer()
+static consteval std::array<GLuint, pieceIndexBufferSize> generatePieceIndexBuffer()
 {
-	std::array<GLuint, 192> array{};
+	std::array<GLuint, pieceIndexBufferSize> array{};
 	std::size_t back{};
 
-	for (GLuint i{}; i < 32; ++i)
+	for (GLuint i{}; i < maxPieceCount; ++i)
 	{
 		const GLuint base{ i * 4 };
 
@@ -150,24 +163,24 @@ static GLuint generateShaderProgram(std::string_view vertexSource, std::string_v
 	return shader;
 }
 
-static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+static std::array<Pixel, boardSize> boardTextureMove(int source, int destination) noexcept
 {
-	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
-	{
-		double mouseX{};
-		double mouseY{};
+	static constexpr std::array<Pixel, boardSize> defaultBoard{ generateBoardTexture() };
+	static constexpr Pixel moveColor{ 31, 102, 255, 255 };
 
-		glfwGetCursorPos(window, &mouseX, &mouseY);
+	std::array<Pixel, boardSize> board{ defaultBoard };
+	board[source] = moveColor;
+	board[destination] = moveColor;
 
-		Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
-		user->handleClick(mouseX, mouseY);
-	}
-
+	return board;
 }
 
 
 
-//private methods
+
+/* Private Methods */
+
+//init GLFW
 void Window::initGLFW() noexcept
 {
 	//initialize glfw
@@ -193,11 +206,11 @@ void Window::initGLFW() noexcept
 		std::cerr << "failed to initialize glew" << std::endl;
 		glfwTerminate();
 	}
-
-	glfwSetWindowUserPointer(m_window, this);
-	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
 }
 
+
+
+//init board
 void Window::initBoardShader() noexcept
 {
 	m_boardShader = generateShaderProgram(ctl::boardVertex, ctl::boardFragment);
@@ -237,26 +250,29 @@ void Window::initBoardTexture() noexcept
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
+
+
+//init pieces
 void Window::initPieceShader() noexcept
 {
-	m_pieceShader = generateShaderProgram(ctl::pieceVertex, ctl::pieceFragment);
+	m_piecesShader = generateShaderProgram(ctl::pieceVertex, ctl::pieceFragment);
 }
 
 void Window::initPieceBuffer() noexcept
 {
-	glGenBuffers(1, &m_pieceBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_pieceBuffer);
+	glGenBuffers(1, &m_piecesBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_piecesBuffer);
 
-	glGenVertexArrays(1, &m_pieceVAO);
-	glBindVertexArray(m_pieceVAO);
+	glGenVertexArrays(1, &m_piecesVAO);
+	glBindVertexArray(m_piecesVAO);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	glGenBuffers(1, &m_pieceEBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pieceEBO);
+	glGenBuffers(1, &m_piecesEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_piecesEBO);
 }
 
 void Window::initPieceTexture() noexcept
@@ -269,8 +285,8 @@ void Window::initPieceTexture() noexcept
 
 	const GLint format{ channels == 4 ? GL_RGBA : GL_RGB };
 
-	glGenTextures(1, &m_pieceTexture);
-	glBindTexture(GL_TEXTURE_2D, m_pieceTexture);
+	glGenTextures(1, &m_piecesTexture);
+	glBindTexture(GL_TEXTURE_2D, m_piecesTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
@@ -278,62 +294,19 @@ void Window::initPieceTexture() noexcept
 	stbi_image_free(data);
 }
 
-void Window::playerMove(int rank, int file) noexcept
-{
-	const int square{ rank * 8 + file };
-
-	if (m_hasSource)
-	{
-		if (engine_move(m_sourceSquare, square))
-		{
-			//TODO: find a better way this works for now
-			drawBoard();
-			draw();
-
-			int engineSource{};
-			int engineDestination{};
-
-			engine_search(&engineSource, &engineDestination);
-			engine_move(engineSource, engineDestination);
-
-			drawBoard();
-		}
-		else
-		{
-			std::cout << "not a legal move\n";
-		}
-
-		m_hasSource = false;
-		
-	}
-	else
-	{
-		m_sourceSquare = square;
-		m_hasSource = true;
-	}
-}
-
-void Window::drawBoard() noexcept
-{
-	std::unique_ptr<const char> position{ engine_get_char_position() };
-	buffer(position.get());
-}
 
 
 
-//public methods
+/* Public Methods */
+
+//constructors
 Window::Window(int width, int height) noexcept
-//window
-	: m_window(), m_width(width), m_height(height),
-
+	//window
+	: m_window(), m_width(width), m_height(height), m_flipped(),
 	//board
 	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(),
-
 	//pieces
-	m_pieceShader(), m_pieceBuffer(), m_pieceTexture(), m_pieceVAO(), m_pieceEBO(), m_pieceBufferCount(), m_maxPieceBufferSize(),
-
-	//move
-	m_sourceSquare(), m_hasSource()
+	m_piecesShader(), m_piecesBuffer(), m_piecesTexture(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize()
 {
 	initGLFW();
 
@@ -347,17 +320,40 @@ Window::Window(int width, int height) noexcept
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	engine_set_search_milliseconds(500);
+
+	if (!m_flipped)
+	{
+		engine_search_and_move();
+		drawPieces();
+		updateBoardTexture();
+	}
 }
 
 Window::~Window() noexcept
 {
+	//board cleanup
 	glDeleteProgram(m_boardShader);
-	glDeleteBuffers(1, &m_boardBuffer);
 	glDeleteTextures(1, &m_boardTexture);
+	glDeleteBuffers(1, &m_boardBuffer);
+	glDeleteVertexArrays(1, &m_boardVAO);
 
+	//pieces cleanup
+	glDeleteProgram(m_piecesShader);
+	glDeleteTextures(1, &m_piecesTexture);
+	glDeleteBuffers(1, &m_piecesBuffer);
+	glDeleteVertexArrays(1, &m_piecesVAO);
+	glDeleteBuffers(1, &m_piecesEBO);
+
+	//GLFW cleanup
+	glfwDestroyWindow(m_window);
 	glfwTerminate();
 }
 
+
+
+//window
 bool Window::open() noexcept
 {
 	return !glfwWindowShouldClose(m_window);
@@ -382,64 +378,98 @@ void Window::draw() noexcept
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//draw pieces
-	glUseProgram(m_pieceShader);
-	glBindTexture(GL_TEXTURE_2D, m_pieceTexture);
-	glBindVertexArray(m_pieceVAO);
-	glDrawElements(GL_TRIANGLES, 6 * m_pieceBufferCount, GL_UNSIGNED_INT, 0);
+	glUseProgram(m_piecesShader);
+	glBindTexture(GL_TEXTURE_2D, m_piecesTexture);
+	glBindVertexArray(m_piecesVAO);
+	glDrawElements(GL_TRIANGLES, 6 * m_piecesBufferCount, GL_UNSIGNED_INT, 0);
 
 	glfwSwapBuffers(m_window);
-
 	glfwPollEvents();
 }
 
-void Window::buffer(std::string_view board) noexcept
+void Window::resize(int width, int height) noexcept
 {
-	//TODO: remove magic numbers
-	static constexpr std::array<Piece, 256> charToPiece{ generateCharToPiece() };
-	static constexpr std::array<GLuint, 192> indexBuffer{ generatePieceIndexBuffer() };
+	m_width = width;
+	m_height = height;
+
+	glViewport(0, 0, width, height);
+}
+
+
+
+//getters
+int Window::width() const noexcept
+{
+	return m_width;
+}
+
+int Window::height() const noexcept
+{
+	return m_height;
+}
+
+
+
+//setters
+void Window::setWindowUser(void* user) noexcept
+{
+	glfwSetWindowUserPointer(m_window, user);
+}
+
+void  Window::setMouseButtonCallback(GLFWmousebuttonfun callback) noexcept
+{
+	glfwSetMouseButtonCallback(m_window, callback);
+}
+
+void  Window::setWindowSizeCallback(GLFWwindowsizefun callback) noexcept
+{
+	glfwSetWindowSizeCallback(m_window, callback);
+}
+
+
+
+//buffer
+void Window::bufferBoard(bool flipped) const noexcept
+{
+	//TODO: impliment
+}
+
+void Window::bufferPieces(std::string_view board) noexcept
+{
+	static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCharToPiece() };
+	static constexpr std::array<GLuint, pieceIndexBufferSize> indexBuffer{ generatePieceIndexBuffer() };
 
 	std::vector<PieceSprite> boardData;
-	boardData.reserve(32);
+	boardData.reserve(maxPieceCount);
 
-	for (int rank{}; rank < 8; ++rank)
+	for (int rank{}; rank < rankSize; ++rank)
 	{
-		for (int file{}; file < 8; ++file)
+		for (int file{}; file < fileSize; ++file)
 		{
-			const Piece piece{ charToPiece[board[rank * 8 + file]] };
+			const Piece piece{ charToPiece[board[rank * fileSize + file]] };
 
 			if (piece != Piece::NoPiece)
 			{
-				boardData.emplace_back(rank, file, piece);
+				boardData.emplace_back(m_flipped ? 7 - rank : rank, m_flipped ? 7 - file : file, piece);
 			}
 		}
 	}
 
-	m_pieceBufferCount = boardData.size();
+	m_piecesBufferCount = boardData.size();
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_pieceBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_pieceEBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_piecesBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_piecesEBO);
 
-	if (boardData.size() <= m_maxPieceBufferSize)
+	//TODO: remove magic numbers
+	if (boardData.size() <= m_maxPiecesBufferSize)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, 0, boardData.size() * sizeof(PieceSprite), boardData.data());
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, boardData.size() * 6 * sizeof(GLuint), indexBuffer.data());
 	}
 	else
 	{
-		m_maxPieceBufferSize = boardData.size();
+		m_maxPiecesBufferSize = boardData.size();
 		glBufferData(GL_ARRAY_BUFFER, boardData.size() * sizeof(PieceSprite), boardData.data(), GL_STATIC_DRAW);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, boardData.size() * 6 * sizeof(GLuint), indexBuffer.data(), GL_STATIC_DRAW);
 	}
 }
-
-void Window::handleClick(double mouseX, double mouseY) noexcept
-{
-	const float normalizedX{ static_cast<float>(mouseX) / m_width };
-	const float normalizedY{ static_cast<float>(mouseY) / m_height };
-
-	const int rank{ static_cast<int>(8.0f - 8.0f * normalizedY) };
-	const int file{ static_cast<int>(8 * normalizedX) };
-
-	playerMove(rank, file);
-}
-

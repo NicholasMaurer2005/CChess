@@ -5,10 +5,11 @@
 #include "boardFragment.hpp"
 #include "pieceVertex.hpp"
 #include "pieceFragment.hpp"
+#include "dragVertex.hpp"
+#include "dragFragment.hpp"
 
 
 #include <cstdint>
-#include <array>
 #include <cstddef>
 #include <iostream>
 #include <chrono>
@@ -29,7 +30,6 @@ struct alignas(4) Pixel
 
 
 //constants
-constexpr int boardSize{ 64 };
 constexpr int rankSize{ 8 };
 constexpr int fileSize{ 8 };
 constexpr int charToPieceTableSize{ 256 };
@@ -37,9 +37,11 @@ constexpr int pieceIndexBufferSize{ 192 };
 constexpr int maxPieceCount{ 32 };
 
 
+
 /* Static Helpers */
 
-static consteval std::array<Pixel, boardSize> generateBoardTexture()
+template<bool white>
+static constexpr std::array<Pixel, boardSize> generateBoardTexture()
 {
 	std::array<Pixel, boardSize> board{};
 
@@ -55,11 +57,11 @@ static consteval std::array<Pixel, boardSize> generateBoardTexture()
 
 			if (square % 2)
 			{
-				board[index] = lightSquare;
+				board[index] = white ? lightSquare : darkSquare;
 			}
 			else
 			{
-				board[index] = darkSquare;
+				board[index] = white ? darkSquare : lightSquare;
 			}
 		}
 	}
@@ -163,18 +165,30 @@ static GLuint generateShaderProgram(std::string_view vertexSource, std::string_v
 	return shader;
 }
 
-static std::array<Pixel, boardSize> boardTextureMove(int source, int destination) noexcept
+static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
 {
-	static constexpr std::array<Pixel, boardSize> defaultBoard{ generateBoardTexture() };
-	static constexpr Pixel moveColor{ 31, 102, 255, 255 };
+	Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
-	std::array<Pixel, boardSize> board{ defaultBoard };
-	board[source] = moveColor;
-	board[destination] = moveColor;
-
-	return board;
+	if (button == GLFW_MOUSE_BUTTON_1)
+	{
+		if (action == GLFW_PRESS)
+		{
+			user->startDragging();
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			user->stopDragging();
+		}
+	}
 }
 
+static void windowSizeCallback(GLFWwindow* window, int width, int height) noexcept
+{
+	Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
+
+	user->setWidth(width);
+	user->setHeight(height);
+}
 
 
 
@@ -206,6 +220,9 @@ void Window::initGLFW() noexcept
 		std::cerr << "failed to initialize glew" << std::endl;
 		glfwTerminate();
 	}
+
+	glfwSetWindowUserPointer(m_window, this);
+	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
 }
 
 
@@ -241,7 +258,7 @@ void Window::initBoardBuffer() noexcept
 
 void Window::initBoardTexture() noexcept
 {
-	static constexpr std::array <Pixel, 64> boardTexture{ generateBoardTexture() };
+	static constexpr std::array <Pixel, boardSize> boardTexture{ generateBoardTexture<true>() };
 
 	glGenTextures(1, &m_boardTexture);
 	glBindTexture(GL_TEXTURE_2D, m_boardTexture);
@@ -296,17 +313,38 @@ void Window::initPieceTexture() noexcept
 
 
 
+//init drag
+void Window::initDragShader() noexcept
+{
+	m_dragShader = generateShaderProgram(ctl::dragVertex, ctl::dragFragment);
+	m_uDragX = glGetUniformLocation(m_dragShader, "dragX");
+	m_uDragY = glGetUniformLocation(m_dragShader, "dragY");
+}
+
+void Window::initDragBuffer() noexcept
+{
+
+}
+
+void Window::initDragTexture() noexcept
+{
+
+}
+
+
 
 /* Public Methods */
 
 //constructors
 Window::Window(int width, int height) noexcept
 	//window
-	: m_window(), m_width(width), m_height(height), m_flipped(),
+	: m_window(), m_width(width), m_height(height), m_position(),
 	//board
 	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(),
 	//pieces
-	m_piecesShader(), m_piecesBuffer(), m_piecesTexture(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize()
+	m_piecesShader(), m_piecesBuffer(), m_piecesTexture(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize(),
+	//move
+	m_moveCallback(), m_dragShader(), m_dragTexture(), m_dragBuffer(), m_dragVAO(), m_dragging(), m_uDragX(), m_uDragY()
 {
 	initGLFW();
 
@@ -320,15 +358,6 @@ Window::Window(int width, int height) noexcept
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	engine_set_search_milliseconds(500);
-
-	if (!m_flipped)
-	{
-		engine_search_and_move();
-		drawPieces();
-		updateBoardTexture();
-	}
 }
 
 Window::~Window() noexcept
@@ -383,6 +412,25 @@ void Window::draw() noexcept
 	glBindVertexArray(m_piecesVAO);
 	glDrawElements(GL_TRIANGLES, 6 * m_piecesBufferCount, GL_UNSIGNED_INT, 0);
 
+	//pice dragging
+	if (m_dragging)
+	{
+		double x{};
+		double y{};
+		glfwGetCursorPos(m_window, &x, &y);
+
+		const float normalizedX{ 2.0f * static_cast<float>(x) / m_width - 1.0f };
+		const float normalizedY{ 2.0f * static_cast<float>(y) / m_height - 1.0f };
+
+		glUniform1f(m_uDragX, normalizedX);
+		glUniform1f(m_uDragY, normalizedY);
+
+		glUseProgram(m_dragShader);
+		glBindTexture(GL_TEXTURE_2D, m_dragTexture);
+		glBindVertexArray(m_dragVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
 	glfwSwapBuffers(m_window);
 	glfwPollEvents();
 }
@@ -393,6 +441,16 @@ void Window::resize(int width, int height) noexcept
 	m_height = height;
 
 	glViewport(0, 0, width, height);
+}
+
+void Window::startDragging() noexcept
+{
+	m_dragging = true;
+}
+
+void Window::stopDragging() noexcept
+{
+	m_dragging = false;
 }
 
 
@@ -416,25 +474,66 @@ void Window::setWindowUser(void* user) noexcept
 	glfwSetWindowUserPointer(m_window, user);
 }
 
-void  Window::setMouseButtonCallback(GLFWmousebuttonfun callback) noexcept
+void Window::setMoveCallback(MoveCallback callback) noexcept
 {
-	glfwSetMouseButtonCallback(m_window, callback);
+	m_moveCallback = callback;
 }
 
-void  Window::setWindowSizeCallback(GLFWwindowsizefun callback) noexcept
+void Window::setWidth(int width) noexcept
 {
-	glfwSetWindowSizeCallback(m_window, callback);
+	m_width = width;
+}
+
+void Window::setHeight(int height) noexcept
+{
+	m_height = height;
 }
 
 
 
 //buffer
-void Window::bufferBoard(bool flipped) const noexcept
+void Window::bufferBoard(bool flipped, int source, int destination) const noexcept
 {
-	//TODO: impliment
+	static constexpr Pixel lightMoveColor{ 245, 245, 104, 255 };
+	static constexpr Pixel darkMoveColor{ 187, 202, 39, 255 };
+
+	static std::array<Pixel, boardSize> whiteBoard{ generateBoardTexture<true>() };
+	static std::array<Pixel, boardSize> blackBoard{ generateBoardTexture<false>() };
+
+	const bool sourceLight{ (source / rankSize + source % fileSize) % 2 == 0 };
+	const bool destinationLight{ (destination / rankSize + destination % fileSize) % 2 == 0 };
+
+	if (flipped)
+	{
+		const Pixel originalSourceColor{ blackBoard[source] };
+		const Pixel originalDestinationColor{ blackBoard[destination] };
+
+		blackBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
+		blackBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
+
+		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, blackBoard.data());
+
+		blackBoard[source] = originalSourceColor;
+		blackBoard[destination] = originalDestinationColor;
+	}
+	else
+	{ 
+		const Pixel originalSourceColor{ whiteBoard[source] };
+		const Pixel originalDestinationColor{ whiteBoard[destination] };
+
+		whiteBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
+		whiteBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
+
+		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, whiteBoard.data());
+
+		whiteBoard[source] = originalSourceColor;
+		whiteBoard[destination] = originalDestinationColor;
+	}
 }
 
-void Window::bufferPieces(std::string_view board) noexcept
+void Window::bufferPieces(bool flipped, std::string_view board) noexcept
 {
 	static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCharToPiece() };
 	static constexpr std::array<GLuint, pieceIndexBufferSize> indexBuffer{ generatePieceIndexBuffer() };
@@ -450,7 +549,7 @@ void Window::bufferPieces(std::string_view board) noexcept
 
 			if (piece != Piece::NoPiece)
 			{
-				boardData.emplace_back(m_flipped ? 7 - rank : rank, m_flipped ? 7 - file : file, piece);
+				boardData.emplace_back(flipped ? 7 - rank : rank, flipped ? 7 - file : file, piece);
 			}
 		}
 	}

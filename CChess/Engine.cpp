@@ -468,7 +468,7 @@ Move Engine::search(bool white) noexcept
 		{
 			if (noLegalMoves)
 			{
-				m_gameOver == true;
+				m_gameOver = true;
 			}
 
 			return bestMove.move;

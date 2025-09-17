@@ -276,6 +276,8 @@
     <ClInclude Include="boardFragment.hpp" />
     <ClInclude Include="boardVertex.hpp" />
     <ClInclude Include="CChessGUI.h" />
+    <ClInclude Include="dragFragment.hpp" />
+    <ClInclude Include="dragVertex.hpp" />
     <ClInclude Include="pieceFragment.hpp" />
     <ClInclude Include="PieceSprite.h" />
     <ClInclude Include="pieceVertex.hpp" />
@@ -323,6 +325,50 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="dragFragment.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="dragVertex.glsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)CTimeLoader\CTimeLoader.exe $(ProjectDir)%(Identity) $(ProjectDir)%(Filename).hpp</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Ship|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Ship|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)%(Filename).hpp;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

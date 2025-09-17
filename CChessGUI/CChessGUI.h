@@ -10,11 +10,13 @@ class CChessGUI
 private:
 
 	Window m_window;
-
+	bool m_newPosition;
 
 
 //private methods
 private:
+
+	void play() noexcept;
 
 
 

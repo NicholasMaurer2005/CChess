@@ -3,6 +3,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <string_view>
+#include <array>
+
+
+//constants
+constexpr int boardSize{ 64 };
+
+using MoveCallback = void(*)(int source, int destination) noexcept;
 
 
 
@@ -16,7 +23,7 @@ private:
 	GLFWwindow* m_window;
 	int m_width;
 	int m_height;
-	bool m_flipped;
+	std::array<char, boardSize> m_position;
 
 	//board
 	GLuint m_boardShader;
@@ -30,9 +37,21 @@ private:
 	GLuint m_piecesBuffer;
 	GLuint m_piecesVAO;
 	GLuint m_piecesEBO;
+
 	GLsizei m_piecesBufferCount;
 	int m_maxPiecesBufferSize;
 	
+	//move
+	MoveCallback m_moveCallback;
+	GLuint m_dragShader;
+	GLuint m_dragTexture;
+	GLuint m_dragBuffer;
+	GLuint m_dragVAO;
+
+	bool m_dragging;
+	GLuint m_uDragX;
+	GLuint m_uDragY;
+
 
 
 //private methods
@@ -61,8 +80,19 @@ private:
 
 
 
+	//init drag
+	void initDragShader() noexcept;
+
+	void initDragBuffer() noexcept;
+
+	void initDragTexture() noexcept;
+
+
+
 //public methods
 public:
+
+
 
 	//constructors
 	Window(int width, int height) noexcept;
@@ -78,6 +108,10 @@ public:
 
 	void resize(int width, int height) noexcept;
 
+	void startDragging() noexcept;
+
+	void stopDragging() noexcept;
+
 
 
 	//getters
@@ -90,15 +124,17 @@ public:
 	//setters
 	void setWindowUser(void* user) noexcept;
 
-	void setMouseButtonCallback(GLFWmousebuttonfun callback) noexcept;
+	void setMoveCallback(MoveCallback callback) noexcept;
 
-	void setWindowSizeCallback(GLFWwindowsizefun callback) noexcept;
+	void setWidth(int width) noexcept;
+
+	void setHeight(int height) noexcept;
 
 
 
 	//buffer
-	void bufferBoard(bool flipped) const noexcept;
+	void bufferBoard(bool flipped, int source, int destination) const noexcept;
 
-	void bufferPieces(std::string_view board) noexcept;
+	void bufferPieces(bool flipped, std::string_view board) noexcept;
 };
 

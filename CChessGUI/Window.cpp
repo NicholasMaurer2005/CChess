@@ -323,7 +323,29 @@ void Window::initDragShader() noexcept
 
 void Window::initDragBuffer() noexcept
 {
+	static constexpr float dragBufferData[]{
+		-0.125f, -0.125f, 0.0f, 0.0f,
+		0.125f, -0.125f, 0.125f, 0.0f,
+		-0.125f, 0.125f, 0.0f, 0.125f,
+		0.125f, -0.125f, 0.125f, 0.0f,
+		0.125f, 0.125f, 0.125f, 0.125f,
+		-0.125f, 0.125f, 0.0f, 0.125f
+	};
 
+	glGenBuffers(1, &m_dragBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(dragBufferData), &dragBufferData, GL_STATIC_DRAW);
+
+	/*glGenBuffers(1, &m_boardBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_boardBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(boardBufferData), &boardBufferData, GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &m_boardVAO);
+	glBindVertexArray(m_boardVAO);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);*/
 }
 
 void Window::initDragTexture() noexcept

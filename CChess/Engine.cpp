@@ -431,6 +431,33 @@ Engine::ScoredMove Engine::searchStart(bool white, int depth) noexcept
 	return { bestMove, bestScore };
 }
 
+void Engine::benchmarkRun(const State& state, std::uint64_t& nodes, std::atomic_bool& stopping, bool white, int depth) noexcept
+{
+	if (depth == 0)
+	{
+		return;
+	}
+
+	const MoveList moves{ m_moveGen.generateMoves(white, m_state) };
+
+	for (Move move : moves)
+	{
+		[[unlikely]]
+		if (stopping.load(std::memory_order_relaxed))
+		{
+			return;
+		}
+
+		State stateCopy{ state };
+
+		if (makeLegalMove(stateCopy, white, move))
+		{
+			++nodes;
+			benchmarkRun(stateCopy, nodes, stopping, !white, depth - 1);
+		}
+	}
+}
+
 
 
 //getters
@@ -624,4 +651,21 @@ void Engine::perft(int depth) noexcept
 	}
 
 	std::cout << "done" << std::endl;
+}
+
+void Engine::benchmark(double seconds) noexcept
+{
+	std::uint64_t nodes{};
+	std::atomic_bool stopping{ false };
+
+	std::jthread timer{ 
+		[seconds, &stopping]() {
+			std::this_thread::sleep_for(std::chrono::duration<double>(seconds));
+			stopping.store(true, std::memory_order_relaxed);
+		} 
+	};
+
+	benchmarkRun(m_state, nodes, stopping, true, 20);
+
+	std::cout << std::format("estimated nodes per second: {}\n", static_cast<double>(nodes) / seconds);
 }

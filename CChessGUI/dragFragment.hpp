@@ -9,11 +9,11 @@ constexpr std::string_view dragFragment{
 "\n"
 "out vec4 FragColor;\n"
 "\n"
-"uniform sampler2D boardTexture;\n"
+"uniform sampler2D pieceTexture;\n"
 "\n"
 "void main()\n"
 "{\n"
-"	FragColor = texture(boardTexture, TexCoord);\n"
+"	FragColor = texture(pieceTexture, TexCoord);\n"
 "}\n"
 };
 }

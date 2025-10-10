@@ -67,6 +67,8 @@ private:
 
 	ScoredMove searchStart(bool white, int depth) noexcept;
 
+	void benchmarkRun(const State& state, std::uint64_t& nodes, std::atomic_bool& stopping, bool white, int depth) noexcept;
+
 
 
 public:
@@ -112,5 +114,7 @@ public:
 	
 	//perft
 	void perft(int depth) noexcept;
+
+	void benchmark(double seconds) noexcept;
 };
 

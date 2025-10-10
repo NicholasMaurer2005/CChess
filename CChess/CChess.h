@@ -41,6 +41,10 @@ extern "C" {
 
 	int engine_get_search_milliseconds() CCHESS_NOEXCEPT;
 
+	void engine_perft(int depth) CCHESS_NOEXCEPT;
+
+	void engine_benchmark(double seconds) CCHESS_NOEXCEPT;
+
 
 
 	/* SEARCH */

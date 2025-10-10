@@ -9,7 +9,9 @@
 
 
 //engine instance
-Engine* engine{ nullptr };
+static Engine* engine{ nullptr };
+
+
 
 int engine_create() CCHESS_NOEXCEPT
 {
@@ -125,4 +127,14 @@ void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT
 
 	*depth = info.searchDepth;
 	*evaluation = info.evaluation;
+}
+
+void engine_perft(int depth) CCHESS_NOEXCEPT
+{
+	engine->perft(depth);
+}
+
+void engine_benchmark(double seconds) CCHESS_NOEXCEPT
+{
+	engine->benchmark(seconds);
 }

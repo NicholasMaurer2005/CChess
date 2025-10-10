@@ -11,6 +11,10 @@ constexpr int defaultWindowHeight{ 720 };
 
 
 //static helpers
+static MoveCallback moveCallback(int source, int destination) noexcept
+{
+
+}
 
 
 
@@ -39,7 +43,7 @@ CChessGUI::CChessGUI() noexcept
 	: m_window(defaultWindowWidth, defaultWindowHeight), m_newPosition(true)
 {
 	engine_create();
-
+	engine_benchmark(10.0);
 
 
 	play();

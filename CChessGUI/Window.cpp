@@ -15,6 +15,7 @@
 #include <chrono>
 #include <string>
 #include <format>
+#include <algorithm>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -190,6 +191,8 @@ static void windowSizeCallback(GLFWwindow* window, int width, int height) noexce
 	user->setHeight(height);
 }
 
+static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCharToPiece() };
+
 
 
 /* Private Methods */
@@ -323,36 +326,33 @@ void Window::initDragShader() noexcept
 
 void Window::initDragBuffer() noexcept
 {
-	static constexpr float dragBufferData[]{
-		-0.125f, -0.125f, 0.0f, 0.0f,
-		0.125f, -0.125f, 0.125f, 0.0f,
-		-0.125f, 0.125f, 0.0f, 0.125f,
-		0.125f, -0.125f, 0.125f, 0.0f,
-		0.125f, 0.125f, 0.125f, 0.125f,
-		-0.125f, 0.125f, 0.0f, 0.125f
-	};
-
 	glGenBuffers(1, &m_dragBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(dragBufferData), &dragBufferData, GL_STATIC_DRAW);
 
-	/*glGenBuffers(1, &m_boardBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_boardBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(boardBufferData), &boardBufferData, GL_STATIC_DRAW);
+	glGenVertexArrays(1, &m_dragVAO);
+	glBindVertexArray(m_dragVAO);
 
-	glGenVertexArrays(1, &m_boardVAO);
-	glBindVertexArray(m_boardVAO);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
 	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);*/
+	glEnableVertexAttribArray(1);
+
+	int ebo[6]{
+		0, 1, 2,
+		0, 2, 3
+	};
+
+	glGenBuffers(1, &m_dragEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_dragEBO);
 }
 
-void Window::initDragTexture() noexcept
+
+
+//buffer drag
+void Window::bufferDragPiece() noexcept
 {
-
+	
 }
-
 
 
 /* Public Methods */
@@ -366,7 +366,7 @@ Window::Window(int width, int height) noexcept
 	//pieces
 	m_piecesShader(), m_piecesBuffer(), m_piecesTexture(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize(),
 	//move
-	m_moveCallback(), m_dragShader(), m_dragTexture(), m_dragBuffer(), m_dragVAO(), m_dragging(), m_uDragX(), m_uDragY()
+	m_moveCallback(), m_dragShader(), m_dragBuffer(), m_dragVAO(), m_dragging(), m_uDragX(), m_uDragY()
 {
 	initGLFW();
 
@@ -377,6 +377,9 @@ Window::Window(int width, int height) noexcept
 	initPieceShader();
 	initPieceBuffer();
 	initPieceTexture();
+
+	initDragShader();
+	initDragBuffer();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -412,14 +415,16 @@ bool Window::open() noexcept
 
 void Window::draw() noexcept
 {
+	//fps
 	static std::chrono::steady_clock::time_point lastTime{};
 	const auto currentTime{ std::chrono::high_resolution_clock::now() };
 	const std::chrono::duration<double> elapsed{ currentTime - lastTime };
 	lastTime = currentTime;
 
-	const std::string title{ std::format("CChess - fps: {}", 1.0f / elapsed.count()) };
+	const std::string title{ std::format("CChess - fps: {}", 1.0 / elapsed.count()) };
 	glfwSetWindowTitle(m_window, title.data());
 
+	//draw start
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	//draw board
@@ -437,19 +442,20 @@ void Window::draw() noexcept
 	//pice dragging
 	if (m_dragging)
 	{
+		glUseProgram(m_dragShader);
+		glBindTexture(GL_TEXTURE_2D, m_piecesTexture);
+		glBindVertexArray(m_dragVAO);
+
 		double x{};
 		double y{};
 		glfwGetCursorPos(m_window, &x, &y);
 
 		const float normalizedX{ 2.0f * static_cast<float>(x) / m_width - 1.0f };
-		const float normalizedY{ 2.0f * static_cast<float>(y) / m_height - 1.0f };
+		const float normalizedY{ -(2.0f * static_cast<float>(y) / m_height - 1.0f) };
 
 		glUniform1f(m_uDragX, normalizedX);
 		glUniform1f(m_uDragY, normalizedY);
 
-		glUseProgram(m_dragShader);
-		glBindTexture(GL_TEXTURE_2D, m_dragTexture);
-		glBindVertexArray(m_dragVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
@@ -467,6 +473,18 @@ void Window::resize(int width, int height) noexcept
 
 void Window::startDragging() noexcept
 {
+	double x{};
+	double y{};
+	glfwGetCursorPos(m_window, &x, &y);
+
+	const std::size_t file{ static_cast<std::size_t>(x / m_width * 8) };
+	const std::size_t rank{ static_cast<std::size_t>(y / m_height * 8) };
+
+	const PieceSprite sprite{ 0, 0, charToPiece[m_position[rank * fileSize + file]] };
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(PieceSprite), &sprite, GL_STATIC_DRAW);
+
 	m_dragging = true;
 }
 
@@ -557,8 +575,9 @@ void Window::bufferBoard(bool flipped, int source, int destination) const noexce
 
 void Window::bufferPieces(bool flipped, std::string_view board) noexcept
 {
-	static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCharToPiece() };
 	static constexpr std::array<GLuint, pieceIndexBufferSize> indexBuffer{ generatePieceIndexBuffer() };
+
+	std::ranges::copy(board, m_position.begin());
 
 	std::vector<PieceSprite> boardData;
 	boardData.reserve(maxPieceCount);

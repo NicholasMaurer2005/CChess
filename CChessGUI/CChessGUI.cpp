@@ -5,8 +5,8 @@
 
 
 //constants
-constexpr int defaultWindowWidth{ 1280 };
-constexpr int defaultWindowHeight{ 720 };
+constexpr int defaultWindowWidth{ 1000 };
+constexpr int defaultWindowHeight{ 1000 };
 
 
 
@@ -36,6 +36,7 @@ void CChessGUI::play() noexcept
 }
 
 
+
 /* Public Methods */
 
 //constructor
@@ -43,8 +44,6 @@ CChessGUI::CChessGUI() noexcept
 	: m_window(defaultWindowWidth, defaultWindowHeight), m_newPosition(true)
 {
 	engine_create();
-	engine_benchmark(10.0);
-
 
 	play();
 }

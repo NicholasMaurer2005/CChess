@@ -472,7 +472,6 @@ static void pawnEnpassants(BitBoard pawns, CaptureList& captureList, const State
 	}
 }
 
-
 template<bool white>
 static void pawnCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
 {

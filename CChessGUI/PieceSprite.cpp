@@ -3,8 +3,16 @@
 #include <type_traits>
 #include <array>
 
+
+
 static_assert(std::is_standard_layout_v<PieceSprite>);
 static_assert(sizeof(PieceSprite) == 64);
+
+template<typename T>
+struct Vec2
+{
+	T x, y;
+};
 
 static constexpr float squareOffset{ 0.125f };
 
@@ -74,7 +82,7 @@ static consteval TextureCoords generateTextureCoords(int x, int y)
 	};
 }
 
-static constexpr std::array<TextureCoords, 12> pieceTextureCoords{
+static std::array<TextureCoords, 12> pieceTextureCoords{
 	generateTextureCoords(whitePawnX, whitePawnY),
 	generateTextureCoords(whiteKnightX, whiteKnightY),
 	generateTextureCoords(whiteBishopX, whiteBishopY),

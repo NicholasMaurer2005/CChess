@@ -14,6 +14,7 @@ constexpr std::string_view dragFragment{
 "void main()\n"
 "{\n"
 "	FragColor = texture(pieceTexture, TexCoord);\n"
+"	//FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
 "}\n"
 };
 }

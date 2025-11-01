@@ -44,7 +44,6 @@ private:
 	//move
 	MoveCallback m_moveCallback;
 	GLuint m_dragShader;
-	GLuint m_dragTexture;
 	GLuint m_dragBuffer;
 	GLuint m_dragVAO;
 
@@ -85,7 +84,10 @@ private:
 
 	void initDragBuffer() noexcept;
 
-	void initDragTexture() noexcept;
+
+
+	//buffer drag
+	void bufferDragPiece() noexcept;
 
 
 

@@ -15,50 +15,22 @@ struct Vec2
 };
 
 static constexpr float squareOffset{ 0.125f };
+static constexpr Vec2 textureSheetSize{ 600, 450 };
+static constexpr Vec2 pieceSize{ 150, 150 };
+static constexpr Vec2 pieceTextureSize{ static_cast<float>(pieceSize.x) / textureSheetSize.x, static_cast<float>(pieceSize.y) / textureSheetSize.y };
 
-static constexpr int textureSheetWidth{ 600 };
-static constexpr int textureSheetHeight{ 450 };
-static constexpr int pieceSize{ 150 };
-static constexpr float pieceTextureWidth{ static_cast<float>(pieceSize) / textureSheetWidth };
-static constexpr float pieceTextureHeight{ static_cast<float>(pieceSize) / textureSheetHeight };
-
-
-static constexpr int whitePawnX{ 450 };
-static constexpr int whitePawnY{ 0 };
-
-static constexpr int whiteKnightX{ 300 };
-static constexpr int whiteKnightY{ 300 };
-
-static constexpr int whiteBishopX{ 0 };
-static constexpr int whiteBishopY{ 300 };
-
-static constexpr int whiteRookX{ 450 };
-static constexpr int whiteRookY{ 300 };
-
-static constexpr int whiteQueenX{ 450 };
-static constexpr int whiteQueenY{ 150 };
-
-static constexpr int whiteKingX{ 150 };
-static constexpr int whiteKingY{ 300 };
-
-
-static constexpr int blackPawnX{ 0 };
-static constexpr int blackPawnY{ 150 };
-
-static constexpr int blackKnightX{ 300 };
-static constexpr int blackKnightY{ 0 };
-
-static constexpr int blackBishopX{ 0 };
-static constexpr int blackBishopY{ 0 };
-
-static constexpr int blackRookX{ 300 };
-static constexpr int blackRookY{ 150 };
-
-static constexpr int blackQueenX{ 150 };
-static constexpr int blackQueenY{ 150 };
-
-static constexpr int blackKingX{ 150 };
-static constexpr int blackKingY{ 0 };
+static constexpr Vec2 whitePawnLocation{ 450, 0 };
+static constexpr Vec2 whiteKnightLocation{ 300, 300 };
+static constexpr Vec2 whiteBishopLocation{ 0, 300 };
+static constexpr Vec2 whiteRookLocation{ 450, 300 };
+static constexpr Vec2 whiteQueenLocation{ 450, 150 };
+static constexpr Vec2 whiteKingLocation{ 150, 300 };
+static constexpr Vec2 blackPawnLocation{ 0, 150 };
+static constexpr Vec2 blackKnightLocation{ 300, 0 };
+static constexpr Vec2 blackBishopLocation{ 0, 0 };
+static constexpr Vec2 blackRookLocation{ 300, 150 };
+static constexpr Vec2 blackQueenLocation{ 150, 150 };
+static constexpr Vec2 blackKingLocation{ 150, 0 };
 
 struct alignas(32) TextureCoords
 {
@@ -67,34 +39,33 @@ struct alignas(32) TextureCoords
 
 static consteval TextureCoords generateTextureCoords(int x, int y)
 {
-	const float normalizedX{ static_cast<float>(x) / textureSheetWidth };
-	const float normalizedY{ static_cast<float>(y) / textureSheetHeight };
+	const Vec2 normalized{ static_cast<float>(x) / textureSheetSize.x, static_cast<float>(y) / textureSheetSize.y };
 
 	return {
 		//bottem right
-		normalizedX, normalizedY + pieceTextureHeight,
+		normalized.x, normalized.y + pieceTextureSize.y,
 		//top right
-		normalizedX, normalizedY,
+		normalized.x, normalized.y,
 		//top left
-		normalizedX + pieceTextureWidth, normalizedY,
+		normalized.x + pieceTextureSize.x, normalized.y,
 		//bottem left
-		normalizedX + pieceTextureWidth, normalizedY + pieceTextureHeight
+		normalized.x + pieceTextureSize.x, normalized.y + pieceTextureSize.y
 	};
 }
 
 static std::array<TextureCoords, 12> pieceTextureCoords{
-	generateTextureCoords(whitePawnX, whitePawnY),
-	generateTextureCoords(whiteKnightX, whiteKnightY),
-	generateTextureCoords(whiteBishopX, whiteBishopY),
-	generateTextureCoords(whiteRookX, whiteRookY),
-	generateTextureCoords(whiteQueenX, whiteQueenY),
-	generateTextureCoords(whiteKingX, whiteKingY),
-	generateTextureCoords(blackPawnX, blackPawnY),
-	generateTextureCoords(blackKnightX, blackKnightY),
-	generateTextureCoords(blackBishopX, blackBishopY),
-	generateTextureCoords(blackRookX, blackRookY),
-	generateTextureCoords(blackQueenX, blackQueenY),
-	generateTextureCoords(blackKingX, blackKingY)
+	generateTextureCoords(whitePawnLocation.x, whitePawnLocation.y),
+	generateTextureCoords(whiteKnightLocation.x, whiteKnightLocation.y),
+	generateTextureCoords(whiteBishopLocation.x, whiteBishopLocation.y),
+	generateTextureCoords(whiteRookLocation.x, whiteRookLocation.y),
+	generateTextureCoords(whiteQueenLocation.x, whiteQueenLocation.y),
+	generateTextureCoords(whiteKingLocation.x, whiteKingLocation.y),
+	generateTextureCoords(blackPawnLocation.x, blackPawnLocation.y),
+	generateTextureCoords(blackKnightLocation.x, blackKnightLocation.y),
+	generateTextureCoords(blackBishopLocation.x, blackBishopLocation.y),
+	generateTextureCoords(blackRookLocation.x, blackRookLocation.y),
+	generateTextureCoords(blackQueenLocation.x, blackQueenLocation.y),
+	generateTextureCoords(blackKingLocation.x, blackKingLocation.y)
 };
 
 

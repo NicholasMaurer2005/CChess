@@ -326,7 +326,7 @@ void Window::initDragShader() noexcept
 
 void Window::initDragBuffer() noexcept
 {
-	glGenBuffers(1, &m_dragBuffer);
+	/*glGenBuffers(1, &m_dragBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
 
 	glGenVertexArrays(1, &m_dragVAO);
@@ -343,7 +343,7 @@ void Window::initDragBuffer() noexcept
 	};
 
 	glGenBuffers(1, &m_dragEBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_dragEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_dragEBO);*/
 }
 
 

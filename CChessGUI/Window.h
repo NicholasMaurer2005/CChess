@@ -30,6 +30,7 @@ private:
 	GLuint m_boardTexture;
 	GLuint m_boardBuffer;
 	GLuint m_boardVAO;
+	GLuint m_boardEBO;
 
 	//pieces
 	GLuint m_piecesShader;
@@ -37,20 +38,20 @@ private:
 	GLuint m_piecesBuffer;
 	GLuint m_piecesVAO;
 	GLuint m_piecesEBO;
-
 	GLsizei m_piecesBufferCount;
 	int m_maxPiecesBufferSize;
-	
-	//move
-	MoveCallback m_moveCallback;
+
+	//dragging
 	GLuint m_dragShader;
 	GLuint m_dragBuffer;
 	GLuint m_dragVAO;
-
+	GLuint m_dragEBO;
 	bool m_dragging;
 	GLuint m_uDragX;
 	GLuint m_uDragY;
 
+	MoveCallback m_moveCallback;
+	
 
 
 //private methods

@@ -14,8 +14,6 @@ constexpr std::string_view pieceFragment{
 "void main()\n"
 "{\n"
 "	FragColor = texture(pieceTexture, TexCoord);\n"
-"	//FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
-"	//FragColor = vec4(TexCoord, 0.0, 1.0);\n"
 "}\n"
 };
 }

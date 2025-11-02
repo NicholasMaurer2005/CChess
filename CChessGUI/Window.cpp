@@ -22,27 +22,28 @@
 
 
 
-//TODO: maybe move to own header file?
+//helper structs
 struct alignas(4) Pixel
 {
 	std::uint8_t r, g, b, a;
 };
 
+struct Vertex
+{
+	float x, y, u, v;
+};
 
-
-//constants
-constexpr int rankSize{ 8 };
-constexpr int fileSize{ 8 };
-constexpr int charToPieceTableSize{ 256 };
-constexpr int pieceIndexBufferSize{ 192 };
-constexpr int maxPieceCount{ 32 };
+struct alignas(64) Square
+{
+	Vertex v1, v2, v3, v4;
+};
 
 
 
 /* Static Helpers */
 
 template<bool white>
-static constexpr std::array<Pixel, boardSize> generateBoardTexture()
+static consteval std::array<Pixel, boardSize> generateBoardTexture()
 {
 	std::array<Pixel, boardSize> board{};
 
@@ -195,6 +196,33 @@ static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCh
 
 
 
+//constants
+static constexpr int rankSize{ 8 };
+static constexpr int fileSize{ 8 };
+static constexpr int charToPieceTableSize{ 256 };
+static constexpr int pieceIndexBufferSize{ 192 };
+static constexpr int maxPieceCount{ 32 };
+static constexpr void* vertexPositionOffset{ reinterpret_cast<void*>(0) };
+static constexpr void* vertexTextureOffset{ reinterpret_cast<void*>(2 * sizeof(float)) };
+
+static constexpr Square squareBuffer{
+	//bottem left
+	-1.0f, -1.0f, 0.0f, 0.0f,
+	//bottem right
+	1.0f, -1.0f, 1.0f, 0.0f,
+	//top right
+	1.0f, 1.0f, 1.0f, 1.0f,
+	//top left
+	-1.0f, 1.0f, 0.0f, 1.0f
+};
+
+static constexpr std::array<GLuint, 6> squareEBO{
+	0, 1, 2,
+	0, 2, 3
+};
+
+
+
 /* Private Methods */
 
 //init GLFW
@@ -238,30 +266,24 @@ void Window::initBoardShader() noexcept
 
 void Window::initBoardBuffer() noexcept
 {
-	static constexpr float boardBufferData[]{
-		-1.0f, -1.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, 1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, -1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 0.0f, 1.0f
-	};
-
 	glGenBuffers(1, &m_boardBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_boardBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(boardBufferData), &boardBufferData, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Square), &squareBuffer, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &m_boardVAO);
 	glBindVertexArray(m_boardVAO);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(0));
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(vertexPositionOffset));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(vertexTextureOffset));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+	
+	glGenBuffers(1, &m_boardEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_boardEBO);
 }
 
 void Window::initBoardTexture() noexcept
 {
-	static constexpr std::array <Pixel, boardSize> boardTexture{ generateBoardTexture<true>() };
+	static constexpr std::array<Pixel, boardSize> boardTexture{ generateBoardTexture<true>() };
 
 	glGenTextures(1, &m_boardTexture);
 	glBindTexture(GL_TEXTURE_2D, m_boardTexture);
@@ -362,11 +384,11 @@ Window::Window(int width, int height) noexcept
 	//window
 	: m_window(), m_width(width), m_height(height), m_position(),
 	//board
-	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(),
+	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(), m_boardEBO(),
 	//pieces
-	m_piecesShader(), m_piecesBuffer(), m_piecesTexture(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize(),
-	//move
-	m_moveCallback(), m_dragShader(), m_dragBuffer(), m_dragVAO(), m_dragging(), m_uDragX(), m_uDragY()
+	m_piecesShader(), m_piecesTexture(), m_piecesBuffer(), m_piecesVAO(), m_piecesEBO(), m_piecesBufferCount(), m_maxPiecesBufferSize(),
+	//dragging
+	m_dragShader(), m_dragBuffer(), m_dragVAO(), m_dragEBO(), m_dragging(), m_uDragX(), m_uDragY()
 {
 	initGLFW();
 

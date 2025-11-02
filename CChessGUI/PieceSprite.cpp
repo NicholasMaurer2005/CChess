@@ -3,16 +3,18 @@
 #include <type_traits>
 #include <array>
 
-
-
 static_assert(std::is_standard_layout_v<PieceSprite>);
 static_assert(sizeof(PieceSprite) == 64);
+
+
 
 template<typename T>
 struct Vec2
 {
 	T x, y;
 };
+
+
 
 static constexpr float squareOffset{ 0.125f };
 static constexpr Vec2 textureSheetSize{ 600, 450 };
@@ -32,6 +34,8 @@ static constexpr Vec2 blackRookLocation{ 300, 150 };
 static constexpr Vec2 blackQueenLocation{ 150, 150 };
 static constexpr Vec2 blackKingLocation{ 150, 0 };
 
+
+//helpers
 struct alignas(32) TextureCoords
 {
 	float x1, y1, x2, y2, x3, y3, x4, y4;
@@ -42,18 +46,18 @@ static consteval TextureCoords generateTextureCoords(int x, int y)
 	const Vec2 normalized{ static_cast<float>(x) / textureSheetSize.x, static_cast<float>(y) / textureSheetSize.y };
 
 	return {
-		//bottem right
-		normalized.x, normalized.y + pieceTextureSize.y,
 		//top right
 		normalized.x, normalized.y,
 		//top left
 		normalized.x + pieceTextureSize.x, normalized.y,
 		//bottem left
-		normalized.x + pieceTextureSize.x, normalized.y + pieceTextureSize.y
+		normalized.x + pieceTextureSize.x, normalized.y + pieceTextureSize.y,
+		//bottem right
+		normalized.x, normalized.y + pieceTextureSize.y,
 	};
 }
 
-static std::array<TextureCoords, 12> pieceTextureCoords{
+static constexpr std::array<TextureCoords, 12> pieceTextureCoords{
 	generateTextureCoords(whitePawnLocation.x, whitePawnLocation.y),
 	generateTextureCoords(whiteKnightLocation.x, whiteKnightLocation.y),
 	generateTextureCoords(whiteBishopLocation.x, whiteBishopLocation.y),
@@ -69,6 +73,8 @@ static std::array<TextureCoords, 12> pieceTextureCoords{
 };
 
 
+
+//private methods
 void PieceSprite::initTexture(Piece piece) noexcept
 {
 	const TextureCoords texture{ pieceTextureCoords[static_cast<std::size_t>(piece)] };
@@ -83,6 +89,9 @@ void PieceSprite::initTexture(Piece piece) noexcept
 	m_texY4 = texture.y4;
 }
 
+
+
+//constructors
 PieceSprite::PieceSprite(int rank, int file, Piece piece) noexcept
 	: m_posX1(), m_posY1(), m_texX1(), m_texY1(),
 	  m_posX2(), m_posY2(), m_texX2(), m_texY2(),
@@ -93,24 +102,52 @@ PieceSprite::PieceSprite(int rank, int file, Piece piece) noexcept
 	move(rank, file);
 }
 
+PieceSprite::PieceSprite(Piece piece) noexcept
+	: m_posX1(), m_posY1(), m_texX1(), m_texY1(),
+	m_posX2(), m_posY2(), m_texX2(), m_texY2(),
+	m_posX3(), m_posY3(), m_texX3(), m_texY3(),
+	m_posX4(), m_posY4(), m_texX4(), m_texY4()
+{
+	initTexture(piece);
+
+	//bottem left
+	m_posX1 = -squareOffset;
+	m_posY1 = squareOffset;
+
+	//bottem right
+	m_posX2 = squareOffset;
+	m_posY2 = squareOffset;
+
+	//top right
+	m_posX3 = squareOffset;
+	m_posY3 = -squareOffset;
+
+	//top left
+	m_posX4 = -squareOffset;
+	m_posY4 = -squareOffset;
+}
+
+
+
+//public methods
 void PieceSprite::move(int rank, int file) noexcept
 {
 	const float topLeftX{ file * squareOffset };
 	const float topLeftY{ rank * squareOffset };
 
-	//top left
-	m_posX1 = 2.0f * topLeftX - 1.0f;
-	m_posY1 = 2.0f * topLeftY - 1.0f;
-
 	//bottem left
-	m_posX2 = 2.0f * topLeftX - 1.0f;
-	m_posY2 = 2.0f * (topLeftY + squareOffset) - 1.0f;
+	m_posX1 = 2.0f * topLeftX - 1.0f;
+	m_posY1 = 2.0f * (topLeftY + squareOffset) - 1.0f;
 
 	//bottem right
-	m_posX3 = 2.0f * (topLeftX + squareOffset) - 1.0f;
-	m_posY3 = 2.0f * (topLeftY + squareOffset) - 1.0f;
+	m_posX2 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_posY2 = 2.0f * (topLeftY + squareOffset) - 1.0f;
 
 	//top right
-	m_posX4 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_posX3 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_posY3 = 2.0f * topLeftY - 1.0f;
+
+	//top left
+	m_posX4 = 2.0f * topLeftX - 1.0f;
 	m_posY4 = 2.0f * topLeftY - 1.0f;
 }

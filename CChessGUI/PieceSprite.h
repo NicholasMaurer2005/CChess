@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+
+
 enum class Piece : std::size_t
 {
 	WhitePawn = 0,
@@ -18,6 +20,8 @@ enum class Piece : std::size_t
 	BlackKing = 11,
 	NoPiece = 12
 };
+
+
 
 class alignas(64) PieceSprite
 {
@@ -43,11 +47,19 @@ private:
 	float m_texX4;
 	float m_texY4;
 
+
+
+private:
+
 	void initTexture(Piece piece) noexcept;
+	
+
 
 public:
 
 	PieceSprite(int rank, int file, Piece piece) noexcept;
+
+	PieceSprite(Piece piece) noexcept;
 
 	void move(int rank, int file) noexcept;
 };

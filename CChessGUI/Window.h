@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <string_view>
 #include <array>
+#include <chrono>
+#include <span>
 
 
 //constants
@@ -23,7 +25,9 @@ private:
 	GLFWwindow* m_window;
 	int m_width;
 	int m_height;
-	std::array<char, boardSize> m_position;
+	alignas(64) std::array<char, boardSize> m_position;
+	std::chrono::high_resolution_clock::time_point m_lastTime;
+	MoveCallback m_moveCallback;
 
 	//board
 	GLuint m_boardShader;
@@ -46,14 +50,13 @@ private:
 	GLuint m_dragBuffer;
 	GLuint m_dragVAO;
 	GLuint m_dragEBO;
-	bool m_dragging;
 	GLuint m_uDragX;
 	GLuint m_uDragY;
+	bool m_dragging;
+	int m_dragStart;
 
-	MoveCallback m_moveCallback;
+
 	
-
-
 //private methods
 private:
 
@@ -88,7 +91,16 @@ private:
 
 
 	//buffer drag
-	void bufferDragPiece() noexcept;
+	void bufferDragPiece(std::size_t pieceIndex) noexcept;
+
+
+
+	//render pipelines
+	void drawBoard() const noexcept;
+
+	void drawPieces() const noexcept;
+
+	void drawDrag() const noexcept;
 
 
 
@@ -98,7 +110,7 @@ public:
 
 
 	//constructors
-	Window(int width, int height) noexcept;
+	Window(int width, int height, MoveCallback moveCallback) noexcept;
 
 	~Window() noexcept;
 
@@ -138,6 +150,6 @@ public:
 	//buffer
 	void bufferBoard(bool flipped, int source, int destination) const noexcept;
 
-	void bufferPieces(bool flipped, std::string_view board) noexcept;
+	void bufferPieces(bool flipped, std::span<const char> board) noexcept;
 };
 

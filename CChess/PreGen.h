@@ -27,10 +27,10 @@ private:
 	//attack tables
 	std::array<BitBoard, boardSize> m_whitePawnAttacks;
 	std::array<BitBoard, boardSize> m_blackPawnAttacks;
-	std::array<BitBoard, boardSize> m_knightAttacks; //TODO: rename from Attacks to Moves?
-	std::array<BitBoard, boardSize> m_kingAttacks;
-	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopAttacks;
-	std::array<BitBoard, boardSize * maxRookAttacks> m_rookAttacks;
+	std::array<BitBoard, boardSize> m_knightMoves; 
+	std::array<BitBoard, boardSize> m_kingMoves;
+	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopMoves;
+	std::array<BitBoard, boardSize * maxRookAttacks> m_rookMoves;
 
 
 	
@@ -48,13 +48,13 @@ private:
 	//tables
 	void generatePawnAttacks() noexcept;
 
-	void generateKightAttacks() noexcept;
+	void generateKightMoves() noexcept;
 
-	void generateKingAttacks() noexcept;
+	void generateKingMoves() noexcept;
 
-	void generateBishopAttacks() noexcept;
+	void generateBishopMoves() noexcept;
 
-	void generateRookAttacks() noexcept;
+	void generateRookMoves() noexcept;
 
 
 
@@ -70,12 +70,12 @@ public:
 
 	BitBoard blackPawnAttack(std::size_t index) const noexcept;
 
-	BitBoard knightAttack(std::size_t index) const noexcept;
+	BitBoard knightMove(std::size_t index) const noexcept;
 
-	BitBoard kingAttack(std::size_t index) const noexcept;
+	BitBoard kingMove(std::size_t index) const noexcept;
 
-	BitBoard bishopAttack(std::size_t index, BitBoard occupancy) const noexcept;
+	BitBoard bishopMove(std::size_t index, BitBoard occupancy) const noexcept;
 
-	BitBoard rookAttack(std::size_t index, BitBoard occupancy) const noexcept;
+	BitBoard rookMove(std::size_t index, BitBoard occupancy) const noexcept;
 };
 

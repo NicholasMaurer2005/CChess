@@ -12,7 +12,7 @@ private:
 
 public:
 
-	//constructors
+	//constructors //TODO: maybe remove default initialization?
 	constexpr BitBoard() noexcept : m_board() {}
 
 	constexpr BitBoard(std::uint64_t board) noexcept : m_board(board) {} //TODO

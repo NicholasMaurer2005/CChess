@@ -11,12 +11,18 @@ private:
 
 	Window m_window;
 	bool m_newPosition;
+	bool m_whiteToMove;
+
 
 
 //private methods
 private:
 
 	void play() noexcept;
+
+	void moveCallback(int source, int destination) noexcept;
+
+	void bufferPosition() noexcept;
 
 
 

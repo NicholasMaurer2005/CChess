@@ -65,7 +65,9 @@ extern "C" {
 	//is 1 it will search for white, if "white" is 0 it will search for black.
 	void engine_search_color_and_move(int white) CCHESS_NOEXCEPT;
 
+	//get the depth and evaluation of the last choice. 
 	void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT;
+
 
 
 	/* MOVE */

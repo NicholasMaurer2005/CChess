@@ -6,13 +6,14 @@
 #include <array>
 #include <chrono>
 #include <span>
+#include <functional>
+
 
 
 //constants
 constexpr int boardSize{ 64 };
 
-using MoveCallback = void(*)(int source, int destination) noexcept;
-
+using MoveCallback = std::function<void(int source, int destination)>;
 
 
 class Window

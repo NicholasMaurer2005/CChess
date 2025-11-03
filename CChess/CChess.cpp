@@ -111,7 +111,7 @@ void engine_search_color_and_move(int white) CCHESS_NOEXCEPT
 
 int engine_move(int source, int destination) CCHESS_NOEXCEPT
 {
-	return engine->makeMove(source, destination);
+	return static_cast<int>(engine->makeMove(source, destination));
 }
 
 void engine_get_last_move(int* source, int* destination) CCHESS_NOEXCEPT

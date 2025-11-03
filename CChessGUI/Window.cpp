@@ -8,7 +8,6 @@
 #include "dragVertex.hpp"
 #include "dragFragment.hpp"
 
-
 #include <cstdint>
 #include <cstddef>
 #include <iostream>
@@ -526,8 +525,6 @@ void Window::startDragging() noexcept
 	bufferDragPiece(pieceIndex);
 	m_dragStart = static_cast<int>(pieceIndex);
 	m_dragging = true;
-
-	std::cout << "start\n";
 }
 
 void Window::stopDragging() noexcept
@@ -539,12 +536,9 @@ void Window::stopDragging() noexcept
 	const int file{ static_cast<int>(x / m_width * 8) };
 	const int rank{ static_cast<int>(8 - y / m_height * 8) };
 	const int pieceIndex{ rank * fileSize + file };
-	
-	m_moveCallback(m_dragStart, pieceIndex);
+
 	m_dragging = false;
-
-
-	std::cout << "stop\n";
+	m_moveCallback(m_dragStart, pieceIndex);
 }
 
 

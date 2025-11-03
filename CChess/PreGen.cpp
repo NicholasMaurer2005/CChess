@@ -7,6 +7,7 @@
 #include <random>
 #include <bitset>
 #include <concepts>
+#include <algorithm>
 
 
 //static helpers
@@ -38,7 +39,7 @@ static void setSafe(BitBoard& board, int rank, int file) noexcept
 static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std::size_t bitCount, std::size_t occupanciesCount) noexcept
 {
 	std::vector<BitBoard> occupancies;
-	occupancies.reserve(occupanciesCount);
+	occupancies.resize(occupanciesCount);
 
 	for (std::size_t i{}; i < occupanciesCount; ++i)
 	{
@@ -55,7 +56,7 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 			}
 		}
 
-		occupancies.push_back(occupancy);
+		occupancies[i] = occupancy;
 	}
 
 	return occupancies;

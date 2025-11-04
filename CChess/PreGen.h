@@ -14,15 +14,21 @@ constexpr int maxRookAttacks{ 4096 };
 
 class cachealign PreGen
 {
+	/* Class Members*/
+
 private:
 
-	//magic numbers
-	std::array<BitBoard, boardSize>  m_bishopRelevantBits; //TODO: use stockfish method.
-	std::array<BitBoard, boardSize>  m_rookRelevantBits;
+	struct alignas(16) MagicData
+	{
+		BitBoard relevantBits;
+		int magicShift;
+	};
+
+	//magic numbers //TODO: use stockfish method.
+	std::array<MagicData, boardSize> m_bishopMagicData;
+	std::array<MagicData, boardSize> m_rookMagicData;
 	std::array<std::uint64_t, boardSize> m_bishopMagics;
 	std::array<std::uint64_t, boardSize> m_rookMagics;
-	std::array<int, boardSize> m_bishopBitCount; //TODO: replace with shifts
-	std::array<int, boardSize> m_rookBitCount; 
 
 	//attack tables
 	std::array<BitBoard, boardSize> m_whitePawnAttacks;
@@ -32,6 +38,11 @@ private:
 	std::array<BitBoard, boardSize * maxBishopAttacks> m_bishopMoves;
 	std::array<BitBoard, boardSize * maxRookAttacks> m_rookMoves;
 
+
+
+	/* Private Methods */
+
+private:
 
 	
 	//magic numbers

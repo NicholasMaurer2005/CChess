@@ -71,7 +71,7 @@ CChessGUI::CChessGUI() noexcept
 	m_newPosition(true), m_whiteToMove(true)
 {
 	engine_create();
-	engine_perft(6);
+	engine_benchmark(60);
 
 	//play();
 }

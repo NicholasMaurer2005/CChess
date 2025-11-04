@@ -62,13 +62,22 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 	return occupancies;
 }
 
-
-//in global space to remove initialization guard
-static std::mt19937_64 gen{ std::random_device{}() };
-static std::uniform_int_distribution<std::uint64_t> dist;
+//outside of function to remove initialization guard
+//namespace rnd
+//{
+//	static std::mt19937_64 gen{ std::random_device{}() };
+//	static std::uniform_int_distribution<std::uint64_t> dist;
+//}
+//static std::uint64_t randomMagic() noexcept
+//{
+//	return rnd::dist(rnd::gen) & rnd::dist(rnd::gen) & rnd::dist(rnd::gen);
+//}
 
 static std::uint64_t randomMagic() noexcept
 {
+	static std::mt19937_64 gen{ std::random_device{}() };
+	static std::uniform_int_distribution<std::uint64_t> dist;
+
 	return dist(gen) & dist(gen) & dist(gen);
 }
 
@@ -151,7 +160,7 @@ PreGen::PreGen() noexcept :
 	m_whitePawnAttacks(), m_blackPawnAttacks(), m_knightMoves(), m_kingMoves(), m_bishopMoves(), m_rookMoves(),
 
 	//magic numbers
-	m_bishopRelevantBits(), m_rookRelevantBits(), m_bishopMagics(), m_rookMagics(), m_bishopBitCount(), m_rookBitCount()
+	m_bishopMagicData(), m_rookMagicData(), m_bishopMagics(), m_rookMagics()
 
 {
 	std::cout << "generating tables\n";
@@ -185,22 +194,22 @@ void PreGen::generateBishopRelevantBits() noexcept
 		{
 			for (int newRank{ rank + 1 }, newFile{ file + 1 }; newRank <= 6 && newFile <= 6; ++newRank, ++newFile)
 			{
-				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
+				m_bishopMagicData[boardIndex(rank, file)].relevantBits.set(newRank, newFile);
 			}
 
 			for (int newRank{ rank + 1 }, newFile{ file - 1 }; newRank <= 6 && newFile >= 1; ++newRank, --newFile)
 			{
-				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
+				m_bishopMagicData[boardIndex(rank, file)].relevantBits.set(newRank, newFile);
 			}
 
 			for (int newRank{ rank - 1 }, newFile{ file - 1 }; newRank >= 1 && newFile >= 1; --newRank, --newFile)
 			{
-				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
+				m_bishopMagicData[boardIndex(rank, file)].relevantBits.set(newRank, newFile);
 			}
 
 			for (int newRank{ rank - 1 }, newFile{ file + 1 }; newRank >= 1 && newFile <= 6; --newRank, ++newFile)
 			{
-				m_bishopRelevantBits[boardIndex(rank, file)].set(newRank, newFile);
+				m_bishopMagicData[boardIndex(rank, file)].relevantBits.set(newRank, newFile);
 			}
 		}
 	}
@@ -214,22 +223,22 @@ void PreGen::generateRookRelevantBits() noexcept
 		{
 			for (int newRank{ rank + 1 }; newRank <= 6; ++newRank)
 			{
-				m_rookRelevantBits[boardIndex(rank, file)].set(newRank, file);
+				m_rookMagicData[boardIndex(rank, file)].relevantBits.set(newRank, file);
 			}
 
 			for (int newRank{ rank - 1 }; newRank >= 1; --newRank)
 			{
-				m_rookRelevantBits[boardIndex(rank, file)].set(newRank, file);
+				m_rookMagicData[boardIndex(rank, file)].relevantBits.set(newRank, file);
 			}
 
 			for (int newFile{ file + 1 }; newFile <= 6; ++newFile)
 			{
-				m_rookRelevantBits[boardIndex(rank, file)].set(rank, newFile);
+				m_rookMagicData[boardIndex(rank, file)].relevantBits.set(rank, newFile);
 			}
 
 			for (int newFile{ file - 1 }; newFile >= 1; --newFile)
 			{
-				m_rookRelevantBits[boardIndex(rank, file)].set(rank, newFile);
+				m_rookMagicData[boardIndex(rank, file)].relevantBits.set(rank, newFile);
 			}
 		}
 	}
@@ -239,13 +248,13 @@ void PreGen::generateBishopMagics() noexcept
 {
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
-		const std::size_t bitCount{ m_bishopRelevantBits[i].bitCount() };
-		m_bishopBitCount[i] = static_cast<int>(bitCount);
+		const std::size_t bitCount{ m_bishopMagicData[i].relevantBits.bitCount() };
+		m_bishopMagicData[i].magicShift = boardSize - static_cast<int>(bitCount);
 
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };
 
-		const std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[i], bitCount, occupanciesCount) };
+		const std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopMagicData[i].relevantBits, bitCount, occupanciesCount) };
 
 		while (true)
 		{
@@ -281,13 +290,13 @@ void PreGen::generateRookMagics() noexcept
 {
 	for (std::size_t i{}; i < boardSize; ++i)
 	{
-		const std::size_t bitCount{ m_rookRelevantBits[i].bitCount() };
-		m_rookBitCount[i] = static_cast<int>(bitCount);
+		const std::size_t bitCount{ m_rookMagicData[i].relevantBits.bitCount() };
+		m_rookMagicData[i].magicShift = boardSize - static_cast<int>(bitCount);
 
 		const std::size_t occupanciesCount{ 1ULL << bitCount };
 		const std::size_t shift{ boardSize - bitCount };
 
-		const std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[i], bitCount, occupanciesCount) };
+		const std::vector<BitBoard> occupancies{ generateOccupancies(m_rookMagicData[i].relevantBits, bitCount, occupanciesCount) };
 		
 		while (true)
 		{
@@ -397,11 +406,11 @@ void PreGen::generateBishopMoves() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const std::size_t square{ boardIndex(rank, file) };
-			const std::size_t bitCount{ m_bishopRelevantBits[square].bitCount()};
+			const std::size_t bitCount{ m_bishopMagicData[square].relevantBits.bitCount() };
 			const std::size_t occupanciesCount{ 1ULL << bitCount };
 			const std::size_t shift{ boardSize - bitCount };
 
-			std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopRelevantBits[square], bitCount, occupanciesCount) };
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_bishopMagicData[square].relevantBits, bitCount, occupanciesCount) };
 			
 			for (BitBoard occupancy : occupancies)
 			{
@@ -420,11 +429,11 @@ void PreGen::generateRookMoves() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const std::size_t square{ boardIndex(rank, file) };
-			const std::size_t bitCount{ m_rookRelevantBits[square].bitCount()};
+			const std::size_t bitCount{ m_rookMagicData[square].relevantBits.bitCount() };
 			const std::size_t occupanciesCount{ 1ULL << bitCount };
 			const std::size_t shift{ boardSize - bitCount };
 
-			std::vector<BitBoard> occupancies{ generateOccupancies(m_rookRelevantBits[square], bitCount, occupanciesCount) };
+			std::vector<BitBoard> occupancies{ generateOccupancies(m_rookMagicData[square].relevantBits, bitCount, occupanciesCount) };
 
 			for (BitBoard occupancy : occupancies)
 			{
@@ -463,8 +472,8 @@ BitBoard PreGen::kingMove(std::size_t index) const noexcept
 BitBoard PreGen::bishopMove(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_bishopMagics[index] };
-	const std::uint64_t relevantBits{ occupancy.board() & m_bishopRelevantBits[index].board() };
-	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_bishopBitCount[index])};
+	const std::uint64_t relevantBits{ occupancy.board() & m_bishopMagicData[index].relevantBits.board() };
+	const std::size_t attackIndex{ (relevantBits * magic) >> m_bishopMagicData[index].magicShift };
 
 	return m_bishopMoves[bishopMagicIndex(index, attackIndex)];
 }
@@ -472,8 +481,8 @@ BitBoard PreGen::bishopMove(std::size_t index, BitBoard occupancy) const noexcep
 BitBoard PreGen::rookMove(std::size_t index, BitBoard occupancy) const noexcept
 {
 	const std::size_t magic{ m_rookMagics[index] };
-	const std::uint64_t relevantBits{ occupancy.board() & m_rookRelevantBits[index].board() };
-	const std::size_t attackIndex{ (relevantBits * magic) >> (boardSize - m_rookBitCount[index]) };
+	const std::uint64_t relevantBits{ occupancy.board() & m_rookMagicData[index].relevantBits.board() };
+	const std::size_t attackIndex{ (relevantBits * magic) >> m_rookMagicData[index].magicShift };
 
 	return m_rookMoves[rookMagicIndex(index, attackIndex)];
 }

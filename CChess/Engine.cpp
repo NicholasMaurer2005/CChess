@@ -16,6 +16,7 @@
 #include "MoveList.h"
 #include "Move.h"
 #include "Evaluate.h"
+#include "Castle.hpp"
 
 
 
@@ -23,8 +24,8 @@
 static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
-constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
-constexpr int defaultSearchMilliseconds{ 3000 };
+static constexpr int defaultSearchMilliseconds{ 3000 };
+static constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
 
 static State startState{ startFen, Castle::All };
 
@@ -129,10 +130,9 @@ static Move getCastleMove(int sourceSquare, int destinationSquare)
 
 
 //constructor
-Engine::Engine() noexcept
-//engine
-	: m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(), m_lastMove(),
-
+Engine::Engine() noexcept :
+	//engine
+	 m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(), m_lastMove(), m_charPosition(),
 	//search
 	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds)
 {
@@ -172,7 +172,7 @@ std::uint64_t Engine::perftRun(int depth, bool white) noexcept
 	return perftCount;
 }
 
-void Engine::findWhiteSquares(State& state) const noexcept //TODO: maybe move to MoveGen?
+void Engine::findWhiteSquares(State& state) const noexcept
 {
 	std::uint64_t squares{};
 
@@ -270,7 +270,6 @@ bool Engine::makeLegalMove(State& state, bool white, Move move) const noexcept
 {
 	state.makeMove(white, move);
 
-	// Always update both sides //TODO: maybe go back to testing only one side?
 	findWhiteSquares(state);
 	findBlackSquares(state);
 
@@ -472,7 +471,6 @@ std::string Engine::stateFen() const noexcept
 
 Move Engine::search(bool white) noexcept
 {
-	//TODO: maybe find better way to reset?
 	m_killerMoves = KillerMoveHistory();
 
 	ScoredMove bestMove{ 0, 0 };
@@ -506,7 +504,6 @@ Move Engine::search(bool white) noexcept
 
 			m_info.searchDepth = i;
 			m_info.evaluation = white ? scoredMove.score : -scoredMove.score;
-			//std::cout << std::format("{}: {}\n", scoredMove.move.string(), scoredMove.score);
 		}
 	}
 
@@ -519,12 +516,9 @@ Move Engine::search() noexcept
 	return search(m_whiteToMove);
 }
 
-std::string Engine::getCharPosition() const noexcept
+const char* Engine::getCharPosition() noexcept
 {
 	constexpr std::array<char, pieceCount> pieceToChar{ ' ', 'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k' };
-
-	std::string position;
-	position.assign(boardSize, ' ');
 
 	for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
 	{
@@ -533,11 +527,11 @@ std::string Engine::getCharPosition() const noexcept
 		while (occupancy.board())
 		{
 			const int index{ occupancy.popLeastSignificantBit() };
-			position[index] = pieceToChar[i];
+			m_charPosition[index] = pieceToChar[i];
 		}
 	}
 
-	return position;
+	return m_charPosition.data();
 }
 
 int Engine::searchMilliseconds() const noexcept

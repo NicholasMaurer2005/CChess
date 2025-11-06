@@ -4,7 +4,7 @@
 
 #include "ChessConstants.hpp"
 
-class BitBoard //TODO: define operator overloads AFTERRRRRRR choosing to do it with .board(). rewrite everything
+class BitBoard
 {
 private:
 
@@ -12,10 +12,10 @@ private:
 
 public:
 
-	//constructors //TODO: maybe remove default initialization?
+	//constructors
 	constexpr BitBoard() noexcept : m_board() {}
 
-	constexpr BitBoard(std::uint64_t board) noexcept : m_board(board) {} //TODO
+	constexpr BitBoard(std::uint64_t board) noexcept : m_board(board) {}
 
 
 

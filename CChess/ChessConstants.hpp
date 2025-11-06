@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <new>
 
-constexpr int boardSize{ 64 };
-constexpr int fileSize{ 8 };
-constexpr int rankSize{ 8 };
-constexpr int maxSearchDepth{ 50 };
+
+
+static constexpr int boardSize{ 64 };
+static constexpr int fileSize{ 8 };
+static constexpr int rankSize{ 8 };
+static constexpr int maxSearchDepth{ 50 };
 
 #define cachealign alignas(std::hardware_destructive_interference_size)
 
@@ -32,49 +34,13 @@ enum class Piece : std::uint32_t
 	BlackKing = 12
 };
 
-constexpr int pieceCount{ 13 };
-constexpr int whitePieceOffset{ 1 };
-constexpr int blackPieceOffset{ 7 };
 
-//TODO: maybe move to its own header file?
-enum class Castle : std::uint8_t //if you change type rememember to change operators
-{
-	WhiteKingSide	= 0b0001,
-	WhiteQueenSide	= 0b0010,
-	BlackKingSide	= 0b0100,
-	BlackQueenSide	= 0b1000,
-	WhiteBoth		= 0b0011,
-	BlackBoth		= 0b1100,
-	All				= 0b1111,
-	None			= 0b0000
-};
 
-constexpr Castle operator& (Castle lhs, Castle rhs) noexcept
-{
-	return static_cast<Castle>(static_cast<std::uint8_t>(lhs) & static_cast<std::uint8_t>(rhs));
-}
+static constexpr int pieceCount{ 13 };
+static constexpr int whitePieceOffset{ 1 };
+static constexpr int blackPieceOffset{ 7 };
 
-constexpr Castle operator^ (Castle lhs, Castle rhs) noexcept
-{
-	return static_cast<Castle>(static_cast<std::uint8_t>(lhs) ^ static_cast<std::uint8_t>(rhs));
-}
 
-constexpr Castle operator~ (Castle c) noexcept
-{
-	return static_cast<Castle>(~static_cast<std::uint8_t>(c));
-}
-
-constexpr Castle& operator&= (Castle& lhs, Castle rhs) noexcept
-{
-	lhs = lhs & rhs;
-	return lhs;
-}
-
-constexpr Castle& operator^= (Castle& lhs, Castle rhs) noexcept
-{
-	lhs = lhs ^ rhs;
-	return lhs;
-}
 
 enum Square
 {

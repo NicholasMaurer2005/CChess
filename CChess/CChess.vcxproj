@@ -403,6 +403,7 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
+    <ClInclude Include="Castle.hpp" />
     <ClInclude Include="CChess.h" />
     <ClInclude Include="ChessConstants.hpp" />
     <ClInclude Include="Engine.h" />
@@ -410,7 +411,7 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
     <ClInclude Include="KillerMoveHistory.h" />
     <ClInclude Include="Move.h" />
     <ClInclude Include="MoveGen.h" />
-    <ClInclude Include="MoveList.h" />
+    <ClInclude Include="MoveList.hpp" />
     <ClInclude Include="PreGen.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="ThreadPool.h" />

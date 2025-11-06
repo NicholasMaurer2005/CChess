@@ -40,6 +40,7 @@ private:
 	SearchInfo m_info;
 	MoveList m_legalMoves;
 	Move m_lastMove;
+	std::array<char, 64> m_charPosition;
 
 	//search
 	bool m_gameOver;
@@ -85,7 +86,7 @@ public:
 
 	Move search() noexcept;
 
-	std::string getCharPosition() const noexcept;
+	const char* getCharPosition() noexcept;
 
 	int searchMilliseconds() const noexcept;
 

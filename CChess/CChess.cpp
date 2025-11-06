@@ -62,15 +62,9 @@ CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT
 	return data;
 }
 
-CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT
+const char* engine_get_char_position() CCHESS_NOEXCEPT
 {
-	const std::string position{ engine->getCharPosition() };
-	
-	const std::size_t length{ position.length() + 1 };
-	char* data{ new char[length] };
-	std::memcpy(data, position.data(), length);
-
-	return data;
+	return engine->getCharPosition();
 }
 
 void engine_set_search_milliseconds(int milliseconds) CCHESS_NOEXCEPT

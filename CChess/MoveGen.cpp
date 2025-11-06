@@ -40,7 +40,6 @@ static BitBoard pawnEnpassantsMask(BitBoard pawns) noexcept
 	return BitBoard(pawns.board() & mask);
 }
 
-//TODO: maybe check if any bitboards are empty before further logic
 template<bool white>
 static BitBoard pawnShiftedMoves(BitBoard pawns, std::uint64_t mask) noexcept
 {
@@ -102,10 +101,10 @@ static void pawnPromotes(BitBoard pawns, MoveList& moveList, const State& state)
 }
 
 template<bool white>
-static void pawnDoubles(BitBoard pawns, MoveList& moveList, const State& state) noexcept //TODO: maybe keep track of when there are no more pawns on that rank?
+static void pawnDoubles(BitBoard pawns, MoveList& moveList, const State& state) noexcept 
 {
 	const std::uint64_t mask{ ~state.occupancy().board() };
-	const BitBoard pawnsShiftedOnce{ pawnShiftedMoves<white>(pawns, mask) }; //TODO: maybe exit early?
+	const BitBoard pawnsShiftedOnce{ pawnShiftedMoves<white>(pawns, mask) }; 
 	BitBoard pawnsShiftedTwice{ pawnShiftedMoves<white>(pawnsShiftedOnce, mask) };
 
 	while (pawnsShiftedTwice.board())
@@ -123,16 +122,14 @@ static void pawnEnpassants(BitBoard pawns, MoveList& moveList, const State& stat
 	constexpr Piece sourcePiece{ white ? Piece::WhitePawn : Piece::BlackPawn };
 	constexpr Piece attackPiece{ white ? Piece::BlackPawn : Piece::WhitePawn };
 
-	const BitBoard enpassantSquare{ state.enpassantSquare() }; //TODO: remove I am lazy atm
-
-	if (!enpassantSquare.board()) [[likely]] return; //TODO: test if [[likely]] is faster
+	if (!state.enpassantSquare().board()) return;
 
 	while (pawns.board())
 	{
 		const int sourceIndex{ pawns.popLeastSignificantBit() };
 		BitBoard attacks{ white
-			? preGen.whitePawnAttack(sourceIndex).board() & enpassantSquare.board()
-			: preGen.blackPawnAttack(sourceIndex).board() & enpassantSquare.board() };
+			? preGen.whitePawnAttack(sourceIndex).board() & state.enpassantSquare().board()
+			: preGen.blackPawnAttack(sourceIndex).board() & state.enpassantSquare().board() };
 		
 		while (attacks.board())
 		{
@@ -360,7 +357,7 @@ static void rookMoves(BitBoard rooks, MoveList& moveList, const State& state) no
 }
 
 template<bool white>
-static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) noexcept //TODO: maybe make no loop for queen? always one queen per side
+static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) noexcept
 {
 	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
 
@@ -452,16 +449,14 @@ static void pawnEnpassants(BitBoard pawns, CaptureList& captureList, const State
 	constexpr Piece sourcePiece{ white ? Piece::WhitePawn : Piece::BlackPawn };
 	constexpr Piece attackPiece{ white ? Piece::BlackPawn : Piece::WhitePawn };
 
-	const BitBoard enpassantSquare{ state.enpassantSquare() }; //TODO: remove I am lazy atm
-
-	if (!enpassantSquare.board()) [[likely]] return; //TODO: test if [[likely]] is faster
+	if (!state.enpassantSquare().board()) return;
 
 	while (pawns.board())
 	{
 		const int sourceIndex{ pawns.popLeastSignificantBit() };
 		BitBoard attacks{ white
-			? preGen.whitePawnAttack(sourceIndex).board() & enpassantSquare.board()
-			: preGen.blackPawnAttack(sourceIndex).board() & enpassantSquare.board() };
+			? preGen.whitePawnAttack(sourceIndex).board() & state.enpassantSquare().board()
+			: preGen.blackPawnAttack(sourceIndex).board() & state.enpassantSquare().board() };
 
 		while (attacks.board())
 		{
@@ -563,7 +558,7 @@ static void rookCaptures(BitBoard rooks, CaptureList& captureList, const State& 
 }
 
 template<bool white>
-static void queenCaptures(BitBoard queens, CaptureList& captureList, const State& state) noexcept //TODO: maybe make no loop for queen? always one queen per side
+static void queenCaptures(BitBoard queens, CaptureList& captureList, const State& state) noexcept 
 {
 	constexpr Piece queen{ white ? Piece::WhiteQueen : Piece::BlackQueen };
 
@@ -589,7 +584,7 @@ CaptureList MoveGen::generateCaptures(bool white, const State& state) const noex
 {
 	CaptureList captureList;
 
-	if (white) //TODO: maybe remove if statement and make template?
+	if (white) 
 	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
 		pawnCaptures<true>(state.pieceOccupancyT<Piece::WhitePawn>(), captureList, state);
 		knightCaptures<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), captureList, state);
@@ -620,7 +615,7 @@ MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
 {
 	MoveList moveList;
 	
-	if (white) //TODO: maybe remove if statement and make template?
+	if (white)
 	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
 		pawnMoves<true>(state.pieceOccupancyT<Piece::WhitePawn>(), moveList, state);
 		knightMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);

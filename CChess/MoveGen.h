@@ -3,7 +3,7 @@
 #include "State.h"
 #include "MoveList.h"
 
-class MoveGen //TODO: make this a namespace and have all functions static?
+class MoveGen
 {
 
 public:

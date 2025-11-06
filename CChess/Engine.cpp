@@ -520,6 +520,8 @@ const char* Engine::getCharPosition() noexcept
 {
 	constexpr std::array<char, pieceCount> pieceToChar{ ' ', 'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k' };
 
+	m_charPosition.fill(' ');
+
 	for (std::uint32_t i{ whitePieceOffset }; i < pieceCount; ++i)
 	{
 		BitBoard occupancy{ m_state.pieceOccupancy(static_cast<Piece>(i)) };
@@ -587,6 +589,8 @@ void Engine::setStartState() noexcept
 bool Engine::makeMove(int source, int destination) noexcept
 {
 	const Move castleMove{ getCastleMove(source, destination) };
+
+	std::cout << m_legalMoves.size();
 
 	const auto it{ std::find_if(m_legalMoves.begin(), m_legalMoves.end(), [source, destination, castleMove](Move move) {
 		   return (move.sourceIndex() == source && move.destinationIndex() == destination) || (move.move() == castleMove.move());

@@ -73,6 +73,42 @@ public:
 
 	MoveListT() noexcept : m_back(m_moves.begin()) {}
 
+
+
+	MoveListT(const MoveListT& other) noexcept
+		: m_back(), m_moves(other.m_moves)
+	{
+		const std::ptrdiff_t backIndex{ other.m_back - other.m_moves.begin() };
+		m_back = m_moves.begin() + backIndex;
+	}
+
+	MoveListT(const MoveListT&& other) noexcept
+		: m_back(), m_moves(other.m_moves)
+	{
+		const std::ptrdiff_t backIndex{ other.m_back - other.m_moves.begin() };
+		m_back = m_moves.begin() + backIndex;
+	}
+
+	MoveListT& operator=(const MoveListT& other) noexcept
+	{
+		m_moves = other.m_moves;
+		const std::ptrdiff_t backIndex{ other.m_back - other.m_moves.begin() };
+		m_back = m_moves.begin() + backIndex;
+
+		return *this;
+	}
+
+	MoveListT& operator=(const MoveListT&& other) noexcept
+	{
+		m_moves = other.m_moves;
+		const std::ptrdiff_t backIndex{ other.m_back - other.m_moves.begin() };
+		m_back = m_moves.begin() + backIndex;
+
+		return *this;
+	}
+
+
+
 	std::size_t size() const noexcept 
 	{
 		return m_back - m_moves.begin();

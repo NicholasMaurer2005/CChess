@@ -32,8 +32,8 @@ void CChessGUI::moveCallback(int source, int destination) noexcept
 
 void CChessGUI::bufferPosition() noexcept
 {
-	std::unique_ptr<const char> position{ engine_get_char_position() };
-	m_window.bufferPieces(false, std::span(position.get(), 64));
+	const char* position{ engine_get_char_position() };
+	m_window.bufferPieces(false, std::span(position, 64));
 	m_window.draw();
 }
 

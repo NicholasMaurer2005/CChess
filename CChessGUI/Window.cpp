@@ -18,6 +18,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "ImGui.h"
+
 
 
 //helper structs
@@ -440,6 +442,8 @@ Window::Window(int width, int height, MoveCallback moveCallback) noexcept
 {
 	initGLFW();
 
+	init(m_window);
+
 	initBoardShader();
 	initBoardBuffer();
 	initBoardTexture();
@@ -496,9 +500,13 @@ void Window::draw() noexcept
 	//render
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	newframe();
+
 	drawBoard();
 	drawPieces();
 	drawDrag();
+
+	render();
 
 	glfwSwapBuffers(m_window);
 	glfwPollEvents();
@@ -557,16 +565,6 @@ int Window::height() const noexcept
 
 
 //setters
-void Window::setWindowUser(void* user) noexcept
-{
-	glfwSetWindowUserPointer(m_window, user);
-}
-
-void Window::setMoveCallback(MoveCallback callback) noexcept
-{
-	m_moveCallback = callback;
-}
-
 void Window::setWidth(int width) noexcept
 {
 	m_width = width;

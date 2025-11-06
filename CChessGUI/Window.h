@@ -138,10 +138,6 @@ public:
 
 
 	//setters
-	void setWindowUser(void* user) noexcept;
-
-	void setMoveCallback(MoveCallback callback) noexcept;
-
 	void setWidth(int width) noexcept;
 
 	void setHeight(int height) noexcept;

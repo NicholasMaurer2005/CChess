@@ -580,13 +580,15 @@ void Window::setHeight(int height) noexcept
 
 
 //buffer
+
+//in global space to remove initialization guard
+static std::array<Pixel, boardSize> whiteBoard{ generateBoardTexture<true>() };
+static std::array<Pixel, boardSize> blackBoard{ generateBoardTexture<false>() };
+
 void Window::bufferBoard(bool flipped, int source, int destination) const noexcept
 {
-	static constexpr Pixel lightMoveColor{ 245, 245, 104, 255 };
-	static constexpr Pixel darkMoveColor{ 187, 202, 39, 255 };
-
-	static std::array<Pixel, boardSize> whiteBoard{ generateBoardTexture<true>() };
-	static std::array<Pixel, boardSize> blackBoard{ generateBoardTexture<false>() };
+	static constexpr Pixel darkMoveColor{ 137, 207, 240, 255 };
+	static constexpr Pixel lightMoveColor{ 115, 157, 179, 255 };
 
 	const bool sourceLight{ (source / rankSize + source % fileSize) % 2 == 0 };
 	const bool destinationLight{ (destination / rankSize + destination % fileSize) % 2 == 0 };

@@ -589,9 +589,7 @@ void Engine::setStartState() noexcept
 bool Engine::makeMove(int source, int destination) noexcept
 {
 	const Move castleMove{ getCastleMove(source, destination) };
-
-	std::cout << m_legalMoves.size();
-
+	
 	const auto it{ std::find_if(m_legalMoves.begin(), m_legalMoves.end(), [source, destination, castleMove](Move move) {
 		   return (move.sourceIndex() == source && move.destinationIndex() == destination) || (move.move() == castleMove.move());
 	   }) };

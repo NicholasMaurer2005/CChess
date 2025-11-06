@@ -25,6 +25,7 @@ void CChessGUI::moveCallback(int source, int destination) noexcept
 	if (engine_move(source, destination))
 	{
 		m_whiteToMove = false;
+		m_window.bufferBoard(false, source, destination);
 	}
 
 	bufferPosition();
@@ -52,6 +53,11 @@ void CChessGUI::play() noexcept
 			int evaluation{};
 			engine_search_info(&depth, &evaluation);
 			std::cout << std::format("depth: {}, evaluation: {}\n", depth, evaluation);
+
+			int source{};
+			int destination{};
+			engine_get_last_move(&source, &destination);
+			m_window.bufferBoard(false, source, destination);
 
 			bufferPosition();
 			m_whiteToMove = true;

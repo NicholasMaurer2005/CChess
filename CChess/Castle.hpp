@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 
 enum class Castle : std::uint8_t //if you change type rememember to change operators

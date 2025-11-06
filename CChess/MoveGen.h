@@ -1,7 +1,7 @@
 #pragma once
 
 #include "State.h"
-#include "MoveList.h"
+#include "MoveList.hpp"
 
 class MoveGen
 {

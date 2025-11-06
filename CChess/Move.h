@@ -6,6 +6,7 @@
 #include <string>
 
 #include "ChessConstants.hpp"
+#include "Castle.hpp"
 
 
 

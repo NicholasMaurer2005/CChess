@@ -32,10 +32,9 @@ extern "C" {
 	CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT;
 
 	//return engine position as a char[64] array. this matches the chess board with each piece 
-	//represented with a letter, e.g. 'P' for white pawn, 'r' for black rook. no-piece is represented
-	// by ' '. the engine is not responsible for freeing the memory of the returned const char*
-	//TODO: maybe find a better way? with my gui this will have 3 allocations and 2 copies of the data
-	CCHESS_NODISCARD const char* engine_get_char_position() CCHESS_NOEXCEPT;
+	//represented with a letter, e.g. 'P' for white pawn, 'r' for black rook. no-piece is represented by ' '.
+	//this returns a pointer to memory owned by the engine, it does not need to be freed.
+	const char* engine_get_char_position() CCHESS_NOEXCEPT;
 
 	void engine_set_search_milliseconds(int milliseconds) CCHESS_NOEXCEPT;
 

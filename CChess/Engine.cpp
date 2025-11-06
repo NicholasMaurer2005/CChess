@@ -13,7 +13,7 @@
 #include <cassert>
 #include <string_view>
 
-#include "MoveList.h"
+#include "MoveList.hpp"
 #include "Move.h"
 #include "Evaluate.h"
 #include "Castle.hpp"

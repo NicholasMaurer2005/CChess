@@ -8,7 +8,7 @@
 
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
-#include "MoveList.h"
+#include "MoveList.hpp"
 
 enum class MoveType : std::uint8_t
 {

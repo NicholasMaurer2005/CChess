@@ -8,15 +8,6 @@
 #include <format>
 
 
-//constants
-constexpr int defaultWindowWidth{ 1000 };
-constexpr int defaultWindowHeight{ 1000 };
-
-
-
-//static helpers
-
-
 
 /* Private Methods */
 
@@ -73,7 +64,7 @@ void CChessGUI::play() noexcept
 
 //constructor
 CChessGUI::CChessGUI() noexcept
-	: m_window(defaultWindowWidth, defaultWindowHeight, [this](int width, int height) { this->moveCallback(width, height); }), 
+	: m_window([this](int width, int height) { this->moveCallback(width, height); }), 
 	m_newPosition(true), m_whiteToMove(true)
 {
 	engine_create();

@@ -26,6 +26,7 @@ private:
 	GLFWwindow* m_window;
 	int m_width;
 	int m_height;
+	float m_aspectRatio;
 	alignas(64) std::array<char, boardSize> m_position;
 	std::chrono::high_resolution_clock::time_point m_lastTime;
 	MoveCallback m_moveCallback;
@@ -111,13 +112,14 @@ private:
 	void drawImGui() const noexcept;
 
 
+
 //public methods
 public:
 
 
 
 	//constructors
-	Window(int width, int height, MoveCallback moveCallback) noexcept;
+	Window(MoveCallback moveCallback) noexcept;
 
 	~Window() noexcept;
 
@@ -133,20 +135,6 @@ public:
 	void startDragging() noexcept;
 
 	void stopDragging() noexcept;
-
-
-
-	//getters
-	int width() const noexcept;
-
-	int height() const noexcept;
-
-
-
-	//setters
-	void setWidth(int width) noexcept;
-
-	void setHeight(int height) noexcept;
 
 
 

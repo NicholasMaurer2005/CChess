@@ -303,7 +303,6 @@
     <ClInclude Include="CChessGUI.h" />
     <ClInclude Include="dragFragment.hpp" />
     <ClInclude Include="dragVertex.hpp" />
-    <ClInclude Include="ImGui.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_glfw.h" />

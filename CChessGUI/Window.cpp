@@ -18,9 +18,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "ImGui.h"
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_glfw.h"
+#include "ImGui/imgui_impl_opengl3.h"
 
 
+
+/* Static Helpers */
 
 //helper structs
 struct alignas(4) Pixel
@@ -39,8 +43,6 @@ struct alignas(64) Square
 };
 
 
-
-/* Static Helpers */
 
 //constants
 static constexpr int rankSize{ 8 };
@@ -372,6 +374,23 @@ void Window::initDragBuffer() noexcept
 
 
 
+//init ImGui
+void Window::initImGui() noexcept
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = nullptr;
+	io.LogFilename = nullptr;
+
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+}
+
+
+
 //buffer drag
 void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
 {
@@ -425,6 +444,20 @@ void Window::drawDrag() const noexcept
 	}
 }
 
+void Window::drawImGui() const noexcept
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("proof of concept");
+	ImGui::Text("I am terrible at chess");
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 
 
 /* Public Methods */
@@ -442,8 +475,6 @@ Window::Window(int width, int height, MoveCallback moveCallback) noexcept
 {
 	initGLFW();
 
-	init(m_window);
-
 	initBoardShader();
 	initBoardBuffer();
 	initBoardTexture();
@@ -454,6 +485,8 @@ Window::Window(int width, int height, MoveCallback moveCallback) noexcept
 
 	initDragShader();
 	initDragBuffer();
+
+	initImGui();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -466,6 +499,7 @@ Window::~Window() noexcept
 	glDeleteTextures(1, &m_boardTexture);
 	glDeleteBuffers(1, &m_boardBuffer);
 	glDeleteVertexArrays(1, &m_boardVAO);
+	glDeleteBuffers(1, &m_boardEBO);
 
 	//pieces cleanup
 	glDeleteProgram(m_piecesShader);
@@ -473,6 +507,17 @@ Window::~Window() noexcept
 	glDeleteBuffers(1, &m_piecesBuffer);
 	glDeleteVertexArrays(1, &m_piecesVAO);
 	glDeleteBuffers(1, &m_piecesEBO);
+
+	//dragging cleanup
+	glDeleteProgram(m_dragShader);
+	glDeleteBuffers(1, &m_dragBuffer);
+	glDeleteVertexArrays(1, &m_dragVAO);
+	glDeleteBuffers(1, &m_dragEBO);
+
+	//ImGui cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	//GLFW cleanup
 	glfwDestroyWindow(m_window);
@@ -500,13 +545,10 @@ void Window::draw() noexcept
 	//render
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	newframe();
-
 	drawBoard();
 	drawPieces();
 	drawDrag();
-
-	render();
+	drawImGui();
 
 	glfwSwapBuffers(m_window);
 	glfwPollEvents();

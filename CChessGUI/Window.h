@@ -91,6 +91,11 @@ private:
 
 
 
+	//init ImGui
+	void initImGui() noexcept;
+
+
+
 	//buffer drag
 	void bufferDragPiece(std::size_t pieceIndex) noexcept;
 
@@ -103,6 +108,7 @@ private:
 
 	void drawDrag() const noexcept;
 
+	void drawImGui() const noexcept;
 
 
 //public methods

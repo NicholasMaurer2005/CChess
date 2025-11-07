@@ -24,6 +24,10 @@ private:
 
 	void bufferPosition() noexcept;
 
+	void moveBack() noexcept;
+
+	void moveForward() noexcept;
+
 
 
 //public methods

@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <atomic>
+#include <vector>
 
 #include "ChessConstants.hpp"
 #include "MoveGen.h"
@@ -28,6 +29,12 @@ private:
 		int score;
 	};
 
+	struct PositionHistroy
+	{
+		State state;
+		Move move;
+	};
+
 
 
 //private properties
@@ -47,6 +54,10 @@ private:
 	std::atomic_bool m_stopSearch;
 	KillerMoveHistory m_killerMoves;
 	int m_searchMilliseconds;
+
+	//history
+	std::vector<PositionHistroy> m_history;
+	std::size_t m_historyPosition;
 
 
 
@@ -69,6 +80,8 @@ private:
 	ScoredMove searchStart(bool white, int depth) noexcept;
 
 	void benchmarkRun(const State& state, std::uint64_t& nodes, std::atomic_bool& stopping, bool white, int depth) noexcept;
+
+	void recordState(Move move) noexcept;
 
 
 
@@ -110,6 +123,10 @@ public:
 	void engineMove(bool white) noexcept;
 
 	void engineMove() noexcept;
+
+	Move moveBack() noexcept;
+
+	Move moveForward() noexcept;
 
 
 	

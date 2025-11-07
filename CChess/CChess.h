@@ -44,6 +44,16 @@ extern "C" {
 
 	void engine_benchmark(double seconds) CCHESS_NOEXCEPT;
 
+	//move engine state back 1 move, write the move source to 'source', and write the move destination
+	//to 'destination'. if the current position is already the start position then nothing will happen 
+	//and 'source' and 'destination' will be 0
+	void engine_move_back(int* source, int* destination) CCHESS_NOEXCEPT;
+
+	//move engine state forward 1 move, write the move source to 'source', and write the move destination
+	//to 'destination'. if the current position is the most recent position then nothing will happen and
+	//'source' and 'destination' will reflect the most recent move
+	void engine_move_forward(int* source, int* destination) CCHESS_NOEXCEPT;
+
 
 
 	/* SEARCH */

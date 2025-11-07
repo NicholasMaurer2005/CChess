@@ -472,12 +472,12 @@ void Window::drawImGui() const noexcept
 
 	if (ImGui::Button("Back"))
 	{
-		std::cout << "Take Back\n";
+		m_moveBackCallback();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Forward"))
 	{
-		std::cout << "Take Back\n";
+		m_moveForwardCallback();
 	}
 
 	ImGui::End();
@@ -491,9 +491,11 @@ void Window::drawImGui() const noexcept
 /* Public Methods */
 
 //constructors
-Window::Window(MoveCallback moveCallback) noexcept
+Window::Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept
 	//window
-	: m_window(), m_width(minimumWindowWidth), m_height(minimumWindowHeight), m_aspectRatio(minimumAspectRatio), m_position(), m_lastTime(std::chrono::high_resolution_clock::now()), m_moveCallback(moveCallback),
+	: m_window(), m_width(minimumWindowWidth), m_height(minimumWindowHeight), m_aspectRatio(minimumAspectRatio), m_position(), m_lastTime(std::chrono::high_resolution_clock::now()), 
+	//callbacks
+	m_moveCallback(moveCallback), m_moveBackCallback(moveBackCallback), m_moveForwardCallback(moveForwardCallback),
 	//board
 	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(), m_boardEBO(),
 	//pieces

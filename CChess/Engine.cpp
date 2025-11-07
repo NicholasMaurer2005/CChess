@@ -132,14 +132,18 @@ static Move getCastleMove(int sourceSquare, int destinationSquare)
 //constructor
 Engine::Engine() noexcept :
 	//engine
-	 m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(), m_lastMove(), m_charPosition(),
+	m_moveGen(), m_state(startState), m_whiteToMove(true), m_info(), m_legalMoves(), m_lastMove(), m_charPosition(),
 	//search
-	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds)
+	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds),
+	//history
+	m_history(), m_historyPosition()
 {
 	findWhiteSquares(m_state);
 	findBlackSquares(m_state);
 
 	m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
+	m_history.reserve(50);
+	m_history.push_back({ m_state, Move(0) });
 }
 
 
@@ -457,6 +461,18 @@ void Engine::benchmarkRun(const State& state, std::uint64_t& nodes, std::atomic_
 	}
 }
 
+void Engine::recordState(Move move) noexcept
+{
+	//check if player made a move on a state that isnt the most recent
+	if (m_historyPosition + 1 != m_history.size())
+	{
+		m_history.resize(m_historyPosition + 1);
+	}
+
+	m_history.push_back({ m_state, move });
+	++m_historyPosition;
+}
+
 
 
 //getters
@@ -604,6 +620,8 @@ bool Engine::makeMove(int source, int destination) noexcept
 		m_whiteToMove = !m_whiteToMove;
 		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
 		m_lastMove = move;
+
+		recordState(move);
 		
 		return true;
 	}
@@ -628,12 +646,36 @@ void Engine::engineMove(bool white) noexcept
 		m_whiteToMove = !m_whiteToMove;
 		m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
 		m_lastMove = bestMove;
+
+		recordState(bestMove);
 	}
 }
 
 void Engine::engineMove() noexcept
 {
 	engineMove(m_whiteToMove);
+}
+
+Move Engine::moveBack() noexcept
+{
+	if (m_historyPosition > 0)
+	{
+		--m_historyPosition;
+		m_state = m_history[m_historyPosition].state;
+	}
+
+	return m_history[m_historyPosition].move;
+}
+
+Move Engine::moveForward() noexcept
+{
+	if (m_historyPosition < m_history.size())
+	{
+		++m_historyPosition;
+		m_state = m_history[m_historyPosition].state;
+	}
+
+	return m_history[m_historyPosition].move;
 }
 
 

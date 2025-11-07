@@ -22,6 +22,26 @@ void CChessGUI::moveCallback(int source, int destination) noexcept
 	bufferPosition();
 }
 
+void CChessGUI::moveBack() noexcept
+{
+	int source{};
+	int destination{};
+
+	engine_move_back(&source, &destination);
+	m_window.bufferBoard(false, source, destination);
+	m_newPosition = true;
+}
+
+void CChessGUI::moveForward() noexcept
+{
+	int source{};
+	int destination{};
+
+	engine_move_forward(&source, &destination);
+	m_window.bufferBoard(false, source, destination);
+	m_newPosition = true;
+}
+
 void CChessGUI::bufferPosition() noexcept
 {
 	const char* position{ engine_get_char_position() };
@@ -36,6 +56,12 @@ void CChessGUI::play() noexcept
 
 	while (m_window.open())
 	{
+		if (m_newPosition)
+		{
+			bufferPosition();
+			m_window.draw();
+		}
+
 		if (!m_whiteToMove)
 		{
 			engine_search_and_move();
@@ -64,7 +90,11 @@ void CChessGUI::play() noexcept
 
 //constructor
 CChessGUI::CChessGUI() noexcept
-	: m_window([this](int width, int height) { this->moveCallback(width, height); }), 
+	: m_window(
+		[this](int width, int height) { this->moveCallback(width, height); },
+		[this]() { this->moveBack(); },
+		[this]() { this->moveForward(); }
+	), 
 	m_newPosition(true), m_whiteToMove(true)
 {
 	engine_create();

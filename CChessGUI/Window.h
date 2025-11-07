@@ -16,6 +16,7 @@ constexpr int boardSize{ 64 };
 using MoveCallback = std::function<void(int source, int destination)>;
 
 
+
 class Window
 {
 
@@ -29,7 +30,12 @@ private:
 	float m_aspectRatio;
 	alignas(64) std::array<char, boardSize> m_position;
 	std::chrono::high_resolution_clock::time_point m_lastTime;
+
+	//callbacks
 	MoveCallback m_moveCallback;
+	std::function<void()> m_moveBackCallback;
+	std::function<void()> m_moveForwardCallback;
+
 
 	//board
 	GLuint m_boardShader;
@@ -119,7 +125,7 @@ public:
 
 
 	//constructors
-	Window(MoveCallback moveCallback) noexcept;
+	Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept;
 
 	~Window() noexcept;
 

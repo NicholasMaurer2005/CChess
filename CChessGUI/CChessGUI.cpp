@@ -60,6 +60,7 @@ void CChessGUI::play() noexcept
 		{
 			bufferPosition();
 			m_window.draw();
+			m_newPosition = false;
 		}
 
 		if (!m_whiteToMove)

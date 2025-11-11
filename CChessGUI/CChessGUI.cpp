@@ -10,7 +10,7 @@
 
 
 static constexpr int noPiece{ 64 };
-static constexpr bool flipped{ true };
+static constexpr bool flipped{ false };
 
 
 /* Private Methods */
@@ -59,7 +59,7 @@ void CChessGUI::play() noexcept
 
 		if (!m_whiteToMove)
 		{
-			engine_search_and_move();
+			//engine_search_and_move();
 			m_newPosition = true;
 			m_whiteToMove = true;
 		}

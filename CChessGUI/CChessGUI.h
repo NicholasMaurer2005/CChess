@@ -12,6 +12,8 @@ private:
 	Window m_window;
 	bool m_newPosition;
 	bool m_whiteToMove;
+	int m_sourceIndex;
+	int m_destinationIndex;
 
 
 
@@ -20,14 +22,14 @@ private:
 
 	void play() noexcept;
 
-	void moveCallback(int source, int destination) noexcept;
-
 	void bufferPosition() noexcept;
 
-	void moveBack() noexcept;
+	//callbacks
+	void moveCallback(int source, int destination) noexcept;
 
-	void moveForward() noexcept;
+	void moveBackCallback() noexcept;
 
+	void moveForwardCallback() noexcept;
 
 
 //public methods

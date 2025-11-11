@@ -209,7 +209,7 @@ void engine_move_back(int* source, int* destination) CCHESS_NOEXCEPT
 {
 	if (engine)
 	{
-		const Move move{ engine->moveBack() };
+		const Move move{ engine->moveBackCallback() };
 		*source = move.sourceIndex();
 		*destination = move.destinationIndex();
 	}
@@ -219,7 +219,7 @@ void engine_move_forward(int* source, int* destination) CCHESS_NOEXCEPT
 {
 	if (engine)
 	{
-		const Move move{ engine->moveBack() };
+		const Move move{ engine->moveBackCallback() };
 		*source = move.sourceIndex();
 		*destination = move.destinationIndex();
 	}

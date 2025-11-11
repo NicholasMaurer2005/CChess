@@ -658,39 +658,22 @@ static std::array<Pixel, boardSize> blackBoard{ generateBoardTexture<false>() };
 
 void Window::bufferBoard(bool flipped, int source, int destination) const noexcept
 {
-	static constexpr Pixel darkMoveColor{ 137, 207, 240, 255 };
-	static constexpr Pixel lightMoveColor{ 115, 157, 179, 255 };
-
-	const bool sourceLight{ (source / rankSize + source % fileSize) % 2 == 0 };
-	const bool destinationLight{ (destination / rankSize + destination % fileSize) % 2 == 0 };
-
-	if (flipped)
+	if (source != 64 && destination != 64)
 	{
-		const Pixel originalSourceColor{ blackBoard[source] };
-		const Pixel originalDestinationColor{ blackBoard[destination] };
+		static constexpr Pixel lightMoveColor{ 137, 207, 240, 255 };
+		static constexpr Pixel darkMoveColor{ 115, 157, 179, 255 };
 
-		blackBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
-		blackBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
-
-		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, blackBoard.data());
-
-		blackBoard[source] = originalSourceColor;
-		blackBoard[destination] = originalDestinationColor;
-	}
-	else
-	{ 
-		const Pixel originalSourceColor{ whiteBoard[source] };
-		const Pixel originalDestinationColor{ whiteBoard[destination] };
-
-		whiteBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
-		whiteBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
+		std::array<Pixel, boardSize>& board{ flipped ? whiteBoard : blackBoard };
+		const Pixel sourceOrigional{ board[source] };
+		const Pixel destinationOrigional{ board[destination] };
+		board[source] = darkMoveColor;
+		board[destination] = lightMoveColor;
 
 		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, whiteBoard.data());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fileSize, rankSize, 1, 0, GL_UNSIGNED_BYTE, board.data());
 
-		whiteBoard[source] = originalSourceColor;
-		whiteBoard[destination] = originalDestinationColor;
+		board[source] = sourceOrigional;
+		board[destination] = destinationOrigional;
 	}
 }
 

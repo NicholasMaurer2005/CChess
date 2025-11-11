@@ -9,6 +9,10 @@
 
 
 
+static constexpr int noPiece{ 64 };
+static constexpr bool flipped{ true };
+
+
 /* Private Methods */
 
 void CChessGUI::moveCallback(int source, int destination) noexcept
@@ -16,72 +20,49 @@ void CChessGUI::moveCallback(int source, int destination) noexcept
 	if (engine_move(source, destination))
 	{
 		m_whiteToMove = false;
-		m_window.bufferBoard(false, source, destination);
+		m_sourceIndex = source;
+		m_destinationIndex = destination;
 	}
 
-	bufferPosition();
-}
-
-void CChessGUI::moveBack() noexcept
-{
-	int source{};
-	int destination{};
-
-	engine_move_back(&source, &destination);
-	m_window.bufferBoard(false, source, destination);
 	m_newPosition = true;
 }
 
-void CChessGUI::moveForward() noexcept
+void CChessGUI::moveBackCallback() noexcept
 {
-	int source{};
-	int destination{};
+	engine_move_back(&m_sourceIndex, &m_destinationIndex);
+	m_newPosition = true;
+}
 
-	engine_move_forward(&source, &destination);
-	m_window.bufferBoard(false, source, destination);
+void CChessGUI::moveForwardCallback() noexcept
+{
+	engine_move_forward(&m_sourceIndex, &m_destinationIndex);
 	m_newPosition = true;
 }
 
 void CChessGUI::bufferPosition() noexcept
 {
 	const char* position{ engine_get_char_position() };
-	m_window.bufferPieces(false, std::span(position, 64));
-	m_window.draw();
+	m_window.bufferPieces(flipped, std::span(position, 64));
 }
 
 void CChessGUI::play() noexcept
 {
-	engine_set_search_milliseconds(500);
-	bufferPosition();
-
 	while (m_window.open())
 	{
 		if (m_newPosition)
 		{
 			bufferPosition();
-			m_window.draw();
-			m_newPosition = false;
+			m_window.bufferBoard(flipped, m_sourceIndex, m_destinationIndex);
 		}
+
+		m_window.draw();
 
 		if (!m_whiteToMove)
 		{
 			engine_search_and_move();
-
-			int depth{};
-			int evaluation{};
-			engine_search_info(&depth, &evaluation);
-			std::cout << std::format("depth: {}, evaluation: {}\n", depth, evaluation);
-
-			int source{};
-			int destination{};
-			engine_get_last_move(&source, &destination);
-			m_window.bufferBoard(false, source, destination);
-
-			bufferPosition();
+			m_newPosition = true;
 			m_whiteToMove = true;
 		}
-
-		m_window.draw();
 	}
 }
 
@@ -93,12 +74,14 @@ void CChessGUI::play() noexcept
 CChessGUI::CChessGUI() noexcept
 	: m_window(
 		[this](int width, int height) { this->moveCallback(width, height); },
-		[this]() { this->moveBack(); },
-		[this]() { this->moveForward(); }
+		[this]() { this->moveBackCallback(); },
+		[this]() { this->moveForwardCallback(); }
 	), 
-	m_newPosition(true), m_whiteToMove(true)
+	m_newPosition(true), m_whiteToMove(true), m_sourceIndex(noPiece), m_destinationIndex(noPiece)
 {
 	engine_create();
+	engine_set_search_milliseconds(500);
+
 	play();
 }
 

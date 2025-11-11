@@ -656,7 +656,7 @@ void Engine::engineMove() noexcept
 	engineMove(m_whiteToMove);
 }
 
-Move Engine::moveBack() noexcept
+Move Engine::moveBackCallback() noexcept
 {
 	if (m_historyPosition > 0)
 	{
@@ -667,7 +667,7 @@ Move Engine::moveBack() noexcept
 	return m_history[m_historyPosition].move;
 }
 
-Move Engine::moveForward() noexcept
+Move Engine::moveForwardCallback() noexcept
 {
 	if (m_historyPosition < m_history.size())
 	{

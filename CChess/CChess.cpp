@@ -224,3 +224,54 @@ void engine_move_forward(int* source, int* destination) CCHESS_NOEXCEPT
 		*destination = move.destinationIndex();
 	}
 }
+
+void engine_search_async() CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		engine->startAsyncSearch();
+	}
+}
+
+void engine_stop_search_async() CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		engine->stopAsyncSearch();
+	}
+}
+
+int engine_get_asynce_done(int* source, int* destination) CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		Move move{ 0 };
+
+		if (engine->getAsyncDone(move))
+		{
+			*source = move.sourceIndex();
+			*destination = move.destinationIndex();
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int engine_get_async_search_stats() CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}

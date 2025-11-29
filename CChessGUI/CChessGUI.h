@@ -14,6 +14,7 @@ private:
 	bool m_whiteToMove;
 	int m_sourceIndex;
 	int m_destinationIndex;
+	bool m_searching;
 
 
 

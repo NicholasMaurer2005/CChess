@@ -77,6 +77,15 @@ extern "C" {
 	//get the depth and evaluation of the last choice. 
 	void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT;
 
+	//start an async search();
+	void engine_search_async() CCHESS_NOEXCEPT;
+
+	void engine_stop_search_async() CCHESS_NOEXCEPT;
+
+	int engine_get_asynce_done(int* source, int* destination) CCHESS_NOEXCEPT;
+
+	int engine_get_async_search_stats() CCHESS_NOEXCEPT;
+
 
 
 	/* MOVE */

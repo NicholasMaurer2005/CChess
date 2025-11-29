@@ -55,11 +55,24 @@ void CChessGUI::play() noexcept
 			m_window.bufferBoard(flipped, m_sourceIndex, m_destinationIndex);
 		}
 
+		int source{};
+		int destination{};
+
+		if (m_searching)
+		{
+			if (engine_get_asynce_done(&source, &destination))
+			{
+				engine_move(source, destination);
+				m_newPosition = true;
+			}
+		}
+
 		m_window.draw();
 
 		if (!m_whiteToMove)
 		{
-			//engine_search_and_move();
+			m_searching = true;
+			engine_search_async();
 			m_newPosition = true;
 			m_whiteToMove = true;
 		}

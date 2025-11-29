@@ -3,12 +3,17 @@
 #include <string_view>
 #include <atomic>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include "ChessConstants.hpp"
 #include "MoveGen.h"
 #include "State.h"
 #include "ThreadPool.h"
 #include "KillerMoveHistory.h"
+
+
 
 
 struct SearchInfo
@@ -59,6 +64,14 @@ private:
 	std::vector<PositionHistroy> m_history;
 	std::size_t m_historyPosition;
 
+	//async
+	bool m_stopping;
+	bool m_searching;
+	std::mutex m_mutex;
+	std::condition_variable m_cv;
+	Move m_bestMove;
+	std::jthread m_worker;
+
 
 
 //private methods
@@ -90,6 +103,7 @@ public:
 	//constructor
 	Engine() noexcept;
 
+	~Engine();
 
 
 	//getters
@@ -127,6 +141,15 @@ public:
 	Move moveBackCallback() noexcept;
 
 	Move moveForwardCallback() noexcept;
+
+	//async
+	void startAsyncSearch() noexcept;
+
+	void stopAsyncSearch() noexcept;
+
+	void getAsyncResults() const noexcept;
+
+	bool getAsyncDone(Move& move) noexcept;
 
 
 	

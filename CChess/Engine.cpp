@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <string_view>
+#include <functional>
 
 #include "MoveList.hpp"
 #include "Move.h"
@@ -28,6 +29,7 @@ static constexpr int defaultSearchMilliseconds{ 3000 };
 static constexpr std::string_view startFen{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" };
 
 static State startState{ startFen, Castle::All };
+
 
 
 //static helpers
@@ -127,6 +129,28 @@ static Move getCastleMove(int sourceSquare, int destinationSquare)
 	return 0;
 }
 
+static void worker(Engine* engine, std::mutex& mutex, std::condition_variable& cv, bool& stopping, bool& searching) noexcept
+{
+	while (true)
+	{
+		{
+			std::unique_lock lock{ mutex };
+			cv.wait(lock, [stopping, searching]() { return stopping || searching; });
+
+			if (stopping) return;
+
+			searching = true;
+		}
+
+		engine->search();
+
+		{
+			std::lock_guard lock{ mutex };
+			searching = false;
+		}
+	}
+}
+
 
 
 //constructor
@@ -136,7 +160,10 @@ Engine::Engine() noexcept :
 	//search
 	m_gameOver(), m_stopSearch(), m_killerMoves(), m_searchMilliseconds(defaultSearchMilliseconds),
 	//history
-	m_history(), m_historyPosition()
+	m_history(), m_historyPosition(),
+	//async
+	m_stopping(false), m_searching(false), m_mutex(), m_cv(), m_bestMove(), 
+	m_worker(worker, this, std::ref(m_mutex), std::ref(m_cv), std::ref(m_stopping), std::ref(m_searching))
 {
 	findWhiteSquares(m_state);
 	findBlackSquares(m_state);
@@ -144,6 +171,12 @@ Engine::Engine() noexcept :
 	m_legalMoves = m_moveGen.generateMoves(m_whiteToMove, m_state);
 	m_history.reserve(50);
 	m_history.push_back({ m_state, Move(0) });
+}
+
+Engine::~Engine()
+{
+	m_stopping = true;
+	m_cv.notify_one();
 }
 
 
@@ -589,7 +622,23 @@ const SearchInfo& Engine::searchInfo() const noexcept
 	return m_info;
 }
 
+void Engine::getAsyncResults() const noexcept
+{
 
+}
+
+bool Engine::getAsyncDone(Move& move) noexcept
+{
+	if (!m_searching)
+	{
+		move = m_bestMove;
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
 
 //setters
 void Engine::setState(const State& state) noexcept
@@ -678,6 +727,17 @@ Move Engine::moveForwardCallback() noexcept
 	return m_history[m_historyPosition].move;
 }
 
+void Engine::startAsyncSearch() noexcept
+{
+	m_searching = true;
+	m_cv.notify_one();
+}
+
+void Engine::stopAsyncSearch() noexcept
+{
+	m_searching = false;
+	m_cv.notify_one();
+}
 
 
 //perft

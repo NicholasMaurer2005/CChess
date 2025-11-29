@@ -413,6 +413,8 @@ void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(PieceSprite), &sprite, GL_STATIC_DRAW);
+
+	drawPieces();
 }
 
 

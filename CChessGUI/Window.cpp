@@ -476,7 +476,6 @@ Window::~Window() noexcept
 }
 
 
-
 //window
 bool Window::open() noexcept
 {

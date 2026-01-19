@@ -496,15 +496,21 @@ Move Engine::search(bool white) noexcept
 				m_gameOver = true;
 			}
 
+
+			m_bestMove = bestMove.move.string();
 			return bestMove.move;
 		}
 		else
 		{
+
+			m_bestMove = bestMove.move.string();
 			bestMove = scoredMove;
 
 			m_info.searchDepth = i;
 			m_info.evaluation = white ? scoredMove.score : -scoredMove.score;
 		}
+
+		std::cout << std::format("depth: {}   move: {}\n", i, m_bestMove);
 	}
 
 	//this should never excecute
@@ -568,9 +574,12 @@ Move Engine::getLastMove() const noexcept
 	return m_lastMove;
 }
 
-const SearchInfo& Engine::searchInfo() const noexcept
+const SearchInfo& Engine::searchInfo(const char* &move) const noexcept
 {
+	move = m_bestMove.data();
 	return m_info;
+
+	int* nick{ nullptr };
 }
 
 

@@ -65,7 +65,7 @@ extern "C" {
 	void engine_search_color_and_move(int white) CCHESS_NOEXCEPT;
 
 	//get the depth and evaluation of the last choice. 
-	void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT;
+	void engine_search_info(int* depth, int* evaluation, const char** move) CCHESS_NOEXCEPT;
 
 
 

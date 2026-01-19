@@ -14,6 +14,7 @@ struct SearchInfo
 {
 	int searchDepth;
 	int evaluation;
+	
 };
 
 class Engine
@@ -47,7 +48,7 @@ private:
 	std::atomic_bool m_stopSearch;
 	KillerMoveHistory m_killerMoves;
 	int m_searchMilliseconds;
-
+	std::string m_bestMove;
 
 
 //private methods
@@ -94,7 +95,7 @@ public:
 
 	Move getLastMove() const noexcept;
 
-	const SearchInfo& searchInfo() const noexcept;
+	const SearchInfo& searchInfo(const char* &move) const noexcept;
 
 
 

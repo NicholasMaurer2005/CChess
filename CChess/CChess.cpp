@@ -115,9 +115,9 @@ void engine_get_last_move(int* source, int* destination) CCHESS_NOEXCEPT
 	*destination = lastMove.destinationIndex();
 }
 
-void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT
+void engine_search_info(int* depth, int* evaluation, const char** move) CCHESS_NOEXCEPT
 {
-	const SearchInfo& info{ engine->searchInfo() };
+	const SearchInfo& info{ engine->searchInfo(*move) };
 
 	*depth = info.searchDepth;
 	*evaluation = info.evaluation;

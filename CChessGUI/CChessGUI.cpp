@@ -40,7 +40,7 @@ void CChessGUI::bufferPosition() noexcept
 
 void CChessGUI::play() noexcept
 {
-	engine_set_search_milliseconds(500);
+	engine_set_search_milliseconds(5000);
 	bufferPosition();
 
 	while (m_window.open())
@@ -51,8 +51,11 @@ void CChessGUI::play() noexcept
 
 			int depth{};
 			int evaluation{};
-			engine_search_info(&depth, &evaluation);
-			std::cout << std::format("depth: {}, evaluation: {}\n", depth, evaluation);
+			const char* move{};
+
+			engine_search_info(&depth, &evaluation, &move);
+			std::cout << std::format("{} - depth: {}, evaluation: {}\n\n", move, depth, evaluation);
+
 
 			int source{};
 			int destination{};

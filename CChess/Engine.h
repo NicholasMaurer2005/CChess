@@ -1,18 +1,40 @@
 #pragma once
 
-#include <string_view>
-#include <atomic>
-#include <vector>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 
-#include "ChessConstants.hpp"
-#include "MoveGen.h"
-#include "State.h"
-#include "ThreadPool.h"
-#include "KillerMoveHistory.h"
+#include "Dispatcher.h"
 
+
+//release - publish everything before me
+//aquire - dont read until after me
+//relazed - compiler does what it wants
+
+
+
+namespace async
+{
+	class Engine
+	{
+	private:
+
+		State m_currentState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
+		std::jthread m_worker; //initialized in source file
+
+		Engine() noexcept;
+	};
+
+
+	static void worker()
+	{
+
+	}
+
+	Engine::Engine() noexcept
+		: m_worker(worker)
+	{
+
+	}
+}
 
 
 

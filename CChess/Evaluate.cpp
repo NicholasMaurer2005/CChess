@@ -1,6 +1,9 @@
 #include "Evaluate.h"
+#include "MoveGen.h"
 
+#include <iostream>
 
+static MoveGen moveGen;
 
 static int pieceEvaluation(const State& state) noexcept
 {
@@ -28,7 +31,14 @@ static int pieceEvaluation(const State& state) noexcept
 
 static int spaceEvaluation(const State& state)
 {
-	return static_cast<int>(state.whiteSquares().bitCount() - state.blackSquares().bitCount());
+	const std::size_t whiteQueen{ static_cast<std::size_t>(state.pieceOccupancyT<Piece::WhiteQueen>().leastSignificantBit()) };
+	const std::size_t blackQueen{ static_cast<std::size_t>(state.pieceOccupancyT<Piece::BlackQueen>().leastSignificantBit()) };
+	std::cout << whitePieceOffset << ' ' << blackQueen << std::endl;
+
+	const BitBoard whiteSquares{ moveGen.getRookMoves(whiteQueen, state.occupancy()).board() | moveGen.getBishopMoves(whiteQueen, state.occupancy()).board() };
+	const BitBoard blackSquares{ moveGen.getRookMoves(blackQueen, state.occupancy()).board() | moveGen.getBishopMoves(blackQueen, state.occupancy()).board() };
+
+	return static_cast<int>((state.whiteSquares().bitCount() - whiteSquares.bitCount()) - (state.blackSquares().bitCount() - blackSquares.bitCount()));
 }
 
 int evaluate(const State& state) noexcept

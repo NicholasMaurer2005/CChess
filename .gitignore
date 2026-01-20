@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# CChess lib and exe 
+CChess.lib 
+CChessGUI.exe
+
 # User-specific files
 *.rsuser
 *.suo

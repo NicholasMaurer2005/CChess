@@ -1,11 +1,7 @@
 #include "CChess.h"
 
-#include <cstring>
-
 #include "Engine.h"
-#include "Move.h"
-#include "State.h"
-#include "ChessConstants.hpp" //remove after finishing state fen
+
 
 
 //engine instance
@@ -13,22 +9,22 @@ static Engine* engine{ nullptr };
 
 
 
-int engine_create() CCHESS_NOEXCEPT
+CCHESS_BOOL engine_create() CCHESS_NOEXCEPT
 {
 	if (engine)
 	{
-		return 0;
+		return CCHESS_FALSE;
 	}
 	else
 	{
 		try
 		{
 			engine = new Engine();
-			return 1;
+			return CCHESS_TRUE;
 		}
 		catch(std::exception& e)
 		{
-			return 0;
+			return CCHESS_FALSE;
 		}
 	}
 }
@@ -47,7 +43,7 @@ void engine_position_start() CCHESS_NOEXCEPT
 	}
 }
 
-int engine_position_fen(const char* fen) CCHESS_NOEXCEPT
+CCHESS_BOOL engine_position_fen(const char* fen) CCHESS_NOEXCEPT;
 {
 	if (engine)
 	{
@@ -55,35 +51,22 @@ int engine_position_fen(const char* fen) CCHESS_NOEXCEPT
 		{
 			const State newState{ fen, Castle::All }; //remove after finishing state fen
 			engine->setState(newState);
-			return true;
+			return CCHESS_TRUE;
 		}
 		catch (std::exception&)
 		{
-			return false;
+			return CCHESS_FALSE;
 		}
 	}
 	else
 	{
-		return 0;
+		return CCHESS_FALSE;
 	}
 }
 
-CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT
+const char* engine_get_position() CCHESS_NOEXCEPT
 {
-	if (engine)
-	{
-		const std::string fen{ engine->stateFen() };
-
-		const std::size_t length{ fen.length() + 1 };
-		char* data{ new char[length] };
-		std::memcpy(data, fen.c_str(), length);
-
-		return data;
-	}
-	else
-	{
-		return nullptr;
-	}
+	throw std::runtime_error("Not implemented");
 }
 
 const char* engine_get_char_position() CCHESS_NOEXCEPT

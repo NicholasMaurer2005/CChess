@@ -223,35 +223,35 @@ void Engine::findWhiteSquares(State& state) const noexcept
 	while (pawns.board())
 	{
 		const int index{ pawns.popLeastSignificantBit() };
-		squares |= m_moveGen.getWhitePawnMoves(index).board();
+		squares |= m_moveGen.whitePawnMoves(index).board();
 	}
 
 	while (knights.board())
 	{
 		const int index{ knights.popLeastSignificantBit() };
-		squares |= m_moveGen.getKnightMoves(index).board();
+		squares |= m_moveGen.knightMoves(index).board();
 	}
 
 	while (bishops.board())
 	{
 		const int index{ bishops.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.bishopMoves(index, state.occupancy()).board();
 	}
 
 	while (rooks.board())
 	{
 		const int index{ rooks.popLeastSignificantBit() };
-		squares |= m_moveGen.getRookMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.rookMoves(index, state.occupancy()).board();
 	}
 
 	while (queens.board())
 	{
 		const int index{ queens.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.bishopMoves(index, state.occupancy()).board() | m_moveGen.rookMoves(index, state.occupancy()).board();
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };
-	squares |= m_moveGen.getKingMoves(kingIndex).board();
+	squares |= m_moveGen.kingMoves(kingIndex).board();
 
 	state.setWhiteSquares(squares & ~state.whiteOccupancy().board());
 }
@@ -270,35 +270,35 @@ void Engine::findBlackSquares(State& state) const noexcept
 	while (pawns.board())
 	{
 		const int index{ pawns.popLeastSignificantBit() };
-		squares |= m_moveGen.getBlackPawnMoves(index).board();
+		squares |= m_moveGen.blackPawnMoves(index).board();
 	}
 
 	while (knights.board())
 	{
 		const int index{ knights.popLeastSignificantBit() };
-		squares |= m_moveGen.getKnightMoves(index).board();
+		squares |= m_moveGen.knightMoves(index).board();
 	}
 
 	while (bishops.board())
 	{
 		const int index{ bishops.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.bishopMoves(index, state.occupancy()).board();
 	}
 
 	while (rooks.board())
 	{
 		const int index{ rooks.popLeastSignificantBit() };
-		squares |= m_moveGen.getRookMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.rookMoves(index, state.occupancy()).board();
 	}
 
 	while (queens.board())
 	{
 		const int index{ queens.popLeastSignificantBit() };
-		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
+		squares |= m_moveGen.bishopMoves(index, state.occupancy()).board() | m_moveGen.rookMoves(index, state.occupancy()).board();
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };
-	squares |= m_moveGen.getKingMoves(kingIndex).board();
+	squares |= m_moveGen.kingMoves(kingIndex).board();
 
 	state.setBlackSquares(squares & ~state.blackOccupancy().board());
 }

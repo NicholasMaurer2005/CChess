@@ -3,27 +3,22 @@
 #include "State.h"
 #include "MoveList.hpp"
 
-class MoveGen
+namespace MoveGen
 {
+	MoveList generateMoves(bool white, const State& state) noexcept;
 
-public:
+	CaptureList generateCaptures(bool white, const State& state) noexcept;
 
-	MoveGen() noexcept;
+	BitBoard whitePawnMoves(std::size_t square) noexcept;
 
-	MoveList generateMoves(bool white, const State& state) const noexcept;
+	BitBoard blackPawnMoves(std::size_t square) noexcept;
 
-	CaptureList generateCaptures(bool white, const State& state) const noexcept;
+	BitBoard knightMoves(std::size_t square) noexcept;
 
-	BitBoard getWhitePawnMoves(std::size_t square) const noexcept;
+	BitBoard kingMoves(std::size_t square) noexcept;
 
-	BitBoard getBlackPawnMoves(std::size_t square) const noexcept;
+	BitBoard bishopMoves(std::size_t square, BitBoard occupancy) noexcept;
 
-	BitBoard getKnightMoves(std::size_t square) const noexcept;
-
-	BitBoard getKingMoves(std::size_t square) const noexcept;
-
-	BitBoard getBishopMoves(std::size_t square, BitBoard occupancy) const noexcept;
-
-	BitBoard getRookMoves(std::size_t square, BitBoard occupancy) const noexcept;
+	BitBoard rookMoves(std::size_t square, BitBoard occupancy) noexcept;
 };
 

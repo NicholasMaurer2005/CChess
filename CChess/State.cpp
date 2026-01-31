@@ -374,6 +374,27 @@ void State::unmoveCastle(Castle castle) noexcept
 }
 
 
+void State::setWhiteQueenSquares(BitBoard squares) noexcept
+{
+	m_whiteQueenSquares = squares;
+}
+
+void State::setBlackQueenSquares(BitBoard squares) noexcept
+{
+	m_blackQueenSquares = squares;
+}
+
+BitBoard State::whiteQueenSquares() const noexcept
+{
+	return m_whiteQueenSquares;
+}
+
+BitBoard State::blackQueenSquares() const noexcept
+{
+	return m_blackQueenSquares;
+}
+
+
 
 //promote
 void State::moveQuietPromote(bool white, Piece sourcePiece, Piece promotePiece, int sourceIndex, int destinationIndex) noexcept

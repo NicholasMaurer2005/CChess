@@ -211,6 +211,7 @@ void Engine::findWhiteSquares(State& state) const noexcept
 	{
 		const int index{ queens.popLeastSignificantBit() };
 		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
+		state.setBlackQueenSquares(squares);
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };
@@ -258,6 +259,7 @@ void Engine::findBlackSquares(State& state) const noexcept
 	{
 		const int index{ queens.popLeastSignificantBit() };
 		squares |= m_moveGen.getBishopMoves(index, state.occupancy()).board() | m_moveGen.getRookMoves(index, state.occupancy()).board();
+		state.setBlackQueenSquares(squares);
 	}
 
 	const int kingIndex{ kings.popLeastSignificantBit() };

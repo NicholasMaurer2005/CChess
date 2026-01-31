@@ -31,14 +31,13 @@ static int pieceEvaluation(const State& state) noexcept
 
 static int spaceEvaluation(const State& state)
 {
-	const std::size_t whiteQueen{ static_cast<std::size_t>(state.pieceOccupancyT<Piece::WhiteQueen>().leastSignificantBit()) };
-	const std::size_t blackQueen{ static_cast<std::size_t>(state.pieceOccupancyT<Piece::BlackQueen>().leastSignificantBit()) };
-	std::cout << whitePieceOffset << ' ' << blackQueen << std::endl;
+	const BitBoard whiteQueenUnique{ state.whiteSquares().board() & ~state.whiteQueenSquares().board() };
+	const BitBoard blackQueenUnique{ state.blackSquares().board() & ~state.blackQueenSquares().board() };
+	
+	const std::size_t whiteBitCount{ state.whiteSquares().bitCount() - whiteQueenUnique.bitCount() };
+	const std::size_t blackBitCount{ state.blackSquares().bitCount() - blackQueenUnique.bitCount() };
 
-	const BitBoard whiteSquares{ moveGen.getRookMoves(whiteQueen, state.occupancy()).board() | moveGen.getBishopMoves(whiteQueen, state.occupancy()).board() };
-	const BitBoard blackSquares{ moveGen.getRookMoves(blackQueen, state.occupancy()).board() | moveGen.getBishopMoves(blackQueen, state.occupancy()).board() };
-
-	return static_cast<int>((state.whiteSquares().bitCount() - whiteSquares.bitCount()) - (state.blackSquares().bitCount() - blackSquares.bitCount()));
+	return static_cast<int>(whiteBitCount - blackBitCount);
 }
 
 int evaluate(const State& state) noexcept

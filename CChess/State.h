@@ -69,6 +69,8 @@ private:
 	BitBoard m_enpassantSquare;
 	BitBoard m_whiteSquares; 
 	BitBoard m_blackSquares;
+	BitBoard m_whiteQueenSquares{ 0 };
+	BitBoard m_blackQueenSquares{ 0 };
 
 	std::array<BitBoard, pieceCount> m_pieceOccupancy;
 
@@ -151,9 +153,17 @@ public:
 
 	void setBlackSquares(BitBoard squares) noexcept;
 
+	void setWhiteQueenSquares(BitBoard squares) noexcept;
+
+	void setBlackQueenSquares(BitBoard squares) noexcept;
+
 
 
 	//getters
+	BitBoard whiteQueenSquares() const noexcept;
+
+	BitBoard blackQueenSquares() const noexcept;
+
 	BitBoard occupancy() const noexcept;
 
 	BitBoard whiteOccupancy() const noexcept;

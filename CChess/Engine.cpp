@@ -139,11 +139,10 @@ static char pieceToChar(Piece piece)
 
 
 
-/// constructors
+// constructors
 Engine::Engine() noexcept
 	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) 
 {
-	m_charPosition.back() = '\0';
 	generateCharPosition();
 }
 
@@ -151,6 +150,7 @@ Engine::~Engine()
 {
 	m_cv.notify_one();
 }
+
 
 
 //private methods
@@ -169,28 +169,31 @@ void Engine::generateCharPosition() noexcept
 
 
 //search
-void Engine::logNodesPerSecond() noexcept
+void Engine::logSearchInfo() noexcept
 {
 	const clock::time_point now{ clock::now() };
 	const duration elapsed{ now - m_searchStart };
-	m_info.nodesPerSecond = m_nodeCount / elapsed.count();
+
+	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
+	m_searchInfo.timeRemaining = m_searchMilliseconds - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+	m_newInfo.store(true, std::memory_order_release);
 }
 
 static thread_local std::uint32_t logCounter{};
 int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept
 {
-	if (logCounter & 0x00010000) logNodesPerSecond();
+	if (!(logCounter & 0x00010000)) logSearchInfo();
 	++logCounter;
 
-	if (depth == 0)
+	if (depth == 0 || m_stopSearch.load(std::memory_order_relaxed))
 	{
 		++m_nodeCount;
 		return evaluate(state);
 	}
 
-	if (m_stopSearch) return;
+	MoveList moves{ MoveGen::generateMoves(whiteToMove, state) };
+	moves.sort(m_killerMoves.killerMoves(depth));
 
-	const MoveList moves{ MoveGen::generateMoves(whiteToMove, state) };
 	int legalMoves{};
 	int bestScore{ worstValue };
 
@@ -206,7 +209,7 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 
 			if (alpha >= beta)
 			{
-				//m_killerMoves.push(depth, move);
+				m_killerMoves.push(depth, move);
 				return;
 			}
 		}
@@ -232,9 +235,11 @@ void Engine::searchRun() noexcept
 
 	for (int depth{ 1 }; depth <= maxDepth; ++depth)
 	{
-		const int score{ search(m_currentState, m_currentWhiteToMove, depth) };
-		m_info.depth = depth;
-		m_info.evaluation = score;
+		const int score{ search(m_currentState, m_currentWhiteToMove, depth, worstValue, bestValue) };
+		m_searchInfo.depth = depth;
+		m_searchInfo.evaluation = score;
+		m_searchInfo.principalVariation = principalVariation();
+		m_newInfo.store(true, std::memory_order_release);
 	}
 }
 
@@ -259,26 +264,45 @@ void Engine::stopSearch() noexcept
 
 
 //getters
-Engine::SearchInfo Engine::info() const noexcept
+bool Engine::searchInfo(SearchInfo& info) noexcept
 {
-	return m_info;
+	if (m_newInfo.load(std::memory_order_acquire))
+	{
+		info = m_searchInfo;
+		m_newInfo.store(false, std::memory_order_release);
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
-const char* Engine::charPosition() noexcept
+std::string_view Engine::fenPosition() noexcept
 {
-	generateCharPosition();
+	return m_fenPosition.data();
+}
 
+std::string_view Engine::charPosition() noexcept
+{
 	return m_charPosition.data();
 }
 
 
-//setters
-void Engine::setState(const State& state) noexcept
-{
-	m_currentState = state;
-}
 
+//setters
 void Engine::setStartState() noexcept
 {
 	m_currentState = startState;
+}
+
+void Engine::setPositionChar(std::string_view position) noexcept
+{
+
+}
+
+void Engine::setPositionFen(std::string_view position) noexcept
+{
+
 }

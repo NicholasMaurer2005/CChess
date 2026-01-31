@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <array>
+#include <atomic>
 
 #include "State.h"
 #include "ChessConstants.hpp"
@@ -14,6 +15,28 @@
 
 class Engine
 {
+private:
+
+	template<std::size_t Size>
+	class HeapString
+	{
+	private:
+		
+		std::array<char, Size> m_data{};
+
+	public:
+
+		HeapString() noexcept
+		{
+			m_data.back() = '\0';
+		}
+
+		const char* data() const noexcept
+		{
+			return m_data;
+		}
+	};
+
 public:
 
 	struct SearchInfo
@@ -22,9 +45,11 @@ public:
 		int evaluation;
 		float nodesPerSecond;
 		float timeRemaining;
+		std::string_view principalVariation;
 	};
 
-	using CharPosition = std::array<char, boardSize + 1>;
+	using FenPosition = HeapString<128>;
+	using CharPosition = HeapString<boardSize + 1>;
 
 private:
 
@@ -38,6 +63,7 @@ private:
 	//state
 	State m_currentState;
 	bool m_currentWhiteToMove{ true };
+	FenPosition m_fenPosition;
 	CharPosition m_charPosition;
 
 	//worker
@@ -46,9 +72,13 @@ private:
 	std::condition_variable m_cv;
 
 	//search
-	bool m_stopSearch{};
-	SearchInfo m_info;
+	std::atomic_bool m_stopSearch{ true };
 	int m_searchMilliseconds{ 500 };
+	KillerMoveHistory m_killerMoves;
+
+	//info
+	SearchInfo m_searchInfo;
+	std::atomic_bool m_newInfo;
 	clock::time_point m_searchStart;
 	std::uint64_t m_nodeCount;
 
@@ -58,9 +88,12 @@ private:
 
 	int search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept;
 
-	void logNodesPerSecond() noexcept;
+	void logSearchInfo() noexcept;
+	
+	std::string_view principalVariation() noexcept;
 
 	void generateCharPosition() noexcept;	
+
 
 
 public:
@@ -69,6 +102,8 @@ public:
 	Engine() noexcept;
 
 	~Engine();
+
+
 
 	//search
 	void startSearch() noexcept;
@@ -79,13 +114,22 @@ public:
 
 	void searchRun() noexcept;
 
-	//getters
-	SearchInfo info() const noexcept;
 
-	const char* charPosition() noexcept;
+
+	//getters
+	bool searchInfo(SearchInfo& info) noexcept;
+
+	std::string_view fenPosition() noexcept;
+
+	std::string_view charPosition() noexcept;
+
+
 
 	//setters
-	void setState(const State& state) noexcept;
-
 	void setStartState() noexcept;
+
+	void setPositionChar(std::string_view position) noexcept;
+
+	void setPositionFen(std::string_view position) noexcept;
+
 };

@@ -126,6 +126,10 @@ public:
 
 	State(std::string_view fen, Castle castle);
 
+	State fromChar(std::string_view position);
+
+	State fromFen(std::string_view position);
+
 
 
 	//compare

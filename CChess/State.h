@@ -126,10 +126,9 @@ public:
 
 	State(std::string_view fen, Castle castle);
 
-	State fromChar(std::string_view position);
+	static State fromFen(std::string_view position);
 
-	State fromFen(std::string_view position);
-
+	static State fromChar(std::string_view position);
 
 
 	//compare
@@ -158,6 +157,7 @@ public:
 
 
 	//getters
+
 	BitBoard occupancy() const noexcept;
 
 	BitBoard whiteOccupancy() const noexcept;

@@ -1,21 +1,25 @@
 #pragma once
 
-#include <thread>
-#include <chrono>
-#include <cstdint>
-#include <mutex>
-#include <condition_variable>
 #include <array>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <string_view>
+#include <thread>
 
-#include "State.h"
 #include "ChessConstants.hpp"
+#include "KillerMoveHistory.h"
+#include "State.h"
 
 
 
 class Engine
 {
 private:
+
+	//	Private Definitions
 
 	template<std::size_t Size>
 	class HeapString
@@ -37,7 +41,20 @@ private:
 		}
 	};
 
+	//constants
+	static constexpr int bestValue{ 9999999 };
+	static constexpr int worstValue{ -9999999 };
+	static constexpr int checkmateScore{ -999999 };
+
+	//usings
+	using clock = std::chrono::high_resolution_clock;
+	using duration = std::chrono::duration<float>;
+
+
+
 public:
+
+	//	Public Definitions
 
 	struct SearchInfo
 	{
@@ -48,18 +65,16 @@ public:
 		std::string_view principalVariation;
 	};
 
+	//usings
 	using FenPosition = HeapString<128>;
 	using CharPosition = HeapString<boardSize + 1>;
 
+
+
 private:
 
-	static constexpr int bestValue{ 9999999 };
-	static constexpr int worstValue{ -9999999 };
-	static constexpr int checkmateScore{ -999999 };
-
-	using clock = std::chrono::high_resolution_clock;
-	using duration = std::chrono::duration<float>;
-
+	//	Private Members
+	
 	//state
 	State m_currentState;
 	bool m_currentWhiteToMove{ true };
@@ -86,6 +101,8 @@ private:
 
 private:
 
+	//	Private Methods
+
 	int search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept;
 
 	void logSearchInfo() noexcept;
@@ -98,6 +115,8 @@ private:
 
 public:
 
+	//Public Methods
+	
 	//constructors
 	Engine() noexcept;
 
@@ -107,8 +126,6 @@ public:
 
 	//search
 	void startSearch() noexcept;
-
-	void startSearch(const State& state, bool whiteToMove) noexcept;
 
 	void stopSearch() noexcept;
 
@@ -128,8 +145,7 @@ public:
 	//setters
 	void setStartState() noexcept;
 
-	void setPositionChar(std::string_view position) noexcept;
-
 	void setPositionFen(std::string_view position) noexcept;
 
+	void setPositionChar(std::string_view position) noexcept;
 };

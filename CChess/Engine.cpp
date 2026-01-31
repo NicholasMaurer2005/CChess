@@ -1,13 +1,29 @@
 #include "Engine.h"
 
-#include "MoveGen.h"
-#include "Evaluate.h"
-
+#include <algorithm>
 #include <array>
+#include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <mutex>
+#include <stop_token>
+#include <string_view>
+
+#include "BitBoard.h"
+#include "Castle.hpp"
+#include "Evaluate.h"
+#include "KillerMoveHistory.h"
+#include "Move.h"
+#include "MoveGen.h"
+#include "MoveList.hpp"
+#include "State.h"
 
 
 
-//static helpers
+//	Static Helpers
+
 static State startState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
 
 static void findWhiteSquares(State& state) noexcept
@@ -139,45 +155,7 @@ static char pieceToChar(Piece piece)
 
 
 
-// constructors
-Engine::Engine() noexcept
-	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) 
-{
-	generateCharPosition();
-}
-
-Engine::~Engine()
-{
-	m_cv.notify_one();
-}
-
-
-
-//private methods
-void Engine::generateCharPosition() noexcept
-{
-	for (int i{}; i < boardSize; ++i)
-	{
-		const Piece whitePiece{ m_currentState.findPiece<true>(i) };
-		const Piece blackPiece{ m_currentState.findPiece<true>(i) };
-		const Piece piece{ whitePiece != Piece::NoPiece ? whitePiece : blackPiece };
-
-		m_charPosition[i] = pieceToChar(piece);
-	}
-}
-
-
-
-//search
-void Engine::logSearchInfo() noexcept
-{
-	const clock::time_point now{ clock::now() };
-	const duration elapsed{ now - m_searchStart };
-
-	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
-	m_searchInfo.timeRemaining = m_searchMilliseconds - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-	m_newInfo.store(true, std::memory_order_release);
-}
+//	Private Methods
 
 static thread_local std::uint32_t logCounter{};
 int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept
@@ -229,9 +207,69 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 	}
 }
 
+void Engine::logSearchInfo() noexcept
+{
+	const clock::time_point now{ clock::now() };
+	const duration elapsed{ now - m_searchStart };
+
+	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
+	m_searchInfo.timeRemaining = m_searchMilliseconds - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+	m_newInfo.store(true, std::memory_order_release);
+}
+
+std::string_view Engine::principalVariation() noexcept
+{
+
+}
+
+void Engine::generateCharPosition() noexcept
+{
+	for (int i{}; i < boardSize; ++i)
+	{
+		const Piece whitePiece{ m_currentState.findPiece<true>(i) };
+		const Piece blackPiece{ m_currentState.findPiece<true>(i) };
+		const Piece piece{ whitePiece != Piece::NoPiece ? whitePiece : blackPiece };
+
+		m_charPosition[i] = pieceToChar(piece);
+	}
+}
+
+
+
+//Public Methods
+
+// constructors
+Engine::Engine() noexcept
+	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) 
+{
+	generateCharPosition();
+}
+
+Engine::~Engine()
+{
+	m_cv.notify_one();
+}
+
+
+//search
+
+
+void Engine::startSearch() noexcept
+{
+	m_stopSearch = false;
+	m_cv.notify_one();
+}
+
+void Engine::stopSearch() noexcept
+{
+	m_stopSearch = true;
+}
+
 void Engine::searchRun() noexcept
 {
 	static constexpr int maxDepth{ 50 };
+
+	m_killerMoves = KillerMoveHistory();
 
 	for (int depth{ 1 }; depth <= maxDepth; ++depth)
 	{
@@ -241,24 +279,6 @@ void Engine::searchRun() noexcept
 		m_searchInfo.principalVariation = principalVariation();
 		m_newInfo.store(true, std::memory_order_release);
 	}
-}
-
-void Engine::startSearch() noexcept
-{
-	m_stopSearch = false;
-	m_cv.notify_one();
-}
-
-void Engine::startSearch(const State& state, bool whiteToMove) noexcept
-{
-	m_currentState = state;
-	m_currentWhiteToMove = whiteToMove;
-	startSearch();
-}
-
-void Engine::stopSearch() noexcept
-{
-	m_stopSearch = true;
 }
 
 
@@ -299,10 +319,10 @@ void Engine::setStartState() noexcept
 
 void Engine::setPositionChar(std::string_view position) noexcept
 {
-
+	m_currentState = State::fromChar(position);
 }
 
 void Engine::setPositionFen(std::string_view position) noexcept
 {
-
+	m_currentState = State::fromFen(position);
 }

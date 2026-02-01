@@ -12,6 +12,7 @@
 #include "ChessConstants.hpp"
 #include "KillerMoveHistory.h"
 #include "State.h"
+#include "StackString.hpp"
 
 
 
@@ -21,34 +22,16 @@ private:
 
 	//	Private Definitions
 
-	template<std::size_t Size>
-	class HeapString
-	{
-	private:
-		
-		std::array<char, Size> m_data{};
-
-	public:
-
-		HeapString() noexcept
-		{
-			m_data.back() = '\0';
-		}
-
-		const char* data() const noexcept
-		{
-			return m_data;
-		}
-	};
-
 	//constants
 	static constexpr int bestValue{ 9999999 };
 	static constexpr int worstValue{ -9999999 };
 	static constexpr int checkmateScore{ -999999 };
+	static constexpr int maxSearchDepth{ 50 };
 
 	//usings
 	using clock = std::chrono::high_resolution_clock;
 	using duration = std::chrono::duration<float>;
+	using PrincipalVariation = std::array<Move, maxLegalMoves>;
 
 
 
@@ -64,10 +47,6 @@ public:
 		float timeRemaining;
 		std::string_view principalVariation;
 	};
-
-	//usings
-	using FenPosition = HeapString<128>;
-	using CharPosition = HeapString<boardSize + 1>;
 
 
 
@@ -87,9 +66,11 @@ private:
 	std::condition_variable m_cv;
 
 	//search
-	std::atomic_bool m_stopSearch{ true };
+	cachealign KillerMoveHistory m_killerMoves;
+	cachealign PrincipalVariation m_principalVariation{};
 	int m_searchMilliseconds{ 500 };
-	KillerMoveHistory m_killerMoves;
+	int m_currentSearchDepth{};
+	std::atomic_bool m_stopSearch{ true };
 
 	//info
 	SearchInfo m_searchInfo;

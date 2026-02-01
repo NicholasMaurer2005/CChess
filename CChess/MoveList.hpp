@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <algorithm>
 
 #include "ChessConstants.hpp"
 #include "Move.h"
@@ -44,18 +43,20 @@ private:
 		const std::size_t capturePiece{ static_cast<std::size_t>(move.attackPiece()) };
 
 		const int score{ mvvLva[capturePiece * pieceCount + sourcePiece] };
-		return score + (move.promotePiece() != Piece::NoPiece ? 1 : 0);
+		return score + (static_cast<int>(move.promotePiece()) << 7);
 	}
 
-	static bool MoveGreater(Move lhs, Move rhs, KillerMoves killerMoves) noexcept
+	static bool MoveGreater(Move lhs, Move rhs, KillerMoves killerMoves, Move pvMove) noexcept
 	{
 		const bool lhsKiller{ lhs.move() == killerMoves.first.move() || lhs.move() == killerMoves.second.move() };
+		const bool lhsIsPvMove{ lhs == pvMove };
 		const int lhsStaticScore{ moveScore(lhs) };
-		const int lhsScore = lhsKiller ? 1000 : lhsStaticScore;
+		const int lhsScore = lhsStaticScore + (static_cast<int>(lhsKiller) << 10) + (static_cast<int>(lhsIsPvMove) << 14);
 
 		const bool rhsKiller{ rhs.move() == killerMoves.first.move() || rhs.move() == killerMoves.second.move() };
+		const bool rhsIsPvMove{ rhs == pvMove };
 		const int rhsStaticScore{ moveScore(rhs) };
-		const int rhsScore = rhsKiller ? 1000 : rhsStaticScore;
+		const int rhsScore = rhsStaticScore + (static_cast<int>(rhsKiller) << 10) + (static_cast<int>(rhsIsPvMove) << 14);
 
 		return lhsScore > rhsScore;
 	}
@@ -114,9 +115,9 @@ public:
 		return m_back - m_moves.begin();
 	}
 
-	void sort(KillerMoves killerMoves) noexcept
+	void sort(KillerMoves killerMoves, Move pvMove) noexcept
 	{
-		std::sort(m_moves.begin(), m_back, [killerMoves](Move lhs, Move rhs) { return MoveGreater(lhs, rhs, killerMoves); });
+		std::sort(m_moves.begin(), m_back, [killerMoves, pvMove](Move lhs, Move rhs) { return MoveGreater(lhs, rhs, killerMoves, pvMove); });
 	}
 
 	std::array<Move, listSize>::const_iterator begin() const noexcept 

@@ -163,25 +163,27 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 	if (!(logCounter & 0x00010000)) logSearchInfo();
 	++logCounter;
 
-	if (depth == 0 || m_stopSearch.load(std::memory_order_relaxed))
+	if (depth == m_currentSearchDepth || m_stopSearch.load(std::memory_order_relaxed))
 	{
 		++m_nodeCount;
 		return evaluate(state);
 	}
 
 	MoveList moves{ MoveGen::generateMoves(whiteToMove, state) };
-	moves.sort(m_killerMoves.killerMoves(depth));
+	moves.sort(m_killerMoves.killerMoves(depth), m_principalVariation[depth]);
 
 	int legalMoves{};
 	int bestScore{ worstValue };
+	Move bestMove{};
 
-	std::ranges::for_each(moves, [this, &state, whiteToMove, &legalMoves, depth, beta, &alpha, &bestScore](Move move) {
+	std::ranges::for_each(moves, [this, &state, whiteToMove, &legalMoves, depth, beta, &alpha, &bestScore, &bestMove](Move move) {
 		State stateCopy{ state };
 
 		if (makeLegalMove(stateCopy, move, whiteToMove))
 		{
 			++legalMoves;
-			const int score{ -search(stateCopy, !whiteToMove, depth - 1, -beta, -alpha) };
+			const int score{ -search(stateCopy, !whiteToMove, depth + 1, -beta, -alpha) };
+			bestMove = score > bestScore ? move : bestMove;
 			bestScore = std::max(bestScore, score);
 			alpha = std::max(alpha, score);
 
@@ -198,12 +200,16 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 		//check for white or black checkmate
 		if (whiteToMove ? state.whiteKingInCheck() : state.blackKingInCheck())
 		{
-			return checkmateScore - depth;
+			return checkmateScore + depth;
 		}
 		else
 		{
 			return 0;
 		}
+	}
+	else
+	{
+		m_principalVariation[depth] = bestMove;
 	}
 }
 
@@ -252,28 +258,26 @@ Engine::~Engine()
 
 
 //search
-
-
 void Engine::startSearch() noexcept
 {
-	m_stopSearch = false;
+	m_stopSearch.store(false, std::memory_order_relaxed);
 	m_cv.notify_one();
 }
 
 void Engine::stopSearch() noexcept
 {
-	m_stopSearch = true;
+	m_stopSearch.store(true, std::memory_order_relaxed);
 }
 
 void Engine::searchRun() noexcept
 {
-	static constexpr int maxDepth{ 50 };
-
 	m_killerMoves = KillerMoveHistory();
+	m_principalVariation.fill(0);
 
-	for (int depth{ 1 }; depth <= maxDepth; ++depth)
+	for (int depth{ 1 }; depth <= maxSearchDepth; ++depth)
 	{
-		const int score{ search(m_currentState, m_currentWhiteToMove, depth, worstValue, bestValue) };
+		m_currentSearchDepth = depth; //had the idea to use this variable in the for loop but it is considered bad practice.
+		const int score{ search(m_currentState, m_currentWhiteToMove, 0, worstValue, bestValue) };
 		m_searchInfo.depth = depth;
 		m_searchInfo.evaluation = score;
 		m_searchInfo.principalVariation = principalVariation();

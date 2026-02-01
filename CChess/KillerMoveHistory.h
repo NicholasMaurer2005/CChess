@@ -23,7 +23,6 @@ private:
 		std::array<Move, plyMovesCount> moves;
 	};
 
-	std::size_t m_plyDepth;
 	std::array<KillerMoveData, maxSearchDepth> m_moves;
 
 public:
@@ -33,7 +32,5 @@ public:
 	KillerMoves killerMoves(int depth) const noexcept;
 
 	void push(int depth, Move move) noexcept;
-
-	void setPlyDepth(int depth) noexcept;
 };
 

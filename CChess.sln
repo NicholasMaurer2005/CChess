@@ -1,14 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CChess", "CChess\CChess.vcxproj", "{A0B72C73-454B-4F35-9052-B0513E846A7B}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CChessGUI", "CChessGUI\CChessGUI.vcxproj", "{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A0B72C73-454B-4F35-9052-B0513E846A7B} = {A0B72C73-454B-4F35-9052-B0513E846A7B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CChess", "CChess\CChess.vcxproj", "{A0B72C73-454B-4F35-9052-B0513E846A7B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9E4D588F-5634-4CE1-97FB-B292BBBBAAEB}"
+	ProjectSection(SolutionItems) = preProject
+		format.txt = format.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,18 +25,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x64.ActiveCfg = Debug|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x64.Build.0 = Debug|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x86.ActiveCfg = Debug|Win32
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x86.Build.0 = Debug|Win32
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x64.ActiveCfg = Debug|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x64.Build.0 = Debug|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x86.ActiveCfg = Debug|Win32
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x86.Build.0 = Debug|Win32
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x64.ActiveCfg = Release|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x64.Build.0 = Release|x64
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x86.ActiveCfg = Release|Win32
-		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x86.Build.0 = Release|Win32
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.CChessDebug|x64.ActiveCfg = CChessDebug|x64
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.CChessDebug|x64.Build.0 = CChessDebug|x64
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.CChessDebug|x86.ActiveCfg = CChessDebug|Win32
@@ -44,6 +37,18 @@ Global
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.Release|x64.Build.0 = Release|x64
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.Release|x86.ActiveCfg = Release|Win32
 		{A0B72C73-454B-4F35-9052-B0513E846A7B}.Release|x86.Build.0 = Release|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x64.ActiveCfg = Debug|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x64.Build.0 = Debug|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x86.ActiveCfg = Debug|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.CChessDebug|x86.Build.0 = Debug|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x64.ActiveCfg = Debug|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x64.Build.0 = Debug|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x86.ActiveCfg = Debug|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Debug|x86.Build.0 = Debug|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x64.ActiveCfg = Release|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x64.Build.0 = Release|x64
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x86.ActiveCfg = Release|Win32
+		{D8ACC072-75CC-4259-8E17-FA3D4B20F1ED}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

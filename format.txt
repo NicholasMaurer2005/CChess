@@ -1,0 +1,133 @@
+Other:
+	
+	- brace on new line for functions
+	- brace on same line for initializer lists
+	- brace on same line for lambdas
+	- no globals in header files
+	- no using namespaces in global space
+	- no auto keyword
+	- no warnings
+	- no static variables in header files
+	- no static variables in functions (avoid initialization guard)
+	- no C-style arrays
+	- no operator new outside of constructors (except in CChess.cpp)
+	- no operator delete outside of destructors (except in CChess.cpp)
+	- prefer std::ranges::for_each over range-based for loop
+	- prefer std::string_view over const std::string&
+	- prefer std::span<const T> over const std::vector& and const std::array&
+	- prefer type-bound pointers and references (int* ptr over int *ptr)
+
+
+
+Definitions:
+
+	functions			- camelCase		: int myFunction();
+	private methods		- camelCase		: int myMethod();
+	public methods		- camelCase		: int myMethod();
+	structs				- PascalCase	: struct MyStruct;
+	classes				- PascalCase	: class MyClass;
+	constants			- camelCase		: static constexpr int myConstant{};
+	local variables		- camelCase		: static constexpr int myVariable{};
+	public members		- camelCase		: int myMember;
+	private members		- m_camelCase	: int m_myMember;
+	enums				- PascalCase	: enum class MyEnum
+	enum values			- PascalCase	: MyEnum::MyValue;
+	namespace usings	- camelCase		: using myUsing = std::chrono::high_resolution_clock;
+	type usings			- PascalCase	: using MyUsing = std::array<int, 128>;
+
+
+
+Class Layout:
+
+	- no public members.
+	- <custom> means custom comments and related functionality. must still follow whitespace layout.
+	- keep as much implimentation as possible in source file.
+	- either in seperate file with matching name, or a 'Definition' of another class, e.g., MyContainer::MyIterator.
+	- getters must match variable name minus 'm_', e.g., int value() const noexcept { return m_value; }.
+	- setters must match variable name minus 'm_' plus 'set', e.g., void setValue(int value) noexcept { m_value = value; }.
+	
+	- class must follow this layout including whitespace all comments unless it is reduntant -- dont add '//setters' if there 
+	  are none. Any additional comments are allowed:
+
+	class MyClass
+	{
+		private:
+
+			//	Private Definitions
+
+			//types
+			// <first line>
+
+			//constants
+			// <first line>
+
+			//usings
+			// <first line>
+
+
+
+		public:
+			//	Public Definitions
+
+			//types
+			// <first line>
+
+			//constants
+			// <first line>
+
+			//usings
+			// <first line>
+
+
+
+		private:
+			//	Private Methods
+
+			// <custom>
+
+
+
+		private:
+			//	Private Members
+
+			// <custom>
+
+
+
+		public:
+			//	Public Methods
+
+			//constructors
+			// <first line>
+
+			
+
+			//getters
+			// <first line>
+
+
+
+			//setters
+			// <first line>
+
+
+
+			<custom>
+	};
+	
+
+
+Struct Layout:
+	
+	- all public members.
+	- no constructor/desctuctor (trivial).
+	- no methods.
+	- no nested definitions.
+	- must appear either in seperate file with matching name, inside class 'Definitions', or inside any scope.
+	- no whitespace
+
+
+	struct MyStruct
+	{
+		// <public members>
+	};

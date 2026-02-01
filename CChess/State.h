@@ -1,66 +1,26 @@
 #pragma once
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
-#include <algorithm>
 #include <string_view>
 
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
-#include "MoveList.hpp"
-
-enum class MoveType : std::uint8_t
-{
-	WhiteQuiet,
-	WhiteCapture,
-	WhiteCastle,
-	WhitePromote,
-	WhitePromoteCapture,
-	WhiteEnpassant,
-	BlackQuiet,
-	BlackCapture,
-	BlackCastle,
-	BlackPromote,
-	BlackPromoteCapture,
-	BlackEnpassant
-};
-
-enum class SmallPiece : std::uint8_t
-{
-	NoPiece = 0,
-	WhitePawn = 1,
-	WhiteKnight = 2,
-	WhiteBishop = 3,
-	WhiteRook = 4,
-	WhiteQueen = 5,
-	WhiteKing = 6,
-	BlackPawn = 7,
-	BlackKnight = 8,
-	BlackBishop = 9,
-	BlackRook = 10,
-	BlackQueen = 11,
-	BlackKing = 12
-};
-
-struct unmakeMoveInfo
-{
-	BitBoard whiteSquares;
-	BitBoard blackSquares;
-	std::uint8_t sourceIndex;
-	std::uint8_t destinationIndex;
-	SmallPiece sourcePiece;
-	Castle castleRights;
-	std::uint8_t enpassantIndex;
-	MoveType type;
-	SmallPiece capturePiece;
-	std::uint8_t promoteOrCastle;
-};
+#include "StackString.hpp"
 
 
 
 class cachealign State
 {
+	
+
+public:
+
+	//	Public Definitions
+
+	using FenPosition = StackString<128>;
+	using CharPosition = StackString<boardSize + 1>;
+
 private:
 
 	BitBoard m_occupancy;
@@ -144,9 +104,6 @@ public:
 
 	//move
 	void makeMove(bool white, Move move) noexcept;
-
-	// :(
-	void unmakeMove(unmakeMoveInfo& info) noexcept;
 
 
 	//setters

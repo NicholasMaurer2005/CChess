@@ -146,6 +146,39 @@ static void worker(std::stop_token token, std::mutex& mutex, std::condition_vari
 	}
 }
 
+static Move getCastleMove(int sourceSquare, int destinationSquare)
+{
+	constexpr Move whiteKingSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::WhiteKingSide) };
+	constexpr Move whiteQueenSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::WhiteQueenSide) };
+	constexpr Move blackKingSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::BlackKingSide) };
+	constexpr Move blackQueenSide{ 0b00000100000000000000000000000000 | static_cast<std::uint32_t>(Castle::BlackQueenSide) };
+
+	if (sourceSquare == e1)
+	{
+		if (destinationSquare == g1)
+		{
+			return whiteKingSide;
+		}
+		else if (destinationSquare == c1)
+		{
+			return whiteQueenSide;
+		}
+	}
+	else if (sourceSquare == e8)
+	{
+		if (destinationSquare == g8)
+		{
+			return blackKingSide;
+		}
+		else if (destinationSquare == c8)
+		{
+			return blackQueenSide;
+		}
+	}
+
+	return 0;
+}
+
 
 
 //	Private Methods
@@ -227,7 +260,7 @@ std::string_view Engine::principalVariation() noexcept
 
 // constructors
 Engine::Engine() noexcept
-	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) { }
+	: m_currentState(startState), m_currentLegalMoves(MoveGen::generateMoves(m_currentWhiteToMove, m_currentState)), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) { }
 
 Engine::~Engine()
 {
@@ -236,10 +269,21 @@ Engine::~Engine()
 
 
 //search
+static void TEMPORARY_worker(std::atomic_bool& stopping)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	stopping.store(true, std::memory_order_relaxed);
+}
+
 void Engine::startSearch() noexcept
 {
-	m_stopSearch.store(false, std::memory_order_relaxed);
-	m_cv.notify_one();
+	if (m_stopSearch.load(std::memory_order_relaxed))
+	{
+		std::thread(TEMPORARY_worker, std::ref(m_stopSearch)).detach();
+
+		m_stopSearch.store(false, std::memory_order_relaxed);
+		m_cv.notify_one();
+	}
 }
 
 void Engine::stopSearch() noexcept
@@ -292,20 +336,78 @@ std::string_view Engine::charPosition() noexcept
 	return m_charPosition.data();
 }
 
+Move Engine::bestMove() const noexcept
+{
+	if (m_stopSearch.load(std::memory_order_relaxed))
+	{
+		return m_principalVariation[0];
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 
 
 //setters
 void Engine::setStartState() noexcept
 {
 	m_currentState = startState;
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
 }
 
 void Engine::setPositionChar(std::string_view position) noexcept
 {
 	m_currentState = State::fromChar(position);
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
 }
 
 void Engine::setPositionFen(std::string_view position) noexcept
 {
 	m_currentState = State::fromFen(position);
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+}
+
+bool Engine::move(bool white, int source, int destination) noexcept
+{
+	const Move castleMove{ getCastleMove(source, destination) };
+
+	const auto it{ std::ranges::find_if(m_currentLegalMoves, [source, destination, castleMove](Move move) {
+		   return (move.sourceIndex() == source && move.destinationIndex() == destination) || (move.move() == castleMove.move());
+	   }) };
+
+	State stateCopy{ m_currentState };
+
+	if (it == m_currentLegalMoves.end() || !makeLegalMove(stateCopy, *it, white)) return false;
+	
+	const Move move{ *it };
+
+	m_currentState = stateCopy;
+	m_currentWhiteToMove = !white;
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+
+	return true;
+}
+
+void Engine::moveUnchecked(bool white, int source, int destination) noexcept
+{
+	const Move castleMove{ getCastleMove(source, destination) };
+
+	if (castleMove.move())
+	{
+		m_currentState.makeMove(white, castleMove);
+	}
+
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+}
+
+bool Engine::move(int source, int destination) noexcept
+{
+	return move(m_currentWhiteToMove, source, destination);
+}
+
+void Engine::moveUnchecked(int source, int destination) noexcept
+{
+	move(m_currentWhiteToMove, source, destination);
 }

@@ -16,6 +16,9 @@ private:
 		[this]() { this->moveForwardCallback(); }
 	};
 
+	bool m_whiteToMove{ true };
+	bool m_searching{ false };
+
 
 
 private:
@@ -39,7 +42,7 @@ public:
 	//	Public Methods
 	
 	//constructor
-	CChessGUI() noexcept;
+	CChessGUI();
 
 	~CChessGUI() noexcept;
 };

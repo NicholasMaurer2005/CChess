@@ -11,7 +11,10 @@
 
 #include "ChessConstants.hpp"
 #include "KillerMoveHistory.h"
+#include "Move.h"
+#include "MoveList.hpp"
 #include "State.h"
+#include "MoveGen.h"
 
 
 
@@ -57,11 +60,12 @@ private:
 	bool m_currentWhiteToMove{ true };
 	State::FenPosition m_fenPosition;
 	State::CharPosition m_charPosition;
+	MoveList m_currentLegalMoves{ MoveGen::generateMoves(m_currentWhiteToMove, m_currentState) };
 
 	//worker
-	std::jthread m_worker;
 	std::mutex m_mutex;
 	std::condition_variable m_cv;
+	std::jthread m_worker;
 
 	//search
 	cachealign KillerMoveHistory m_killerMoves;
@@ -117,6 +121,8 @@ public:
 
 	std::string_view charPosition() noexcept;
 
+	Move bestMove() const noexcept;
+
 
 
 	//setters
@@ -125,4 +131,12 @@ public:
 	void setPositionFen(std::string_view position) noexcept;
 
 	void setPositionChar(std::string_view position) noexcept;
+
+	bool move(bool white, int source, int destination) noexcept;
+
+	void moveUnchecked(bool white, int source, int destination) noexcept;
+
+	bool move(int source, int destination) noexcept;
+
+	void moveUnchecked(int source, int destination) noexcept;
 };

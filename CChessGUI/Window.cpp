@@ -404,8 +404,12 @@ void Window::initImGui() noexcept
 
 
 //buffer drag
-void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
+bool Window::bufferDragPiece(std::size_t pieceIndex) noexcept
 {
+	const Piece piece{ charToPiece[m_position[pieceIndex]] };
+
+	if (piece == Piece::NoPiece) return false;
+
 	const PieceSprite sprite{ charToPiece[m_position[pieceIndex]] };
 
 	m_position[pieceIndex] = ' ';
@@ -415,6 +419,8 @@ void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
 	glBufferData(GL_ARRAY_BUFFER, sizeof(PieceSprite), &sprite, GL_STATIC_DRAW);
 
 	drawPieces();
+
+	return true;
 }
 
 
@@ -621,9 +627,11 @@ void Window::startDragging() noexcept
 		const std::size_t rank{ static_cast<std::size_t>(8.0 - y / m_height * 8.0) };
 		const std::size_t pieceIndex{ rank * fileSize + file };
 
-		bufferDragPiece(pieceIndex);
-		m_dragStart = static_cast<int>(pieceIndex);
-		m_dragging = true;
+		if (bufferDragPiece(pieceIndex))
+		{
+			m_dragStart = static_cast<int>(pieceIndex);
+			m_dragging = true;
+		}
 	}
 }
 

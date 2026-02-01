@@ -15,21 +15,16 @@ static Engine* engine{ nullptr };
 //	ENGINE
 CCHESS_BOOL engine_create() noexcept
 {
-	if (engine)
+	if (engine) return CCHESS_FALSE;
+
+	try
+	{
+		engine = new Engine();
+		return CCHESS_TRUE;
+	}
+	catch (const std::exception&)
 	{
 		return CCHESS_FALSE;
-	}
-	else
-	{
-		try
-		{
-			engine = new Engine();
-			return CCHESS_TRUE;
-		}
-		catch (const std::exception&)
-		{
-			return CCHESS_FALSE;
-		}
 	}
 }
 
@@ -49,60 +44,40 @@ void engine_set_position_start() noexcept
 
 CCHESS_BOOL engine_set_position_fen(const char* position) noexcept
 {
-	if (engine && position)
-	{
-		const std::string_view view{ position };
-		engine->setPositionFen(view);
+	if (!(engine && position)) return false;
 
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	const std::string_view view{ position };
+	engine->setPositionFen(view);
+
+	return true;
 }
 
 CCHESS_BOOL engine_set_position_char(const char* position) noexcept
 {
-	if (engine && position)
-	{
-		const std::string_view view{ position };
-		engine->setPositionChar(view);
+	if (!(engine && position)) return false;
+	
+	const std::string_view view{ position };
+	engine->setPositionChar(view);
 
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return true;
 }
 
 const char* engine_get_position_fen() noexcept
 {
-	if (engine)
-	{
-		const std::string_view data{ engine->fenPosition() };
+	if (!engine) return nullptr;
+	
+	const std::string_view data{ engine->fenPosition() };
 
-		return data.data();
-	}
-	else
-	{
-		return nullptr;
-	}
+	return data.data();
 }
 
 const char* engine_get_position_char() noexcept
 {
-	if (engine)
-	{
-		const std::string_view data{ engine->charPosition() };
+	if (!engine) return nullptr; 
 
-		return data.data();
-	}
-	else
-	{
-		return nullptr;
-	}
+	const std::string_view data{ engine->charPosition() };
+
+	return data.data();
 }
 
 
@@ -118,16 +93,50 @@ void engine_stop_search()  noexcept
 	if (engine) engine->stopSearch();
 }
 
-CCHESS_BOOL engine_search_info(CCHESS_BOOL& done, int& depth, float& nodes_per_second, float& timeRemaining, const char** principal_variation)  noexcept
+CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation)  noexcept
 {
-	if (engine)
+	if (!engine) return false;
+
+	Engine::SearchInfo info{};
+	
+	if (engine->searchInfo(info))
 	{
-		Engine::SearchInfo info{};
-		
-		return engine->searchInfo(info);
+		*depth = info.depth;
+		*nodes_per_second = info.nodesPerSecond;
+		*timeRemaining = info.timeRemaining;
 	}
 	else
 	{
 		return false;
 	}
+}
+
+//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
+//	'destination' are not modified and the function returns CCHESS_FALSE
+CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
+{
+	if (!engine) return false;
+
+	const Move move{ engine->bestMove() };
+
+	*source = move.sourceIndex();
+	*destination = move.destinationIndex();
+
+	return move.move();
+}
+
+
+
+//	SEARCH
+
+CCHESS_BOOL engine_move(int source, int destination) CCHESS_NOEXCEPT
+{
+	if (!engine) return false;
+
+	return engine->move(source, destination);
+}
+
+void engine_move_unchecked(int source, int destination) CCHESS_NOEXCEPT
+{
+	if (engine) engine->moveUnchecked(source, destination);
 }

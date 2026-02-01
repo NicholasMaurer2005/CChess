@@ -104,7 +104,7 @@ private:
 
 
 	//buffer drag
-	void bufferDragPiece(std::size_t pieceIndex) noexcept;
+	bool bufferDragPiece(std::size_t pieceIndex) noexcept;
 
 
 

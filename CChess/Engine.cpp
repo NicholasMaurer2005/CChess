@@ -146,13 +146,6 @@ static void worker(std::stop_token token, std::mutex& mutex, std::condition_vari
 	}
 }
 
-static char pieceToChar(Piece piece)
-{
-	static constexpr std::array<char, pieceCount> table{ '.', 'P','N','B','R','Q','K','p','n','b','r','q','k' };
-
-	return table[static_cast<std::size_t>(piece)];
-}
-
 
 
 //	Private Methods
@@ -216,28 +209,16 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 void Engine::logSearchInfo() noexcept
 {
 	const clock::time_point now{ clock::now() };
-	const duration elapsed{ now - m_searchStart };
+	const std::chrono::duration<float> elapsed{ now - m_searchStart };
 
 	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
-	m_searchInfo.timeRemaining = m_searchMilliseconds - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+	m_searchInfo.timeRemaining = static_cast<float>(m_searchMilliseconds) - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
 	m_newInfo.store(true, std::memory_order_release);
 }
 
 std::string_view Engine::principalVariation() noexcept
 {
-
-}
-
-void Engine::generateCharPosition() noexcept
-{
-	for (int i{}; i < boardSize; ++i)
-	{
-		const Piece whitePiece{ m_currentState.findPiece<true>(i) };
-		const Piece blackPiece{ m_currentState.findPiece<true>(i) };
-		const Piece piece{ whitePiece != Piece::NoPiece ? whitePiece : blackPiece };
-
-		m_charPosition[i] = pieceToChar(piece);
-	}
+	return std::string_view();
 }
 
 
@@ -246,10 +227,7 @@ void Engine::generateCharPosition() noexcept
 
 // constructors
 Engine::Engine() noexcept
-	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) 
-{
-	generateCharPosition();
-}
+	: m_currentState(startState), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) { }
 
 Engine::~Engine()
 {
@@ -310,6 +288,7 @@ std::string_view Engine::fenPosition() noexcept
 
 std::string_view Engine::charPosition() noexcept
 {
+	m_charPosition = m_currentState.charPosition();
 	return m_charPosition.data();
 }
 

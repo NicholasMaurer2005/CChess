@@ -12,7 +12,6 @@
 #include "ChessConstants.hpp"
 #include "KillerMoveHistory.h"
 #include "State.h"
-#include "StackString.hpp"
 
 
 
@@ -30,7 +29,6 @@ private:
 
 	//usings
 	using clock = std::chrono::high_resolution_clock;
-	using duration = std::chrono::duration<float>;
 	using PrincipalVariation = std::array<Move, maxLegalMoves>;
 
 
@@ -57,8 +55,8 @@ private:
 	//state
 	State m_currentState;
 	bool m_currentWhiteToMove{ true };
-	FenPosition m_fenPosition;
-	CharPosition m_charPosition;
+	State::FenPosition m_fenPosition;
+	State::CharPosition m_charPosition;
 
 	//worker
 	std::jthread m_worker;
@@ -89,8 +87,6 @@ private:
 	void logSearchInfo() noexcept;
 	
 	std::string_view principalVariation() noexcept;
-
-	void generateCharPosition() noexcept;	
 
 
 

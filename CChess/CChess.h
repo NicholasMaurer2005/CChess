@@ -34,10 +34,10 @@
 	void engine_set_position_start() CCHESS_NOEXCEPT;
 
 	//	Set the current position with a FEN notation string. Return CCHESS_TRUE if parse was successful. 
-	CCHESS_BOOL engine_set_position_fen(const char* fen) CCHESS_NOEXCEPT;
+	CCHESS_BOOL engine_set_position_fen(const char* position) CCHESS_NOEXCEPT;
 
 	//	Set the current position with a FEN notation string. Return CCHESS_TRUE if parse was successful. 
-	CCHESS_BOOL engine_set_position_char(const char* fen) CCHESS_NOEXCEPT;
+	CCHESS_BOOL engine_set_position_char(const char* position) CCHESS_NOEXCEPT;
 
 	//	Get the current position as a FEN notation string. Memory is managed by the engine and invalid after engine_destroy() is 
 	//	called.

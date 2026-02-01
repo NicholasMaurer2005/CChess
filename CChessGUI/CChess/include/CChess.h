@@ -1,104 +1,78 @@
+#pragma once
+
 #ifndef CCHESS_INCLUDE
 #define CCHESS_INCLUDE
 
-#ifdef __cplusplus
+	#ifdef __cplusplus
 
-//noexcept define
-#define CCHESS_NOEXCEPT noexcept
-#define CCHESS_NODISCARD [[nodiscard]]
+		#define CCHESS_NOEXCEPT		noexcept
+		#define CCHESS_NODISCARD	[[nodiscard]]
 
-extern "C" {
-#endif
+		extern "C" {
 
-	/* ENGINE */
+	#endif
 
-	//create new instance of engine. must be called before any other function
-	int engine_create() CCHESS_NOEXCEPT;
+	#define CCHESS_BOOL			int
+	#define CCHESS_TRUE			1
+	#define CCHESS_FALSE		0
 
-	//destroy engine. call to free up the engines resources
+
+
+	//	ENGINE
+	
+	//	Create new engine instance.
+	CCHESS_BOOL engine_create() CCHESS_NOEXCEPT;
+
+	//	Destroy current engine instance.
 	void engine_destroy() CCHESS_NOEXCEPT;
 
-	//set position to the start position. engine_create() will initialize to the start position, 
-	//calling on engine creation is optional
-	void engine_position_start() CCHESS_NOEXCEPT;
 
-	//set position to FEN notation string. if "fen" is a valid FEN then the function will switch to that position
-	// and it will return 1. if "fen" is not a valid FEN than nothing will happen and it will return 0. 
-	//the engine is not responsible for freeing the memory of "fen"
-	int engine_position_fen(const char* fen) CCHESS_NOEXCEPT;
 
-	//return engine position as FEN notation string. the engine is not responsible for freeing the
-	//memory of the returned const char*
-	CCHESS_NODISCARD const char* engine_get_position() CCHESS_NOEXCEPT;
+	//	POSITION
+	
+	//	Set the current position to the start position.
+	void engine_set_position_start() CCHESS_NOEXCEPT;
 
-	//return engine position as a char[64] array. this matches the chess board with each piece 
-	//represented with a letter, e.g. 'P' for white pawn, 'r' for black rook. no-piece is represented by ' '.
-	//this returns a pointer to memory owned by the engine, it does not need to be freed.
-	const char* engine_get_char_position() CCHESS_NOEXCEPT;
+	//	Set the current position with a FEN notation string. Return CCHESS_TRUE if parse was successful. 
+	CCHESS_BOOL engine_set_position_fen(const char* position) CCHESS_NOEXCEPT;
 
-	void engine_set_search_milliseconds(int milliseconds) CCHESS_NOEXCEPT;
+	//	Set the current position with a FEN notation string. Return CCHESS_TRUE if parse was successful. 
+	CCHESS_BOOL engine_set_position_char(const char* position) CCHESS_NOEXCEPT;
 
-	int engine_get_search_milliseconds() CCHESS_NOEXCEPT;
+	//	Get the current position as a FEN notation string. Memory is managed by the engine and invalid after engine_destroy() is 
+	//	called.
+	const char* engine_get_position_fen() CCHESS_NOEXCEPT;
 
-	void engine_perft(int depth) CCHESS_NOEXCEPT;
-
-	void engine_benchmark(double seconds) CCHESS_NOEXCEPT;
-
-	//move engine state back 1 move, write the move source to 'source', and write the move destination
-	//to 'destination'. if the current position is already the start position then nothing will happen 
-	//and 'source' and 'destination' will be 0
-	void engine_move_back(int* source, int* destination) CCHESS_NOEXCEPT;
-
-	//move engine state forward 1 move, write the move source to 'source', and write the move destination
-	//to 'destination'. if the current position is the most recent position then nothing will happen and
-	//'source' and 'destination' will reflect the most recent move
-	void engine_move_forward(int* source, int* destination) CCHESS_NOEXCEPT;
+	//	Get the current position as a FEN notation string. Memory is managed by the engine and invalid after engine_destroy() is 
+	//	called.
+	const char* engine_get_position_char() CCHESS_NOEXCEPT;
 
 
 
-	/* SEARCH */
+	//	SEARCH
+	
+	//	Start async search. Stop with engine_stop_search(). Get statistics with engine_search_statistics().
+	void engine_start_search() CCHESS_NOEXCEPT;
 
-	//search for the best move for the side to play and write to "source" and "destination". the 
-	//engine is not responsible for freeing the memory of "source" and "destination"
-	void engine_search(int* source, int* destination) CCHESS_NOEXCEPT;
+	//	Stop the async search. 
+	void engine_stop_search() CCHESS_NOEXCEPT;
 
-	//search for the best move for the side to play and make that move
-	void engine_search_and_move() CCHESS_NOEXCEPT;
+	//	Get stats about the async search. Returns CCHESS_TRUE if any values changed since the last call - 
+	//		done:					Engine is done searching.
+	//		depth:					The current or final search depth.
+	//		nodes_per_second:		How many nodes (brances of search tree, moves made) are reached per second.
+	//		principal_variation:	A string containing the principal variation (line of best moves) seperated by commas. Memory 
+	//								is owned by the engine and invalid after engine_destroy() is called.
+	CCHESS_BOOL engine_search_info(CCHESS_BOOL &done, int& depth, float& nodes_per_second, float& timeRemaining, const char** principal_variation) CCHESS_NOEXCEPT;
 
-	//search for the best move for side "white" and write to "source" and "destination". if "white" 
-	//is 1 it will search for white, if "white" is 0 it will search for black. the engine is 
-	//not responsible for freeing the memory of "source" and "destination"
-	void engine_search_color(int white, int* source, int* destination) CCHESS_NOEXCEPT;
-
-	//search for the best move for side "white" and make that move. if "white" 
-	//is 1 it will search for white, if "white" is 0 it will search for black.
-	void engine_search_color_and_move(int white) CCHESS_NOEXCEPT;
-
-	//get the depth and evaluation of the last choice. 
-	void engine_search_info(int* depth, int* evaluation) CCHESS_NOEXCEPT;
-
-	//start an async search();
-	void engine_search_async() CCHESS_NOEXCEPT;
-
-	void engine_stop_search_async() CCHESS_NOEXCEPT;
-
-	int engine_get_asynce_done(int* source, int* destination) CCHESS_NOEXCEPT;
-
-	int engine_get_async_search_stats() CCHESS_NOEXCEPT;
+	//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
+	//	'destination' are not modified and the function returns CCHESS_FALSE
+	CCHESS_BOOL engine_best_move(int& source, int& destination) CCHESS_NOEXCEPT;
 
 
 
-	/* MOVE */
-
-	//make move. if move is legal it will make the move and return 1. if the move is not legal it
-	//will do nothing and return 0
-	int engine_move(int source, int destination) CCHESS_NOEXCEPT;
-
-	void engine_get_last_move(int* source, int* destination) CCHESS_NOEXCEPT;
-
-
-#ifdef __cplusplus
-}
-#endif
+	#ifdef __cplusplus
+		}
+	#endif
 
 #endif

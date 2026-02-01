@@ -180,7 +180,6 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnableVectorLength>VectorLength256</EnableVectorLength>
@@ -301,7 +300,6 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
       <StringPooling>true</StringPooling>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnableVectorLength>VectorLength256</EnableVectorLength>

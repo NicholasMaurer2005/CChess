@@ -26,7 +26,7 @@ CCHESS_BOOL engine_create() noexcept
 			engine = new Engine();
 			return CCHESS_TRUE;
 		}
-		catch (std::exception& e)
+		catch (const std::exception&)
 		{
 			return CCHESS_FALSE;
 		}
@@ -47,11 +47,11 @@ void engine_set_position_start() noexcept
 	if (engine) engine->setStartState();
 }
 
-CCHESS_BOOL engine_set_position_fen(const char* fen) noexcept
+CCHESS_BOOL engine_set_position_fen(const char* position) noexcept
 {
-	if (engine && fen)
+	if (engine && position)
 	{
-		const std::string_view view{ fen };
+		const std::string_view view{ position };
 		engine->setPositionFen(view);
 
 		return true;
@@ -62,12 +62,12 @@ CCHESS_BOOL engine_set_position_fen(const char* fen) noexcept
 	}
 }
 
-CCHESS_BOOL engine_set_position_char(const char* fen) noexcept
+CCHESS_BOOL engine_set_position_char(const char* position) noexcept
 {
-	if (engine && fen)
+	if (engine && position)
 	{
-		const std::string_view view{ fen };
-		engine->setPositionFen(view);
+		const std::string_view view{ position };
+		engine->setPositionChar(view);
 
 		return true;
 	}

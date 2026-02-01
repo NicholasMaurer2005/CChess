@@ -6,26 +6,26 @@
 
 class CChessGUI
 {
-//private properties
+private:
+	
+	//	Private Members
+
+	Window m_window{
+		[this](int width, int height) { this->moveCallback(width, height); },
+		[this]() { this->moveBackCallback(); },
+		[this]() { this->moveForwardCallback(); }
+	};
+
+
+
 private:
 
-	Window m_window;
-	bool m_newPosition;
-	bool m_whiteToMove;
-	int m_sourceIndex;
-	int m_destinationIndex;
-	bool m_searching;
-
-
-
-//private methods
-private:
+	//	Private Methods
 
 	void play() noexcept;
 
 	void bufferPosition() noexcept;
 
-	//callbacks
 	void moveCallback(int source, int destination) noexcept;
 
 	void moveBackCallback() noexcept;
@@ -33,9 +33,11 @@ private:
 	void moveForwardCallback() noexcept;
 
 
-//public methods
+
 public:
 
+	//	Public Methods
+	
 	//constructor
 	CChessGUI() noexcept;
 

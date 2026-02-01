@@ -9,6 +9,8 @@ static constexpr int boardSize{ 64 };
 static constexpr int fileSize{ 8 };
 static constexpr int rankSize{ 8 };
 static constexpr int maxSearchDepth{ 50 };
+static constexpr int maxLegalMoves{ 218 };
+static constexpr int maxLegalCaptures{ 30 };
 
 #define cachealign alignas(std::hardware_destructive_interference_size)
 

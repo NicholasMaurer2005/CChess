@@ -7,13 +7,13 @@
 #include "ChessConstants.hpp"
 #include "BitBoard.h"
 #include "StackString.hpp"
+#include "Castle.hpp"
+#include "Move.h"
 
 
 
 class cachealign State
 {
-	
-
 public:
 
 	//	Public Definitions
@@ -21,27 +21,37 @@ public:
 	using FenPosition = StackString<128>;
 	using CharPosition = StackString<boardSize + 1>;
 
+
+
 private:
 
-	BitBoard m_occupancy;
-	BitBoard m_whiteOccupancy;
-	BitBoard m_blackOccupancy;
-	BitBoard m_enpassantSquare;
-	BitBoard m_whiteSquares; 
-	BitBoard m_blackSquares;
+	//	Private Members
 
-	std::array<BitBoard, pieceCount> m_pieceOccupancy;
+	BitBoard m_occupancy{};
+	BitBoard m_whiteOccupancy{};
+	BitBoard m_blackOccupancy{};
+	BitBoard m_enpassantSquare{};
+	BitBoard m_whiteSquares{};
+	BitBoard m_blackSquares{};
+	std::array<BitBoard, pieceCount> m_pieceOccupancy{};
+	Castle m_castleRights{};
 
-	Castle m_castleRights;
 
 
+private:
 
-	//private methods
+	//	Private Methods
+
+	//move
 	void moveOccupancy(bool white, int sourceIndex, int destinationIndex) noexcept;
 
 	void moveOccupancyCapture(bool white, int sourceIndex, int destinationIndex) noexcept;
 
 	void movePiece(Piece piece, int sourceIndex, int destinationIndex) noexcept;
+
+	void testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept;
+
+	void testCastleCaptureRights(bool white, Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept;
 
 
 
@@ -73,16 +83,12 @@ private:
 
 
 
-	void testCastleRights(bool white, Piece sourcePiece, int sourceIndex) noexcept;
-
-	void testCastleCaptureRights(bool white, Piece sourcePiece, Piece attackPiece, int sourceIndex, int destinationIndex) noexcept;
-
-
-
 public:
 
+	//	Public Methods
+
 	//constructors
-	State() noexcept;
+	State() noexcept = default;
 
 	State(std::string_view fen, Castle castle);
 
@@ -91,29 +97,11 @@ public:
 	static State fromChar(std::string_view position);
 
 
-	//compare
-	bool operator== (const State& other) const noexcept;
-
-
-	//print
-	void print() const noexcept;
-
-	void dump() const noexcept;
-
-
-
-	//move
-	void makeMove(bool white, Move move) noexcept;
-
-
-	//setters
-	void setWhiteSquares(BitBoard squares) noexcept;
-
-	void setBlackSquares(BitBoard squares) noexcept;
-
-
 
 	//getters
+	FenPosition fenPosition() const noexcept;
+
+	CharPosition charPosition() const noexcept;
 
 	BitBoard occupancy() const noexcept;
 
@@ -152,7 +140,7 @@ public:
 	{
 		constexpr int begin{ white ? whitePieceOffset : blackPieceOffset };
 		constexpr int end{ white ? blackPieceOffset : pieceCount };
-		
+
 		for (std::size_t i{ begin }; i < end; ++i)
 		{
 			if (m_pieceOccupancy[i].test(index))
@@ -164,5 +152,28 @@ public:
 		//this should never execute, test for occupancy before calling State::findPiece()
 		return Piece::NoPiece;
 	}
-};
 
+
+
+	//setters
+	void setWhiteSquares(BitBoard squares) noexcept;
+
+	void setBlackSquares(BitBoard squares) noexcept;
+
+
+
+	//move
+	void makeMove(bool white, Move move) noexcept;
+
+
+
+	//compare
+	bool operator== (const State& other) const noexcept;
+
+
+
+	//print
+	void print() const noexcept;
+
+	void dump() const noexcept;
+};

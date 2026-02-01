@@ -26,6 +26,6 @@ public:
 
 	const char* data() const noexcept
 	{
-		return m_data;
+		return m_data.data();
 	}
 };

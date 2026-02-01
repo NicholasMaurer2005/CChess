@@ -1,16 +1,12 @@
 #pragma once
 
 #include <array>
+#include <algorithm>
 
 #include "ChessConstants.hpp"
 #include "Move.h"
 #include "KillerMoveHistory.h"
 #include "Castle.hpp"
-
-
-
-constexpr std::size_t maxLegalMoves{ 218 };
-constexpr std::size_t maxLegalCaptures{ 30 };
 
 
 
@@ -49,12 +45,12 @@ private:
 	static bool MoveGreater(Move lhs, Move rhs, KillerMoves killerMoves, Move pvMove) noexcept
 	{
 		const bool lhsKiller{ lhs.move() == killerMoves.first.move() || lhs.move() == killerMoves.second.move() };
-		const bool lhsIsPvMove{ lhs == pvMove };
+		const bool lhsIsPvMove{ lhs.move() == pvMove.move() };
 		const int lhsStaticScore{ moveScore(lhs) };
 		const int lhsScore = lhsStaticScore + (static_cast<int>(lhsKiller) << 10) + (static_cast<int>(lhsIsPvMove) << 14);
 
 		const bool rhsKiller{ rhs.move() == killerMoves.first.move() || rhs.move() == killerMoves.second.move() };
-		const bool rhsIsPvMove{ rhs == pvMove };
+		const bool rhsIsPvMove{ rhs.move() == pvMove.move() };
 		const int rhsStaticScore{ moveScore(rhs) };
 		const int rhsScore = rhsStaticScore + (static_cast<int>(rhsKiller) << 10) + (static_cast<int>(rhsIsPvMove) << 14);
 

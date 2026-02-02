@@ -8,9 +8,11 @@
 #include <cstdint>
 #include <functional>
 #include <mutex>
+#include <span>
 #include <stop_token>
 #include <string_view>
 #include <thread>
+#include <string>
 
 #include "BitBoard.h"
 #include "Castle.hpp"
@@ -255,7 +257,26 @@ void Engine::logSearchInfo() noexcept
 
 std::string_view Engine::principalVariation() noexcept
 {
-	return std::string_view();
+	const std::span<const Move> moves{
+		m_principalVariation.begin(), std::ranges::find_if(m_principalVariation, [](Move move) {
+			return !move.move();
+		})
+	};
+
+	const std::span<char> get{ m_pvString.get() };
+	std::span<char>::iterator it{ get.begin() };
+
+	std::ranges::for_each(moves, [&it](Move move) {
+		const std::string moveString{ move.string() };
+		std::ranges::copy(moveString, it);
+		it += moveString.size();
+		*it = ',';
+		++it;
+		});
+
+	*it = '\n';
+
+	return m_pvString.view();
 }
 
 

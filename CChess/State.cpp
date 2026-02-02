@@ -398,7 +398,7 @@ State::FenPosition State::fenPosition() const noexcept
 State::CharPosition State::charPosition() const noexcept
 {	
 	CharPosition position{};
-	const std::span<char> view{ position.view() };
+	const std::span<char> constView{ position.constView() };
 
 	for (int i{}; i < boardSize; ++i)
 	{
@@ -406,7 +406,7 @@ State::CharPosition State::charPosition() const noexcept
 		const Piece blackPiece{ findPiece<false>(i) };
 		const Piece piece{ whitePiece != Piece::NoPiece ? whitePiece : blackPiece };
 
-		view[i] = pieceToChar(piece);
+		constView[i] = pieceToChar(piece);
 	}
 
 	return position;

@@ -12,9 +12,10 @@
 #include "ChessConstants.hpp"
 #include "KillerMoveHistory.h"
 #include "Move.h"
-#include "MoveList.hpp"
-#include "State.h"
 #include "MoveGen.h"
+#include "MoveList.hpp"
+#include "StackString.hpp"
+#include "State.h"
 
 
 
@@ -29,10 +30,12 @@ private:
 	static constexpr int worstValue{ -9999999 };
 	static constexpr int checkmateScore{ -999999 };
 	static constexpr int maxSearchDepth{ 50 };
+	static constexpr int maxMoveStringSize{ 5 };
 
 	//usings
 	using clock = std::chrono::high_resolution_clock;
 	using PrincipalVariation = std::array<Move, maxLegalMoves>;
+	using PrincipalVariationString = StackString<maxLegalMoves * maxMoveStringSize>;
 
 
 
@@ -75,10 +78,11 @@ private:
 	std::atomic_bool m_stopSearch{ true };
 
 	//info
-	SearchInfo m_searchInfo;
+	SearchInfo m_searchInfo{};
 	std::atomic_bool m_newInfo;
 	clock::time_point m_searchStart;
-	std::uint64_t m_nodeCount;
+	std::uint64_t m_nodeCount{};
+	PrincipalVariationString m_pvString{};
 
 
 

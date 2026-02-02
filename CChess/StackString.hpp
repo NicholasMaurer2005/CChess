@@ -2,6 +2,7 @@
 
 #include <array>
 #include <span>
+#include <string_view>
 
 
 
@@ -19,7 +20,12 @@ public:
 		m_data.back() = '\0';
 	}
 
-	const std::span<char> view() noexcept
+	std::string_view view() const noexcept
+	{
+		return m_data;
+	}
+
+	std::span<char> get() noexcept
 	{
 		return m_data;
 	}

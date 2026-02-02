@@ -47,8 +47,8 @@ CCHESS_BOOL engine_set_position_fen(const char* position) noexcept
 {
 	if (!(engine && position)) return false;
 
-	const std::string_view view{ position };
-	engine->setPositionFen(view);
+	const std::string_view constView{ position };
+	engine->setPositionFen(constView);
 
 	return true;
 }
@@ -57,8 +57,8 @@ CCHESS_BOOL engine_set_position_char(const char* position) noexcept
 {
 	if (!(engine && position)) return false;
 	
-	const std::string_view view{ position };
-	engine->setPositionChar(view);
+	const std::string_view constView{ position };
+	engine->setPositionChar(constView);
 
 	return true;
 }

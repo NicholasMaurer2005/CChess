@@ -34,8 +34,8 @@ private:
 
 	//usings
 	using clock = std::chrono::high_resolution_clock;
-	using PrincipalVariation = std::array<Move, maxLegalMoves>;
-	using PrincipalVariationString = StackString<maxLegalMoves * maxMoveStringSize>;
+	using PrincipalVariation = std::array<Move, maxSearchDepth>;
+	using PrincipalVariationString = StackString<maxSearchDepth* maxMoveStringSize>;
 
 
 

@@ -10,6 +10,7 @@
 #include <mutex>
 #include <stop_token>
 #include <string_view>
+#include <thread>
 
 #include "BitBoard.h"
 #include "Castle.hpp"
@@ -184,31 +185,33 @@ static Move getCastleMove(int sourceSquare, int destinationSquare)
 //	Private Methods
 
 static thread_local std::uint32_t logCounter{};
-int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept
+int Engine::search(const State& state, int color, int depth, int alpha, int beta) noexcept
 {
-	if (!(logCounter & 0x00010000)) logSearchInfo();
+	++m_nodeCount;
+
+	if (!(logCounter & 0x00100000)) logSearchInfo();
 	++logCounter;
 
 	if (depth == m_currentSearchDepth || m_stopSearch.load(std::memory_order_relaxed))
 	{
-		++m_nodeCount;
-		return evaluate(state);
+		return color * evaluate(state);
 	}
 
-	MoveList moves{ MoveGen::generateMoves(whiteToMove, state) };
+	MoveList moves{ MoveGen::generateMoves(color > 0, state) };
 	moves.sort(m_killerMoves.killerMoves(depth), m_principalVariation[depth]);
 
 	int legalMoves{};
 	int bestScore{ worstValue };
 	Move bestMove{};
 
-	std::ranges::for_each(moves, [this, &state, whiteToMove, &legalMoves, depth, beta, &alpha, &bestScore, &bestMove](Move move) {
+	for (Move move : moves) 
+	{
 		State stateCopy{ state };
 
-		if (makeLegalMove(stateCopy, move, whiteToMove))
+		if (makeLegalMove(stateCopy, move, color > 0))
 		{
 			++legalMoves;
-			const int score{ -search(stateCopy, !whiteToMove, depth + 1, -beta, -alpha) };
+			const int score{ -search(stateCopy, -color, depth + 1, -beta, -alpha) };
 			bestMove = score > bestScore ? move : bestMove;
 			bestScore = std::max(bestScore, score);
 			alpha = std::max(alpha, score);
@@ -216,15 +219,15 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 			if (alpha >= beta)
 			{
 				m_killerMoves.push(depth, move);
-				return;
+				break;
 			}
 		}
-		});
+	}
 
 	if (legalMoves == 0)
 	{
 		//check for white or black checkmate
-		if (whiteToMove ? state.whiteKingInCheck() : state.blackKingInCheck())
+		if (color > 0 ? state.whiteKingInCheck() : state.blackKingInCheck())
 		{
 			return checkmateScore + depth;
 		}
@@ -236,6 +239,7 @@ int Engine::search(const State& state, bool whiteToMove, int depth, int alpha, i
 	else
 	{
 		m_principalVariation[depth] = bestMove;
+		return bestScore;
 	}
 }
 
@@ -268,21 +272,21 @@ Engine::~Engine()
 }
 
 
-//search
-static void TEMPORARY_worker(std::atomic_bool& stopping)
-{
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	stopping.store(true, std::memory_order_relaxed);
-}
 
+//search
 void Engine::startSearch() noexcept
 {
 	if (m_stopSearch.load(std::memory_order_relaxed))
 	{
-		std::thread(TEMPORARY_worker, std::ref(m_stopSearch)).detach();
-
+		m_nodeCount = 0;
+		m_searchStart = clock::now();
 		m_stopSearch.store(false, std::memory_order_relaxed);
 		m_cv.notify_one();
+
+		std::thread([](std::atomic_bool& stopSearch, int searchMilliseconds) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(searchMilliseconds));
+			stopSearch.store(true, std::memory_order_relaxed);
+			}, std::ref(m_stopSearch), m_searchMilliseconds).detach();
 	}
 }
 
@@ -296,12 +300,12 @@ void Engine::searchRun() noexcept
 	m_killerMoves = KillerMoveHistory();
 	m_principalVariation.fill(0);
 
-	for (int depth{ 1 }; depth <= maxSearchDepth; ++depth)
+	for (int depth{ 1 }; depth <= maxSearchDepth && !m_stopSearch.load(std::memory_order_relaxed); ++depth)
 	{
-		m_currentSearchDepth = depth; //had the idea to use this variable in the for loop but it is considered bad practice.
-		const int score{ search(m_currentState, m_currentWhiteToMove, 0, worstValue, bestValue) };
+		m_currentSearchDepth = depth; //had the idea to use this variable in the for loop but apparently it is considered bad practice
+		const int score{ search(m_currentState, m_currentWhiteToMove ? 1 : -1, 0, worstValue, bestValue) };
 		m_searchInfo.depth = depth;
-		m_searchInfo.evaluation = score;
+		m_searchInfo.evaluation = m_currentWhiteToMove ? score : -score;
 		m_searchInfo.principalVariation = principalVariation();
 		m_newInfo.store(true, std::memory_order_release);
 	}
@@ -315,7 +319,7 @@ bool Engine::searchInfo(SearchInfo& info) noexcept
 	if (m_newInfo.load(std::memory_order_acquire))
 	{
 		info = m_searchInfo;
-		m_newInfo.store(false, std::memory_order_release);
+		m_newInfo.store(true, std::memory_order_relaxed);
 
 		return true;
 	}

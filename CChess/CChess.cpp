@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "Engine.h"
+#include "Move.h"
 
 
 
@@ -93,7 +94,7 @@ void engine_stop_search()  noexcept
 	if (engine) engine->stopSearch();
 }
 
-CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation)  noexcept
+CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation)  noexcept
 {
 	if (!engine) return false;
 
@@ -101,6 +102,7 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* depth, float* nodes_per_s
 	
 	if (engine->searchInfo(info))
 	{
+		*evaluation = info.evaluation;
 		*depth = info.depth;
 		*nodes_per_second = info.nodesPerSecond;
 		*timeRemaining = info.timeRemaining;

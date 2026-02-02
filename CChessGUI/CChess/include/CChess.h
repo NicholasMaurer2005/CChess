@@ -63,7 +63,7 @@
 	//		nodes_per_second:		How many nodes (brances of search tree, moves made) are reached per second.
 	//		principal_variation:	A string containing the principal variation (line of best moves) seperated by commas. Memory 
 	//								is owned by the engine and invalid after engine_destroy() is called.
-	CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation) CCHESS_NOEXCEPT;
+	CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation) CCHESS_NOEXCEPT;
 
 	//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
 	//	'destination' are not modified and the function returns CCHESS_FALSE

@@ -86,7 +86,7 @@ private:
 
 	//	Private Methods
 
-	int search(const State& state, bool whiteToMove, int depth, int alpha, int beta) noexcept;
+	int search(const State& state, int color, int depth, int alpha, int beta) noexcept;
 
 	void logSearchInfo() noexcept;
 	
@@ -96,7 +96,7 @@ private:
 
 public:
 
-	//Public Methods
+	//	Public Methods
 	
 	//constructors
 	Engine() noexcept;

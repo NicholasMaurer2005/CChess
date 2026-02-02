@@ -608,6 +608,7 @@ void Window::resize(int width, int height) noexcept
 	
 	glfwSetWindowSizeLimits(m_window, minimumWidth, minimumWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
+	glClear(GL_COLOR_BUFFER_BIT);
 	drawBoard();
 	drawPieces();
 	drawImGui();

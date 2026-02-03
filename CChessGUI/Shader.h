@@ -2,7 +2,6 @@
 
 #include <GL/glew.h>
 #include <string_view>
-#include <type_traits>
 
 
 

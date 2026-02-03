@@ -1,11 +1,11 @@
 #include "Shader.h"
 
-#include <fstream>
-#include <stdexcept>
 #include <format>
+#include <fstream>
+#include <GL/glew.h>
+#include <stdexcept>
 #include <string>
 #include <utility>
-#include <GL/glew.h>
 
 
 

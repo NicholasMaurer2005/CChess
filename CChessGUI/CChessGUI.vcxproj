@@ -229,6 +229,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CChessGUI.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
@@ -301,6 +302,7 @@
   <ItemGroup>
     <ClInclude Include="boardFragment.hpp" />
     <ClInclude Include="boardVertex.hpp" />
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="CChessGUI.h" />
     <ClInclude Include="dragFragment.hpp" />
     <ClInclude Include="dragVertex.hpp" />

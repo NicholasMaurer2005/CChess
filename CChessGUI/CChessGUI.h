@@ -11,7 +11,7 @@ private:
 	//	Private Members
 
 	Window m_window{
-		[this](int width, int height) { this->moveCallback(width, height); },
+		[this](int width, int height) { return this->moveCallback(width, height); },
 		[this]() { this->moveBackCallback(); },
 		[this]() { this->moveForwardCallback(); }
 	};
@@ -29,7 +29,7 @@ private:
 
 	void bufferPosition() noexcept;
 
-	void moveCallback(int source, int destination) noexcept;
+	bool moveCallback(int source, int destination) noexcept;
 
 	void moveBackCallback() noexcept;
 

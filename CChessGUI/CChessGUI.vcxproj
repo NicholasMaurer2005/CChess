@@ -239,6 +239,7 @@
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PieceSprite.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -315,6 +316,7 @@
     <ClInclude Include="pieceFragment.hpp" />
     <ClInclude Include="PieceSprite.h" />
     <ClInclude Include="pieceVertex.hpp" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

@@ -13,14 +13,18 @@ static constexpr bool flipped{ false };
 
 /* Private Methods */
 
-void CChessGUI::moveCallback(int source, int destination) noexcept
+bool CChessGUI::moveCallback(int source, int destination) noexcept
 {
-	if (engine_move(source, destination))
+	const bool legal{ engine_move(source, destination) == CCHESS_TRUE };
+	
+	if (legal)
 	{
 		m_whiteToMove = false;
 	}
 
 	bufferPosition();
+
+	return legal;
 }
 
 void CChessGUI::moveBackCallback() noexcept
@@ -74,6 +78,7 @@ void CChessGUI::play() noexcept
 					m_searching = false;
 					m_whiteToMove = true;
 					engine_move_unchecked(source, destination);
+					m_window.bufferBoard(false, source, destination);
 					bufferPosition();
 				}
 			}

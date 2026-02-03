@@ -13,7 +13,7 @@
 //constants
 constexpr int boardSize{ 64 };
 
-using MoveCallback = std::function<void(int source, int destination)>;
+using MoveCallback = std::function<bool(int source, int destination)>;
 
 
 
@@ -43,6 +43,7 @@ private:
 	GLuint m_boardBuffer;
 	GLuint m_boardVAO;
 	GLuint m_boardEBO;
+	GLuint m_rfTexture{};
 
 	//pieces
 	GLuint m_piecesShader;

@@ -301,11 +301,28 @@ void Window::initBoardTexture() noexcept
 {
 	static constexpr std::array<Pixel, boardSize> boardTexture{ generateBoardTexture<true>() };
 
+
+	int width{};
+	int height{};
+	int channels{};
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("rfImage.png", &width, &height, &channels, 0);
+	if (!data) throw std::runtime_error("unable to load image");
+	stbi_set_flip_vertically_on_load(false);
+	
 	glGenTextures(1, &m_boardTexture);
 	glBindTexture(GL_TEXTURE_2D, m_boardTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, boardTexture.data());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glGenTextures(1, &m_rfTexture);
+	glBindTexture(GL_TEXTURE_2D, m_rfTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	stbi_image_free(data);
 }
 
 
@@ -431,6 +448,9 @@ void Window::drawBoard() const noexcept
 	glUseProgram(m_boardShader);
 	glBindTexture(GL_TEXTURE_2D, m_boardTexture);
 	glBindVertexArray(m_boardVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glBindTexture(GL_TEXTURE_2D, m_rfTexture);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
@@ -650,7 +670,12 @@ void Window::stopDragging() noexcept
 		const int pieceIndex{ rank * fileSize + file };
 
 		m_dragging = false;
-		m_moveCallback(m_dragStart, pieceIndex);
+
+		if (m_moveCallback(m_dragStart, pieceIndex))
+		{
+			bufferBoard(false, m_dragStart, pieceIndex);
+			glfwSwapBuffers(m_window);
+		}
 	}
 	else
 	{

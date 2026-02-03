@@ -1,121 +1,147 @@
 #pragma once
 
-#include <string_view>
+#include <array>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <string_view>
+#include <thread>
 
 #include "ChessConstants.hpp"
-#include "MoveGen.h"
-#include "State.h"
-#include "ThreadPool.h"
 #include "KillerMoveHistory.h"
+#include "Move.h"
+#include "MoveGen.h"
+#include "MoveList.hpp"
+#include "StackString.hpp"
+#include "State.h"
 
 
-struct SearchInfo
-{
-	int searchDepth;
-	int evaluation;
-};
 
 class Engine
 {
-
-//private structs
 private:
 
-	struct ScoredMove
-	{
-		Move move;
-		int score;
-	};
+	//	Private Definitions
 
+	//constants
+	static constexpr int bestValue{ 9999999 };
+	static constexpr int worstValue{ -9999999 };
+	static constexpr int checkmateScore{ -999999 };
+	static constexpr int maxSearchDepth{ 50 };
+	static constexpr int maxMoveStringSize{ 5 };
 
-
-//private properties
-private:
-
-	//engine
-	MoveGen m_moveGen; //TODO: maybe make static?
-	State m_state;
-	bool m_whiteToMove;
-	SearchInfo m_info;
-	MoveList m_legalMoves;
-	Move m_lastMove;
-	std::array<char, 64> m_charPosition;
-
-	//search
-	bool m_gameOver;
-	std::atomic_bool m_stopSearch;
-	KillerMoveHistory m_killerMoves;
-	int m_searchMilliseconds;
-
-
-
-//private methods
-private:
-
-	//private methods
-	std::uint64_t perftRun(int depth, bool white) noexcept;
-
-	void findWhiteSquares(State& state) const noexcept;
-
-	void findBlackSquares(State& state) const noexcept;
-
-	bool makeLegalMove(State& state, bool white, Move move) const noexcept;
-
-	int quiescenceSearch(const State& state, int alpha, int beta, bool white) noexcept;
-
-	int searchRun(const State& state, int depth, int alpha, int beta, bool white) noexcept;
-
-	ScoredMove searchStart(bool white, int depth) noexcept;
-
-	void benchmarkRun(const State& state, std::uint64_t& nodes, std::atomic_bool& stopping, bool white, int depth) noexcept;
+	//usings
+	using clock = std::chrono::high_resolution_clock;
+	using PrincipalVariation = std::array<Move, maxSearchDepth>;
+	using PrincipalVariationString = StackString<maxSearchDepth * maxMoveStringSize>;
 
 
 
 public:
 
-	//constructor
+	//	Public Definitions
+
+	struct SearchInfo
+	{
+		int depth;
+		int evaluation;
+		float nodesPerSecond;
+		float timeRemaining;
+		std::string_view principalVariation;
+	};
+
+
+
+private:
+
+	//	Private Members
+	
+	//state
+	State m_currentState;
+	bool m_currentWhiteToMove{ true };
+	State::FenPosition m_fenPosition;
+	State::CharPosition m_charPosition;
+	MoveList m_currentLegalMoves{ MoveGen::generateMoves(m_currentWhiteToMove, m_currentState) };
+
+	//worker
+	std::mutex m_mutex;
+	std::condition_variable m_cv;
+	std::jthread m_worker;
+
+	//search
+	cachealign KillerMoveHistory m_killerMoves;
+	cachealign PrincipalVariation m_principalVariation{};
+	int m_searchMilliseconds{ 500 };
+	int m_currentSearchDepth{};
+	std::atomic_bool m_stopSearch{ true };
+
+	//info
+	SearchInfo m_searchInfo{};
+	std::atomic_bool m_newInfo;
+	clock::time_point m_searchStart;
+	std::uint64_t m_nodeCount{};
+	PrincipalVariationString m_pvString{};
+	Move m_bestMove{ 0 };
+
+
+
+private:
+
+	//	Private Methods
+
+	int search(const State& state, int color, int depth, int alpha, int beta) noexcept;
+
+	void logSearchInfo() noexcept;
+	
+	std::string_view principalVariation() noexcept;
+
+
+
+public:
+
+	//	Public Methods
+	
+	//constructors
 	Engine() noexcept;
+
+	~Engine();
+
+
+
+	//search
+	void startSearch() noexcept;
+
+	void stopSearch() noexcept;
+
+	void searchRun() noexcept;
 
 
 
 	//getters
-	std::string stateFen() const noexcept;
+	bool searchInfo(SearchInfo& info) noexcept;
 
-	Move search(bool white) noexcept;
+	std::string_view fenPosition() noexcept;
 
-	Move search() noexcept;
+	std::string_view charPosition() noexcept;
 
-	const char* getCharPosition() noexcept;
-
-	int searchMilliseconds() const noexcept;
-
-	bool gameOver() const noexcept;
-
-	Move getLastMove() const noexcept;
-
-	const SearchInfo& searchInfo() const noexcept;
+	Move bestMove() const noexcept;
 
 
 
 	//setters
-	void setState(const State& state) noexcept;
-
-	bool makeMove(int source, int destination) noexcept;
-
-	void setSearchMilliseconds(int milliseconds) noexcept;
-
 	void setStartState() noexcept;
 
-	void engineMove(bool white) noexcept;
+	void setPositionFen(std::string_view position) noexcept;
 
-	void engineMove() noexcept;
+	void setPositionChar(std::string_view position) noexcept;
 
+	bool move(bool white, int source, int destination) noexcept;
 
-	
-	//perft
-	void perft(int depth) noexcept;
+	void moveUnchecked(bool white, int source, int destination) noexcept;
 
-	void benchmark(double seconds) noexcept;
+	bool move(int source, int destination) noexcept;
+
+	void moveUnchecked(int source, int destination) noexcept;
 };
-

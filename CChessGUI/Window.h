@@ -16,6 +16,7 @@ constexpr int boardSize{ 64 };
 using MoveCallback = std::function<void(int source, int destination)>;
 
 
+
 class Window
 {
 
@@ -26,9 +27,15 @@ private:
 	GLFWwindow* m_window;
 	int m_width;
 	int m_height;
+	float m_aspectRatio;
 	alignas(64) std::array<char, boardSize> m_position;
 	std::chrono::high_resolution_clock::time_point m_lastTime;
+
+	//callbacks
 	MoveCallback m_moveCallback;
+	std::function<void()> m_moveBackCallback;
+	std::function<void()> m_moveForwardCallback;
+
 
 	//board
 	GLuint m_boardShader;
@@ -91,8 +98,13 @@ private:
 
 
 
+	//init ImGui
+	void initImGui() noexcept;
+
+
+
 	//buffer drag
-	void bufferDragPiece(std::size_t pieceIndex) noexcept;
+	bool bufferDragPiece(std::size_t pieceIndex) noexcept;
 
 
 
@@ -103,6 +115,8 @@ private:
 
 	void drawDrag() const noexcept;
 
+	void drawImGui() const noexcept;
+
 
 
 //public methods
@@ -111,7 +125,7 @@ public:
 
 
 	//constructors
-	Window(int width, int height, MoveCallback moveCallback) noexcept;
+	Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept;
 
 	~Window() noexcept;
 
@@ -127,24 +141,6 @@ public:
 	void startDragging() noexcept;
 
 	void stopDragging() noexcept;
-
-
-
-	//getters
-	int width() const noexcept;
-
-	int height() const noexcept;
-
-
-
-	//setters
-	void setWindowUser(void* user) noexcept;
-
-	void setMoveCallback(MoveCallback callback) noexcept;
-
-	void setWidth(int width) noexcept;
-
-	void setHeight(int height) noexcept;
 
 
 

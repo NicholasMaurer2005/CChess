@@ -18,7 +18,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_glfw.h"
+#include "ImGui/imgui_impl_opengl3.h"
 
+
+
+/* Static Helpers */
 
 //helper structs
 struct alignas(4) Pixel
@@ -38,8 +44,6 @@ struct alignas(64) Square
 
 
 
-/* Static Helpers */
-
 //constants
 static constexpr int rankSize{ 8 };
 static constexpr int fileSize{ 8 };
@@ -48,6 +52,10 @@ static constexpr int pieceIndexBufferSize{ 192 };
 static constexpr int maxPieceCount{ 32 };
 static constexpr std::size_t vertexPositionOffset{ 0 };
 static constexpr std::size_t vertexTextureOffset{ 2 * sizeof(float) };
+static constexpr int minimumSettingsWidth{ 200 };
+constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
+constexpr int minimumWindowHeight{ 500 };
+constexpr float minimumAspectRatio{ static_cast<float>(minimumWindowWidth) / minimumWindowHeight };
 
 
 
@@ -156,7 +164,7 @@ static constexpr std::array<Piece, charToPieceTableSize> charToPiece{ generateCh
 
 
 
-//static functions
+//static helpers
 static GLuint generateShaderProgram(std::string_view vertexSource, std::string_view fragmentSource) noexcept
 {
 	//vertex
@@ -222,8 +230,7 @@ static void windowSizeCallback(GLFWwindow* window, int width, int height) noexce
 {
 	Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
-	user->setWidth(width);
-	user->setHeight(height);
+	user->resize(width, height);
 }
 
 
@@ -259,6 +266,9 @@ void Window::initGLFW() noexcept
 
 	glfwSetWindowUserPointer(m_window, this);
 	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
+	glfwSetWindowSizeLimits(m_window, minimumWindowWidth, minimumWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
+	glViewport(0, 0, m_height, m_height);
 }
 
 
@@ -370,9 +380,36 @@ void Window::initDragBuffer() noexcept
 
 
 
-//buffer drag
-void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
+//init ImGui
+void Window::initImGui() noexcept
 {
+	constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = nullptr;
+	io.LogFilename = nullptr;
+
+	ImGui::StyleColorsDark();
+	ImGuiStyle& style{ ImGui::GetStyle() };
+	ImVec4* colors{ style.Colors };
+	colors[ImGuiCol_WindowBg] = windowColor;
+
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+}
+
+
+
+//buffer drag
+bool Window::bufferDragPiece(std::size_t pieceIndex) noexcept
+{
+	const Piece piece{ charToPiece[m_position[pieceIndex]] };
+
+	if (piece == Piece::NoPiece) return false;
+
 	const PieceSprite sprite{ charToPiece[m_position[pieceIndex]] };
 
 	m_position[pieceIndex] = ' ';
@@ -380,6 +417,10 @@ void Window::bufferDragPiece(std::size_t pieceIndex) noexcept
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_dragBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(PieceSprite), &sprite, GL_STATIC_DRAW);
+
+	drawPieces();
+
+	return true;
 }
 
 
@@ -413,7 +454,7 @@ void Window::drawDrag() const noexcept
 		double y{};
 		glfwGetCursorPos(m_window, &x, &y);
 
-		const float normalizedX{ 2.0f * static_cast<float>(x) / m_width - 1.0f };
+		const float normalizedX{ 2.0f * static_cast<float>(x * m_aspectRatio) / m_width - 1.0f };
 		const float normalizedY{ -(2.0f * static_cast<float>(y) / m_height - 1.0f) };
 
 		glUniform1f(m_uDragX, normalizedX);
@@ -423,14 +464,46 @@ void Window::drawDrag() const noexcept
 	}
 }
 
+void Window::drawImGui() const noexcept
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::SetNextWindowPos(ImVec2(m_height, 0.0f));
+	ImGui::SetNextWindowSize(ImVec2(m_width - m_height, m_height));
+	ImGui::Begin("settings", nullptr,
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar);
+
+	if (ImGui::Button("Back"))
+	{
+		m_moveBackCallback();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Forward"))
+	{
+		m_moveForwardCallback();
+	}
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
 
 
 /* Public Methods */
 
 //constructors
-Window::Window(int width, int height, MoveCallback moveCallback) noexcept
+Window::Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept
 	//window
-	: m_window(), m_width(width), m_height(height), m_position(), m_lastTime(std::chrono::high_resolution_clock::now()), m_moveCallback(moveCallback),
+	: m_window(), m_width(minimumWindowWidth), m_height(minimumWindowHeight), m_aspectRatio(minimumAspectRatio), m_position(), m_lastTime(std::chrono::high_resolution_clock::now()), 
+	//callbacks
+	m_moveCallback(moveCallback), m_moveBackCallback(moveBackCallback), m_moveForwardCallback(moveForwardCallback),
 	//board
 	m_boardShader(), m_boardTexture(), m_boardBuffer(), m_boardVAO(), m_boardEBO(),
 	//pieces
@@ -451,6 +524,11 @@ Window::Window(int width, int height, MoveCallback moveCallback) noexcept
 	initDragShader();
 	initDragBuffer();
 
+	initImGui();
+
+	//needs to be set after render pipeline is initialized
+	glfwSetWindowSizeCallback(m_window, windowSizeCallback);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -462,6 +540,7 @@ Window::~Window() noexcept
 	glDeleteTextures(1, &m_boardTexture);
 	glDeleteBuffers(1, &m_boardBuffer);
 	glDeleteVertexArrays(1, &m_boardVAO);
+	glDeleteBuffers(1, &m_boardEBO);
 
 	//pieces cleanup
 	glDeleteProgram(m_piecesShader);
@@ -469,6 +548,17 @@ Window::~Window() noexcept
 	glDeleteBuffers(1, &m_piecesBuffer);
 	glDeleteVertexArrays(1, &m_piecesVAO);
 	glDeleteBuffers(1, &m_piecesEBO);
+
+	//dragging cleanup
+	glDeleteProgram(m_dragShader);
+	glDeleteBuffers(1, &m_dragBuffer);
+	glDeleteVertexArrays(1, &m_dragVAO);
+	glDeleteBuffers(1, &m_dragEBO);
+
+	//ImGui cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	//GLFW cleanup
 	glfwDestroyWindow(m_window);
@@ -499,6 +589,7 @@ void Window::draw() noexcept
 	drawBoard();
 	drawPieces();
 	drawDrag();
+	drawImGui();
 
 	glfwSwapBuffers(m_window);
 	glfwPollEvents();
@@ -508,8 +599,20 @@ void Window::resize(int width, int height) noexcept
 {
 	m_width = width;
 	m_height = height;
+	m_aspectRatio = static_cast<float>(width) / height;
 
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, height, height);
+
+	//one pixel of wiggle room
+	const int minimumWidth{ std::max(static_cast<int>(height * minimumAspectRatio), height) + 1 };
+	
+	glfwSetWindowSizeLimits(m_window, minimumWidth, minimumWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	drawBoard();
+	drawPieces();
+	drawImGui();
+	glfwSwapBuffers(m_window);
 }
 
 void Window::startDragging() noexcept
@@ -518,13 +621,19 @@ void Window::startDragging() noexcept
 	double y{};
 	glfwGetCursorPos(m_window, &x, &y);
 
-	const std::size_t file{ static_cast<std::size_t>(x / m_width * 8) };
-	const std::size_t rank{ static_cast<std::size_t>(8 - y / m_height * 8) };
-	const std::size_t pieceIndex{ rank * fileSize + file };
+	//check if mouse is in board space
+	if (x < m_height)
+	{
+		const int file{ static_cast<int>(x / m_height * 8) };
+		const std::size_t rank{ static_cast<std::size_t>(8.0 - y / m_height * 8.0) };
+		const std::size_t pieceIndex{ rank * fileSize + file };
 
-	bufferDragPiece(pieceIndex);
-	m_dragStart = static_cast<int>(pieceIndex);
-	m_dragging = true;
+		if (bufferDragPiece(pieceIndex))
+		{
+			m_dragStart = static_cast<int>(pieceIndex);
+			m_dragging = true;
+		}
+	}
 }
 
 void Window::stopDragging() noexcept
@@ -533,48 +642,21 @@ void Window::stopDragging() noexcept
 	double y{};
 	glfwGetCursorPos(m_window, &x, &y);
 
-	const int file{ static_cast<int>(x / m_width * 8) };
-	const int rank{ static_cast<int>(8 - y / m_height * 8) };
-	const int pieceIndex{ rank * fileSize + file };
+	//check if mouse is in board space
+	if (x < m_height)
+	{
+		const int file{ static_cast<int>(x / m_height * 8) };
+		const int rank{ static_cast<int>(8 - y / m_height * 8) };
+		const int pieceIndex{ rank * fileSize + file };
 
-	m_dragging = false;
-	m_moveCallback(m_dragStart, pieceIndex);
-}
-
-
-
-//getters
-int Window::width() const noexcept
-{
-	return m_width;
-}
-
-int Window::height() const noexcept
-{
-	return m_height;
-}
-
-
-
-//setters
-void Window::setWindowUser(void* user) noexcept
-{
-	glfwSetWindowUserPointer(m_window, user);
-}
-
-void Window::setMoveCallback(MoveCallback callback) noexcept
-{
-	m_moveCallback = callback;
-}
-
-void Window::setWidth(int width) noexcept
-{
-	m_width = width;
-}
-
-void Window::setHeight(int height) noexcept
-{
-	m_height = height;
+		m_dragging = false;
+		m_moveCallback(m_dragStart, pieceIndex);
+	}
+	else
+	{
+		m_dragging = false;
+		m_moveCallback(m_dragStart, m_dragStart);
+	}
 }
 
 
@@ -587,39 +669,22 @@ static std::array<Pixel, boardSize> blackBoard{ generateBoardTexture<false>() };
 
 void Window::bufferBoard(bool flipped, int source, int destination) const noexcept
 {
-	static constexpr Pixel darkMoveColor{ 137, 207, 240, 255 };
-	static constexpr Pixel lightMoveColor{ 115, 157, 179, 255 };
-
-	const bool sourceLight{ (source / rankSize + source % fileSize) % 2 == 0 };
-	const bool destinationLight{ (destination / rankSize + destination % fileSize) % 2 == 0 };
-
-	if (flipped)
+	if (source != 64 && destination != 64)
 	{
-		const Pixel originalSourceColor{ blackBoard[source] };
-		const Pixel originalDestinationColor{ blackBoard[destination] };
+		static constexpr Pixel lightMoveColor{ 137, 207, 240, 255 };
+		static constexpr Pixel darkMoveColor{ 115, 157, 179, 255 };
 
-		blackBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
-		blackBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
-
-		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, blackBoard.data());
-
-		blackBoard[source] = originalSourceColor;
-		blackBoard[destination] = originalDestinationColor;
-	}
-	else
-	{ 
-		const Pixel originalSourceColor{ whiteBoard[source] };
-		const Pixel originalDestinationColor{ whiteBoard[destination] };
-
-		whiteBoard[source] = sourceLight ? lightMoveColor : darkMoveColor;
-		whiteBoard[destination] = destinationLight ? lightMoveColor : darkMoveColor;
+		std::array<Pixel, boardSize>& board{ flipped ? whiteBoard : blackBoard };
+		const Pixel sourceOrigional{ board[source] };
+		const Pixel destinationOrigional{ board[destination] };
+		board[source] = darkMoveColor;
+		board[destination] = lightMoveColor;
 
 		glBindTexture(GL_TEXTURE_2D, m_boardTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, fileSize, rankSize, GL_RGBA, GL_UNSIGNED_BYTE, whiteBoard.data());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fileSize, rankSize, 1, 0, GL_UNSIGNED_BYTE, board.data());
 
-		whiteBoard[source] = originalSourceColor;
-		whiteBoard[destination] = originalDestinationColor;
+		board[source] = sourceOrigional;
+		board[destination] = destinationOrigional;
 	}
 }
 

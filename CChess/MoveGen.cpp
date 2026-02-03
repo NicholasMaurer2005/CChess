@@ -1,13 +1,14 @@
 #include "MoveGen.h"
 
-#include <array>
 #include <cstdint>
 
 #include "PreGen.h"
 #include "ChessConstants.hpp"
-#include "Move.h"
+
+
 
 static cachealign PreGen preGen;
+
 
 
 template<bool white>
@@ -388,7 +389,6 @@ static void queenMoves(BitBoard queens, MoveList& moveList, const State& state) 
 
 
 //CAPTURE MOVES
-
 template<bool white>
 static void pawnPromoteCaptures(BitBoard pawns, CaptureList& captureList, const State& state) noexcept
 {
@@ -580,90 +580,88 @@ static void queenCaptures(BitBoard queens, CaptureList& captureList, const State
 
 
 
-CaptureList MoveGen::generateCaptures(bool white, const State& state) const noexcept
+namespace MoveGen
 {
-	CaptureList captureList;
-
-	if (white) 
-	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
-		pawnCaptures<true>(state.pieceOccupancyT<Piece::WhitePawn>(), captureList, state);
-		knightCaptures<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), captureList, state);
-		bishopCaptures<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), captureList, state);
-		rookCaptures<true>(state.pieceOccupancyT<Piece::WhiteRook>(), captureList, state);
-		queenCaptures<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), captureList, state);
-		kingCaptures<true>(state.pieceOccupancyT<Piece::WhiteKing>(), captureList, state);
-	}
-	else
+	CaptureList generateCaptures(bool white, const State& state) noexcept
 	{
-		pawnCaptures<false>(state.pieceOccupancyT<Piece::BlackPawn>(), captureList, state);
-		knightCaptures<false>(state.pieceOccupancyT<Piece::BlackKnight>(), captureList, state);
-		bishopCaptures<false>(state.pieceOccupancyT<Piece::BlackBishop>(), captureList, state);
-		rookCaptures<false>(state.pieceOccupancyT<Piece::BlackRook>(), captureList, state);
-		queenCaptures<false>(state.pieceOccupancyT<Piece::BlackQueen>(), captureList, state);
-		kingCaptures<false>(state.pieceOccupancyT<Piece::BlackKing>(), captureList, state);
+		CaptureList captureList;
+
+		if (white)
+		{ //TODO: maybe add if statements to test for occupancy before doing any logic?
+			pawnCaptures<true>(state.pieceOccupancyT<Piece::WhitePawn>(), captureList, state);
+			knightCaptures<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), captureList, state);
+			bishopCaptures<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), captureList, state);
+			rookCaptures<true>(state.pieceOccupancyT<Piece::WhiteRook>(), captureList, state);
+			queenCaptures<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), captureList, state);
+			kingCaptures<true>(state.pieceOccupancyT<Piece::WhiteKing>(), captureList, state);
+		}
+		else
+		{
+			pawnCaptures<false>(state.pieceOccupancyT<Piece::BlackPawn>(), captureList, state);
+			knightCaptures<false>(state.pieceOccupancyT<Piece::BlackKnight>(), captureList, state);
+			bishopCaptures<false>(state.pieceOccupancyT<Piece::BlackBishop>(), captureList, state);
+			rookCaptures<false>(state.pieceOccupancyT<Piece::BlackRook>(), captureList, state);
+			queenCaptures<false>(state.pieceOccupancyT<Piece::BlackQueen>(), captureList, state);
+			kingCaptures<false>(state.pieceOccupancyT<Piece::BlackKing>(), captureList, state);
+		}
+
+		return captureList;
 	}
 
-	return captureList;
-}
-
-
-
-//public
-MoveGen::MoveGen() noexcept {}
-
-MoveList MoveGen::generateMoves(bool white, const State& state) const noexcept
-{
-	MoveList moveList;
-	
-	if (white)
-	{ //TODO: maybe add if statements to test for occupancy before doing any logic?
-		pawnMoves<true>(state.pieceOccupancyT<Piece::WhitePawn>(), moveList, state);
-		knightMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);
-		bishopMoves<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), moveList, state);
-		rookMoves<true>(state.pieceOccupancyT<Piece::WhiteRook>(), moveList, state);
-		queenMoves<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), moveList, state);
-		kingMoves<true>(state.pieceOccupancyT<Piece::WhiteKing>(), moveList, state);
-	}
-	else
+	MoveList generateMoves(bool white, const State& state) noexcept
 	{
-		pawnMoves<false>(state.pieceOccupancyT<Piece::BlackPawn>(), moveList, state);
-		knightMoves<false>(state.pieceOccupancyT<Piece::BlackKnight>(), moveList, state);
-		bishopMoves<false>(state.pieceOccupancyT<Piece::BlackBishop>(), moveList, state);
-		rookMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
-		queenMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
-		kingMoves<false>(state.pieceOccupancyT<Piece::BlackKing>(), moveList, state);
+		MoveList moveList;
+
+		if (white)
+		{ //TODO: maybe add if statements to test for occupancy before doing any logic?
+			pawnMoves<true>(state.pieceOccupancyT<Piece::WhitePawn>(), moveList, state);
+			knightMoves<true>(state.pieceOccupancyT<Piece::WhiteKnight>(), moveList, state);
+			bishopMoves<true>(state.pieceOccupancyT<Piece::WhiteBishop>(), moveList, state);
+			rookMoves<true>(state.pieceOccupancyT<Piece::WhiteRook>(), moveList, state);
+			queenMoves<true>(state.pieceOccupancyT<Piece::WhiteQueen>(), moveList, state);
+			kingMoves<true>(state.pieceOccupancyT<Piece::WhiteKing>(), moveList, state);
+		}
+		else
+		{
+			pawnMoves<false>(state.pieceOccupancyT<Piece::BlackPawn>(), moveList, state);
+			knightMoves<false>(state.pieceOccupancyT<Piece::BlackKnight>(), moveList, state);
+			bishopMoves<false>(state.pieceOccupancyT<Piece::BlackBishop>(), moveList, state);
+			rookMoves<false>(state.pieceOccupancyT<Piece::BlackRook>(), moveList, state);
+			queenMoves<false>(state.pieceOccupancyT<Piece::BlackQueen>(), moveList, state);
+			kingMoves<false>(state.pieceOccupancyT<Piece::BlackKing>(), moveList, state);
+		}
+
+		return moveList;
 	}
 
-	return moveList;
-}
 
+	BitBoard whitePawnMoves(std::size_t square) noexcept
+	{
+		return preGen.whitePawnAttack(square);
+	}
 
-BitBoard MoveGen::getWhitePawnMoves(std::size_t square) const noexcept
-{
-	return preGen.whitePawnAttack(square);
-}
+	BitBoard blackPawnMoves(std::size_t square) noexcept
+	{
+		return preGen.blackPawnAttack(square);
+	}
 
-BitBoard MoveGen::getBlackPawnMoves(std::size_t square) const noexcept
-{
-	return preGen.blackPawnAttack(square);
-}
+	BitBoard knightMoves(std::size_t square) noexcept
+	{
+		return preGen.knightMove(square);
+	}
 
-BitBoard MoveGen::getKnightMoves(std::size_t square) const noexcept
-{
-	return preGen.knightMove(square);
-}
+	BitBoard kingMoves(std::size_t square) noexcept
+	{
+		return preGen.kingMove(square);
+	}
 
-BitBoard MoveGen::getKingMoves(std::size_t square) const noexcept
-{
-	return preGen.kingMove(square);
-}
+	BitBoard bishopMoves(std::size_t square, BitBoard occupancy) noexcept
+	{
+		return preGen.bishopMove(square, occupancy);
+	}
 
-BitBoard MoveGen::getBishopMoves(std::size_t square, BitBoard occupancy) const noexcept
-{
-	return preGen.bishopMove(square, occupancy);
-}
-
-BitBoard MoveGen::getRookMoves(std::size_t square, BitBoard occupancy) const noexcept
-{
-	return preGen.rookMove(square, occupancy);
+	BitBoard rookMoves(std::size_t square, BitBoard occupancy) noexcept
+	{
+		return preGen.rookMove(square, occupancy);
+	}
 }

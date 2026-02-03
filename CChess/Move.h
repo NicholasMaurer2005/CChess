@@ -40,6 +40,7 @@ private:
 
 public:
 
+
 	//constructors
 	constexpr Move() noexcept {}
 	

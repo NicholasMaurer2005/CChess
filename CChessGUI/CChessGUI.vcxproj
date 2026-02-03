@@ -231,6 +231,7 @@
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CChessGUI.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
     <ClCompile Include="ImGui\imgui_draw.cpp" />
@@ -241,6 +242,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="PieceSprite.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -306,6 +308,7 @@
     <ClInclude Include="CChessGUI.h" />
     <ClInclude Include="dragFragment.hpp" />
     <ClInclude Include="dragVertex.hpp" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_glfw.h" />
@@ -319,6 +322,7 @@
     <ClInclude Include="PieceSprite.h" />
     <ClInclude Include="pieceVertex.hpp" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

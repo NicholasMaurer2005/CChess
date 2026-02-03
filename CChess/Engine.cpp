@@ -316,10 +316,18 @@ void Engine::searchRun() noexcept
 	m_killerMoves = KillerMoveHistory();
 	m_principalVariation.fill(0);
 
-	for (int depth{ 1 }; depth <= maxSearchDepth && !m_stopSearch.load(std::memory_order_relaxed); ++depth)
+	m_searchInfo.principalVariation = "no pv";
+	m_newInfo.store(true, std::memory_order_release);
+
+	for (int depth{ 1 }; depth <= maxSearchDepth; ++depth)
 	{
+
 		m_currentSearchDepth = depth; //had the idea to use this variable in the for loop but apparently it is considered bad practice
 		const int score{ search(m_currentState, m_currentWhiteToMove ? 1 : -1, 0, worstValue, bestValue) };
+
+		if (m_stopSearch.load(std::memory_order_relaxed)) break;
+
+		m_bestMove = m_principalVariation.front();
 		m_searchInfo.depth = depth;
 		m_searchInfo.evaluation = m_currentWhiteToMove ? score : -score;
 		m_searchInfo.principalVariation = principalVariation();
@@ -335,7 +343,7 @@ bool Engine::searchInfo(SearchInfo& info) noexcept
 	if (m_newInfo.load(std::memory_order_acquire))
 	{
 		info = m_searchInfo;
-		m_newInfo.store(true, std::memory_order_relaxed);
+		m_newInfo.store(false, std::memory_order_relaxed);
 
 		return true;
 	}
@@ -361,7 +369,7 @@ Move Engine::bestMove() const noexcept
 {
 	if (m_stopSearch.load(std::memory_order_relaxed))
 	{
-		return m_principalVariation[0];
+		return m_bestMove;
 	}
 	else
 	{

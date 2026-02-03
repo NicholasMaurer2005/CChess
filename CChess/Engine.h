@@ -83,6 +83,7 @@ private:
 	clock::time_point m_searchStart;
 	std::uint64_t m_nodeCount{};
 	PrincipalVariationString m_pvString{};
+	Move m_bestMove{ 0 };
 
 
 

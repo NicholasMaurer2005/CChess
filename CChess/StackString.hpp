@@ -24,35 +24,26 @@ public:
 	//	Public Members
 
 	//constructors
-	StackString() noexcept
-	{
-		*m_back = '\0';
-	}
-
-	StackString(int) noexcept
-		: m_back(m_data.end() - 1)
-	{
-		*m_back = '\0';
-	}
+	StackString() noexcept {};
 
 	StackString(const StackString& other) noexcept
 	{
-		std::copy(other.m_data.begin(), other.m_back(), m_data.begin());
+		std::copy(other.m_data.begin(), other.m_back, m_data.begin());
 		m_back = m_data.begin() + std::distance(other.m_data.begin(), other.m_back);
 		*m_back = '\0';
 	}
 
 	StackString(StackString&& other) noexcept
 	{
-		std::copy(other.m_data.begin(), other.m_back(), m_data.begin());
-		m_back = m_data.m_begin() + std::distance(other.m_data.begin(), other.m_back);
+		std::copy(other.m_data.begin(), other.m_back, m_data.begin());
+		m_back = m_data.begin() + std::distance(other.m_data.begin(), other.m_back);
 		*m_back = '\0';
 	}
 
 	StackString& operator= (const StackString& other) noexcept
 	{
-		std::copy(other.m_data.begin(), other.m_back(), m_data.begin());
-		m_back = m_data.m_begin() + std::distance(other.m_data.begin(), other.m_back);
+		std::copy(other.m_data.begin(), other.m_back, m_data.begin());
+		m_back = m_data.begin() + std::distance(other.m_data.begin(), other.m_back);
 		*m_back = '\0';
 
 		return *this;
@@ -60,8 +51,8 @@ public:
 
 	StackString& operator= (StackString&& other) noexcept
 	{
-		std::copy(other.m_data.begin(), other.m_back(), m_data.begin());
-		m_back = m_begin() + std::distance(other.m_data.begin(), other.m_back);
+		std::copy(other.m_data.begin(), other.m_back, m_data.begin());
+		m_back = m_data.begin() + std::distance(other.m_data.begin(), other.m_back);
 		*m_back = '\0';
 
 		return *this;
@@ -94,9 +85,21 @@ public:
 		*m_back = '\0';
 	}
 
+	void resize() noexcept
+	{
+		m_back = m_data.end() - 1;
+		*m_back = '\0';
+	}
+
 	char& operator[] (std::size_t index) noexcept
 	{
 		return m_data[index];
+	}
+
+	void clear() noexcept
+	{
+		m_back = m_data.begin();
+		*m_back = '\0';
 	}
 
 

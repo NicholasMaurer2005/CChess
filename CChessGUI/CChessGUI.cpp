@@ -60,10 +60,10 @@ void CChessGUI::play() noexcept
 				int depth{};
 				float nodesPerSecond{};
 				float timeRemaining{};
-				const char* pv{};
+				const char* pv{ "no pv" };
 				if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &timeRemaining, &pv))
 				{
-					std::cout << std::format("Depth: {} ply  |  Evaluation: {}  |  Time Remaining: {:.3f} ms  |  {:.5f} kNodes/s\n", depth, evaluation, timeRemaining, nodesPerSecond * 0.001f);
+					std::cout << std::format("Depth: {} ply  |  Evaluation: {}  |  Time Remaining: {:.3f} ms  |  {:.5f} kNodes/s\nPV: {}\n\n", depth, evaluation, timeRemaining, nodesPerSecond * 0.001f, pv);
 				}
 
 				int source{};

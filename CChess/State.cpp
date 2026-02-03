@@ -398,6 +398,7 @@ State::FenPosition State::fenPosition() const noexcept
 State::CharPosition State::charPosition() const noexcept
 {	
 	CharPosition position;
+	position.resize();
 
 	for (int i{}; i < boardSize; ++i)
 	{

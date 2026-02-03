@@ -257,24 +257,19 @@ void Engine::logSearchInfo() noexcept
 
 std::string_view Engine::principalVariation() noexcept
 {
+	m_pvString.clear();
+
 	const std::span<const Move> moves{
 		m_principalVariation.begin(), std::ranges::find_if(m_principalVariation, [](Move move) {
 			return !move.move();
 		})
 	};
 
-	const std::span<char> get{ m_pvString.get() };
-	std::span<char>::iterator it{ get.begin() };
-
-	std::ranges::for_each(moves, [&it](Move move) {
+	std::ranges::for_each(moves, [this](Move move) {
 		const std::string moveString{ move.string() };
-		std::ranges::copy(moveString, it);
-		it += moveString.size();
-		*it = ',';
-		++it;
+		m_pvString.push(moveString);
+		m_pvString.push(",");
 		});
-
-	*it = '\n';
 
 	return m_pvString.view();
 }
@@ -352,6 +347,7 @@ bool Engine::searchInfo(SearchInfo& info) noexcept
 
 std::string_view Engine::fenPosition() noexcept
 {
+	m_fenPosition = m_currentState.fenPosition();
 	return m_fenPosition.data();
 }
 

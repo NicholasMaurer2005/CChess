@@ -106,6 +106,9 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 		*depth = info.depth;
 		*nodes_per_second = info.nodesPerSecond;
 		*timeRemaining = info.timeRemaining;
+		*principal_variation = info.principalVariation.data();
+
+		return true;
 	}
 	else
 	{

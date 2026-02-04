@@ -154,9 +154,9 @@ void Buffer::bind() const noexcept
 
 void Buffer::draw() const noexcept
 {
+	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glBindVertexArray(m_vao);
 
 	glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
 }

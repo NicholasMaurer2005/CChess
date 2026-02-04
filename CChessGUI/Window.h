@@ -31,39 +31,6 @@ private:
 	alignas(64) std::array<char, boardSize> m_position;
 	std::chrono::high_resolution_clock::time_point m_lastTime;
 
-	//callbacks
-	MoveCallback m_moveCallback;
-	std::function<void()> m_moveBackCallback;
-	std::function<void()> m_moveForwardCallback;
-
-
-	//board
-	GLuint m_boardShader;
-	GLuint m_boardTexture;
-	GLuint m_boardBuffer;
-	GLuint m_boardVAO;
-	GLuint m_boardEBO;
-	GLuint m_rfTexture{};
-
-	//pieces
-	GLuint m_piecesShader;
-	GLuint m_piecesTexture;
-	GLuint m_piecesBuffer;
-	GLuint m_piecesVAO;
-	GLuint m_piecesEBO;
-	GLsizei m_piecesBufferCount;
-	int m_maxPiecesBufferSize;
-
-	//dragging
-	GLuint m_dragShader;
-	GLuint m_dragBuffer;
-	GLuint m_dragVAO;
-	GLuint m_dragEBO;
-	GLuint m_uDragX;
-	GLuint m_uDragY;
-	bool m_dragging;
-	int m_dragStart;
-
 
 	
 //private methods
@@ -71,31 +38,6 @@ private:
 
 	//init GLFW
 	void initGLFW() noexcept;
-
-
-
-	//init board
-	void initBoardShader() noexcept;
-
-	void initBoardBuffer() noexcept;
-
-	void initBoardTexture() noexcept;
-
-
-
-	//init pieces
-	void initPieceShader() noexcept;
-
-	void initPieceBuffer() noexcept;
-
-	void initPieceTexture() noexcept;
-
-
-
-	//init drag
-	void initDragShader() noexcept;
-
-	void initDragBuffer() noexcept;
 
 
 
@@ -110,12 +52,6 @@ private:
 
 
 	//render pipelines
-	void drawBoard() const noexcept;
-
-	void drawPieces() const noexcept;
-
-	void drawDrag() const noexcept;
-
 	void drawImGui() const noexcept;
 
 

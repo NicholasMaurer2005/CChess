@@ -30,9 +30,8 @@ private:
 	//	Private Members
 
 	GLuint m_buffer{};
-	GLuint m_ebo{};
-	GLuint m_vao{};
 	GLuint m_indexBuffer{};
+	GLuint m_vao{};
 	std::size_t m_capacity{};
 	int m_indexCount{};
 

@@ -15,7 +15,7 @@
 void Buffer::cleanup() const noexcept
 {
 	glDeleteBuffers(1, &m_buffer);
-	glDeleteBuffers(1, &m_ebo);
+	glDeleteBuffers(1, &m_indexBuffer);
 	glDeleteVertexArrays(1, &m_vao);
 }
 
@@ -51,7 +51,7 @@ Buffer Buffer::square(float width) noexcept
 
 Buffer::Buffer(Buffer&& other) noexcept :
 	m_buffer(std::exchange(other.m_buffer, 0)),
-	m_ebo(std::exchange(other.m_ebo, 0)),
+	m_indexBuffer(std::exchange(other.m_indexBuffer, 0)),
 	m_vao(std::exchange(other.m_vao, 0)),
 	m_capacity(other.m_capacity),
 	m_indexCount(other.m_indexCount) { }
@@ -61,7 +61,7 @@ Buffer& Buffer::operator= (Buffer&& other) noexcept
 	cleanup();
 
 	m_buffer = std::exchange(other.m_buffer, 0);
-	m_ebo = std::exchange(other.m_ebo, 0);
+	m_indexBuffer = std::exchange(other.m_indexBuffer, 0);
 	m_vao = std::exchange(other.m_vao, 0);
 	m_capacity = other.m_capacity;
 	m_indexCount = other.m_indexCount;
@@ -83,9 +83,7 @@ void Buffer::buffer(std::span<const Vertex> data, std::span<const Triangle> inde
 
 	m_indexCount = static_cast<int>(indexBuffer.size() * triangleVertexCount);
 
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+	bind();
 
 	if (indexBuffer.size_bytes() <= m_capacity)
 	{
@@ -107,9 +105,7 @@ void Buffer::buffer(std::span<const PieceSprite> data, std::span<const Triangle>
 
 	m_indexCount = static_cast<int>(indexBuffer.size() * triangleVertexCount);
 
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+	bind();
 
 	if (indexBuffer.size_bytes() <= m_capacity)
 	{
@@ -136,8 +132,8 @@ void Buffer::initialize() noexcept
 	glGenBuffers(1, &m_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
 
-	glGenBuffers(1, &m_ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+	glGenBuffers(1, &m_indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, x)));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, u)));
@@ -149,14 +145,12 @@ void Buffer::bind() const noexcept
 {
 	glBindVertexArray(m_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
 }
 
 void Buffer::draw() const noexcept
 {
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+	bind();
 
 	glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
 }

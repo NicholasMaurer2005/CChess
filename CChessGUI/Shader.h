@@ -27,6 +27,8 @@ public:
 	//	Public Methods
 	 
 	//constructors
+	Shader() noexcept {};
+
 	Shader(std::string_view vertex, std::string_view fragment);
 
 	Shader(const Shader& other) = delete;

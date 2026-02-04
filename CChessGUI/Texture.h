@@ -21,7 +21,7 @@ private:
 
 	//	Private Members
 
-	GLuint m_texture;
+	GLuint m_texture{};
 	int m_width{};
 	int m_height{};
 
@@ -40,6 +40,8 @@ public:
 	//	Public Methods
 
 	//constructors
+	Texture() noexcept {};
+
 	Texture(std::string_view image);
 
 	Texture(std::span<const Pixel> data, int width, int height) noexcept;

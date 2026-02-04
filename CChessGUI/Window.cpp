@@ -12,6 +12,7 @@
 #include "PieceSprite.h"
 #include "Texture.h"
 #include "Buffer.h"
+#include "Shader.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
@@ -235,6 +236,16 @@ Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
 	: m_boardTexture(generateBoardTexture(false), fileSize, rankSize), m_moveCallback(std::move(moveCallback)), m_pieceCallback(std::move(pieceCallback))
 {
 	initGLFW();
+
+	//must be initialized after glewInit() returns GLEW_OK
+	m_viewportBuffer = Buffer::square(2.0f);
+	m_positionBuffer.initialize();
+	m_dragBuffer = Buffer::square(0.25f);
+	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize);
+	m_piecesTexture = Texture("pieceTextures.png");
+	m_defaultShader = Shader("DefaultVertex.glsl", "DefaultFragment.glsl");
+	m_dragShader = Shader("DragVertex.glsl", "DragFragment.glsl");
+
 	initImGui();
 }
 

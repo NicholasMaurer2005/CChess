@@ -41,9 +41,6 @@ private:
 private:
 
 	//	Private Methods
-
-	void init() noexcept;
-
 	void cleanup() const noexcept;
 
 
@@ -53,7 +50,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Buffer() noexcept;
+	Buffer() noexcept {};
 
 	Buffer(std::span<const Vertex> data, std::span<const Triangle> indexBuffer) noexcept;
 
@@ -79,6 +76,8 @@ public:
 
 
 	//buffer
+	void initialize() noexcept;
+
 	void bind() const noexcept;
 
 	void draw() const noexcept;

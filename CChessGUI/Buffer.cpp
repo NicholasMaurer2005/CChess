@@ -12,23 +12,6 @@
 
 //	Private Methods
 
-void Buffer::init() noexcept
-{
-	glGenVertexArrays(1, &m_vao);
-	glBindVertexArray(m_vao);
-
-	glGenBuffers(1, &m_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
-
-	glGenBuffers(1, &m_ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, x)));
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, u)));
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-}
-
 void Buffer::cleanup() const noexcept
 {
 	glDeleteBuffers(1, &m_buffer);
@@ -41,14 +24,9 @@ void Buffer::cleanup() const noexcept
 //	Public Methods
 
 //constructors
-Buffer::Buffer() noexcept
-{
-	init();
-}
-
 Buffer::Buffer(std::span<const Vertex> data, std::span<const Triangle> indexBuffer) noexcept
 {
-	init();
+	initialize();
 	buffer(data, indexBuffer);
 }
 
@@ -150,6 +128,23 @@ void Buffer::buffer(std::span<const PieceSprite> data, std::span<const Triangle>
 
 
 //buffer
+void Buffer::initialize() noexcept
+{
+	glGenVertexArrays(1, &m_vao);
+	glBindVertexArray(m_vao);
+
+	glGenBuffers(1, &m_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+
+	glGenBuffers(1, &m_ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, x)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, u)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+}
+
 void Buffer::bind() const noexcept
 {
 	glBindVertexArray(m_vao);

@@ -47,13 +47,13 @@ private:
 	clock::time_point m_lastTime;
 
 	//pipelines
-	Buffer m_viewportBuffer{ Buffer::square(2.0f) };
+	Buffer m_viewportBuffer;
 	Buffer m_positionBuffer;
-	Buffer m_dragBuffer{ Buffer::square(0.25f) };
+	Buffer m_dragBuffer;
 	Texture m_boardTexture;
-	Texture m_piecesTexture{ "pieceTextures.png" };
-	Shader m_defaultShader{ "DefaultVertex.glsl", "DefaultFragment.glsl" };
-	Shader m_dragShader{ "DragVertex.glsl", "DefaultFragment.glsl" };
+	Texture m_piecesTexture;
+	Shader m_defaultShader;
+	Shader m_dragShader;
 	
 	//callbacks
 	MoveCallback m_moveCallback;

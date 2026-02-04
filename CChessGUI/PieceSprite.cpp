@@ -79,52 +79,44 @@ void PieceSprite::initTexture(Piece piece) noexcept
 {
 	const TextureCoords texture{ pieceTextureCoords[static_cast<std::size_t>(piece)] };
 
-	m_texX1 = texture.x1;
-	m_texY1 = texture.y1;
-	m_texX2 = texture.x2;
-	m_texY2 = texture.y2;
-	m_texX3 = texture.x3;
-	m_texY3 = texture.y3;
-	m_texX4 = texture.x4;
-	m_texY4 = texture.y4;
+	m_u1 = texture.x1;
+	m_v1 = texture.y1;
+	m_u2 = texture.x2;
+	m_v2 = texture.y2;
+	m_u3 = texture.x3;
+	m_v3 = texture.y3;
+	m_u4 = texture.x4;
+	m_v4 = texture.y4;
 }
 
 
 
 //constructors
 PieceSprite::PieceSprite(int rank, int file, Piece piece) noexcept
-	: m_posX1(), m_posY1(), m_texX1(), m_texY1(),
-	  m_posX2(), m_posY2(), m_texX2(), m_texY2(),
-	  m_posX3(), m_posY3(), m_texX3(), m_texY3(),
-	  m_posX4(), m_posY4(), m_texX4(), m_texY4()
 {
 	initTexture(piece);
 	move(rank, file);
 }
 
 PieceSprite::PieceSprite(Piece piece) noexcept
-	: m_posX1(), m_posY1(), m_texX1(), m_texY1(),
-	m_posX2(), m_posY2(), m_texX2(), m_texY2(),
-	m_posX3(), m_posY3(), m_texX3(), m_texY3(),
-	m_posX4(), m_posY4(), m_texX4(), m_texY4()
 {
 	initTexture(piece);
 
 	//bottem left
-	m_posX1 = -squareOffset;
-	m_posY1 = squareOffset;
+	m_x1 = -squareOffset;
+	m_y1 = squareOffset;
 
 	//bottem right
-	m_posX2 = squareOffset;
-	m_posY2 = squareOffset;
+	m_x2 = squareOffset;
+	m_y2 = squareOffset;
 
 	//top right
-	m_posX3 = squareOffset;
-	m_posY3 = -squareOffset;
+	m_x3 = squareOffset;
+	m_y3 = -squareOffset;
 
 	//top left
-	m_posX4 = -squareOffset;
-	m_posY4 = -squareOffset;
+	m_x4 = -squareOffset;
+	m_y4 = -squareOffset;
 }
 
 
@@ -136,18 +128,18 @@ void PieceSprite::move(int rank, int file) noexcept
 	const float topLeftY{ rank * squareOffset };
 
 	//bottem left
-	m_posX1 = 2.0f * topLeftX - 1.0f;
-	m_posY1 = 2.0f * (topLeftY + squareOffset) - 1.0f;
+	m_x1 = 2.0f * topLeftX - 1.0f;
+	m_y1 = 2.0f * (topLeftY + squareOffset) - 1.0f;
 
 	//bottem right
-	m_posX2 = 2.0f * (topLeftX + squareOffset) - 1.0f;
-	m_posY2 = 2.0f * (topLeftY + squareOffset) - 1.0f;
+	m_x2 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_y2 = 2.0f * (topLeftY + squareOffset) - 1.0f;
 
 	//top right
-	m_posX3 = 2.0f * (topLeftX + squareOffset) - 1.0f;
-	m_posY3 = 2.0f * topLeftY - 1.0f;
+	m_x3 = 2.0f * (topLeftX + squareOffset) - 1.0f;
+	m_y3 = 2.0f * topLeftY - 1.0f;
 
 	//top left
-	m_posX4 = 2.0f * topLeftX - 1.0f;
-	m_posY4 = 2.0f * topLeftY - 1.0f;
+	m_x4 = 2.0f * topLeftX - 1.0f;
+	m_y4 = 2.0f * topLeftY - 1.0f;
 }

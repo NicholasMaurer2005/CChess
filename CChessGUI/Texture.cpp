@@ -1,6 +1,5 @@
 #include "Texture.h"
 
-#include <cstdint>
 #include <GL/glew.h>
 #include <span>
 #include <string_view>
@@ -27,7 +26,7 @@ void Texture::init() noexcept
 //	Public Methods
 
 //constructors
-Texture::Texture(std::span<const std::uint8_t> data, int width, int height) noexcept
+Texture::Texture(std::span<const Pixel> data, int width, int height) noexcept
 	: m_width(width), m_height(height)
 {
 	init();
@@ -76,7 +75,7 @@ void Texture::bind() const noexcept
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 }
 
-void Texture::update(std::span<const std::uint8_t> data) const noexcept
+void Texture::update(std::span<const Pixel> data) const noexcept
 {
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RGBA, GL_UNSIGNED_BYTE, data.data());

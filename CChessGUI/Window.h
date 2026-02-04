@@ -1,40 +1,64 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <string_view>
 #include <array>
 #include <chrono>
-#include <span>
 #include <functional>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <span>
 
-
-
-//constants
-constexpr int boardSize{ 64 };
-
-using MoveCallback = std::function<bool(int source, int destination)>;
+#include "PieceSprite.h"
+#include "Buffer.h"
+#include "Shader.h"
+#include "Texture.h"
 
 
 
 class Window
 {
-
-//private properties
 private:
 
+	// Private Definitions
+
+	//constants
+	static constexpr int minimumSettingsWidth{ 200 };
+	static constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
+	static constexpr int minimumWindowHeight{ 500 };
+
+
+
+	//usings
+	using MoveCallback = std::function<bool(int source, int destination)>;
+	using clock = std::chrono::high_resolution_clock;
+
+
+
+private:
+
+	//	Private Members
+	
 	//window
-	GLFWwindow* m_window;
-	int m_width;
-	int m_height;
-	float m_aspectRatio;
-	alignas(64) std::array<char, boardSize> m_position;
-	std::chrono::high_resolution_clock::time_point m_lastTime;
+	GLFWwindow* m_window{};
+	int m_width{ minimumWindowWidth };
+	int m_height{ minimumWindowHeight };
+	float m_aspectRatio{ static_cast<float>(minimumSettingsWidth) / minimumWindowHeight };
+	clock::time_point m_lastTime;
+
+	//pipelines
+	Buffer m_viewportBuffer{ Buffer::square(2.0f) };
+	Buffer m_pieceBuffer;
+	Buffer m_dragBuffer{ Buffer::square(0.25f) };
+	Texture m_boardTexture;
+	Texture m_pieceTexture{ "pieceTextures.png" };
+	
+	//callbacks
+	MoveCallback m_moveCallback;
 
 
 	
-//private methods
 private:
+
+	//	Private Methods
 
 	//init GLFW
 	void initGLFW() noexcept;
@@ -46,44 +70,39 @@ private:
 
 
 
-	//buffer drag
-	bool bufferDragPiece(std::size_t pieceIndex) noexcept;
-
-
-
 	//render pipelines
 	void drawImGui() const noexcept;
 
 
 
-//public methods
 public:
 
-
+	//	Public Methods
 
 	//constructors
-	Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept;
+	Window(MoveCallback moveCallback) noexcept;
 
-	~Window() noexcept;
+
+
+	//getters
+	bool open() const noexcept;
+
+
+
+	//setters
+	void resize(int width, int height) noexcept;
+
+	void bufferBoard(bool flipped, int source, int destination) const noexcept;
+
+	void bufferPieces(std::span<const PieceSprite> data) noexcept;
 
 
 
 	//window
-	bool open() noexcept;
-
 	void draw() noexcept;
-
-	void resize(int width, int height) noexcept;
 
 	void startDragging() noexcept;
 
 	void stopDragging() noexcept;
-
-
-
-	//buffer
-	void bufferBoard(bool flipped, int source, int destination) const noexcept;
-
-	void bufferPieces(bool flipped, std::span<const char> board) noexcept;
 };
 

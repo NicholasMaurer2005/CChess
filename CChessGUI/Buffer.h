@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <span>
 
+#include "PieceSprite.h"
+
 
 
 class Buffer
@@ -16,6 +18,11 @@ public:
 		float x, y, u, v;
 	};
 
+	struct Triangle
+	{
+		GLuint v1, v2, v3;
+	};
+
 
 
 private:
@@ -23,9 +30,11 @@ private:
 	//	Private Members
 
 	GLuint m_buffer{};
+	GLuint m_ebo{};
 	GLuint m_vao{};
+	GLuint m_indexBuffer{};
 	std::size_t m_capacity{};
-	int m_vertexCount{};
+	int m_indexCount{};
 
 
 
@@ -44,7 +53,11 @@ public:
 	//	Public Methods
 
 	//constructors
-	Buffer(std::span<const Vertex> data) noexcept;
+	Buffer() noexcept;
+
+	Buffer(std::span<const Vertex> data, std::span<const Triangle> indexBuffer) noexcept;
+
+	static Buffer square(float width) noexcept;
 
 	Buffer(const Buffer& other) = delete;
 
@@ -58,14 +71,16 @@ public:
 
 
 
-	//getters
-	int size() const noexcept;
-
-
-
 	//setters
-	void buffer(std::span<const Vertex> data) noexcept;
+	void buffer(std::span<const Vertex> data, std::span<const Triangle> indexBuffer) noexcept;
 
+	void buffer(std::span<const PieceSprite> data, std::span<const Triangle> indexBuffer) noexcept;
+
+
+
+	//buffer
 	void bind() const noexcept;
+
+	void draw() const noexcept;
 };
 

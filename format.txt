@@ -43,8 +43,6 @@ Class Layout:
 	- <custom> means custom comments and related functionality. must still follow whitespace layout.
 	- keep as much implimentation as possible in source file.
 	- must exist in seperate file with matching name or within the scope of another class, e.g., MyContainer::MyIterator.
-	- getters must match variable name minus 'm_', e.g., int value() const noexcept { return m_value; }.
-	- setters must match variable name minus 'm_' plus 'set', e.g., void setValue(int value) noexcept { m_value = value; }.
 	
 	- class must follow this layout including all whitespace and comments unless it is reduntant, i.e., dont add '//setters' if there 
 	  are no setters. Any additional comments are allowed:

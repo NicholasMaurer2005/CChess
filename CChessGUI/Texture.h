@@ -9,6 +9,14 @@
 
 class Texture
 {
+public:
+
+	//	Public Definitions
+	struct alignas(4) Pixel
+	{
+		std::uint8_t r, g, b, a;
+	};
+
 private:
 
 	//	Private Members
@@ -34,7 +42,7 @@ public:
 	//constructors
 	Texture(std::string_view image);
 
-	Texture(std::span<const std::uint8_t> data, int width, int height) noexcept;
+	Texture(std::span<const Pixel> data, int width, int height) noexcept;
 
 	Texture(Texture& other) = delete;
 
@@ -51,6 +59,6 @@ public:
 	//setters
 	void bind() const noexcept;
 
-	void update(std::span<const std::uint8_t> data) const noexcept;
+	void update(std::span<const Pixel> data) const noexcept;
 };
 

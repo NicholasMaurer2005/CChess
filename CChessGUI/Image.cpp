@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <stdexcept>
 #include <utility>
+#include <string_view>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

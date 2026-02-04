@@ -2,9 +2,8 @@
 
 #include <GL/glew.h>
 #include <string_view>
-#include <cstddef>
-
-#include "Image.h"
+#include <span>
+#include <cstdint>
 
 
 
@@ -12,25 +11,28 @@ class Texture
 {
 private:
 
+	//	Private Members
 	GLuint m_texture;
+	int m_width{};
+	int m_height{};
 
 
 
 private:
 
-	//private methods
+	//	Private Methods
 	void init() noexcept;
 
 
 
 public:
 
+	//	Public Methods
+
 	//constructors
-	Texture() noexcept;
+	Texture(std::string_view image);
 
-	Texture(std::string_view texture);
-
-	Texture(const Image& texture);
+	Texture(std::span<const std::uint8_t> data, int width, int height) noexcept;
 
 	Texture(Texture& other) = delete;
 
@@ -44,7 +46,9 @@ public:
 
 
 
-	//public methods
+	//setters
 	void bind() const noexcept;
+
+	void update(std::span<const std::uint8_t> data) noexcept;
 };
 

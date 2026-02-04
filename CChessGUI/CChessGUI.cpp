@@ -1,17 +1,57 @@
 #include "CChessGUI.h"
 
 #include <CChess.h>
+#include <array>
+#include <limits>
+#include <algorithm>
+#include <string_view>
+#include <span>
 #include <iostream>
 #include <format>
-#include <span>
+
+#include "PieceSprite.h"
 
 
 
-static constexpr int noPiece{ 64 };
-static constexpr bool flipped{ false };
+//	Static Helpers
+
+//usings
+using CharToPieceTable = std::array<PieceSprite::Piece, std::numeric_limits<unsigned char>::max() + 1>;
 
 
-/* Private Methods */
+
+//functions
+static consteval CharToPieceTable generateCharToPieceTable()
+{
+	CharToPieceTable table{};
+	table.fill(PieceSprite::Piece::NoPiece);
+
+	table['P'] = PieceSprite::Piece::WhitePawn;
+	table['N'] = PieceSprite::Piece::WhitePawn;
+	table['B'] = PieceSprite::Piece::WhitePawn;
+	table['R'] = PieceSprite::Piece::WhitePawn;
+	table['Q'] = PieceSprite::Piece::WhitePawn;
+	table['K'] = PieceSprite::Piece::WhitePawn;
+	table['p'] = PieceSprite::Piece::WhitePawn;
+	table['n'] = PieceSprite::Piece::WhitePawn;
+	table['b'] = PieceSprite::Piece::WhitePawn;
+	table['r'] = PieceSprite::Piece::WhitePawn;
+	table['q'] = PieceSprite::Piece::WhitePawn;
+	table['k'] = PieceSprite::Piece::WhitePawn;
+
+	return table;
+}
+
+static PieceSprite::Piece charToPiece(char c) noexcept
+{
+	static constexpr CharToPieceTable charToPieceTable{ generateCharToPieceTable() };
+
+	return charToPieceTable[c];
+}
+
+
+
+//	Private Methods
 
 bool CChessGUI::moveCallback(int source, int destination) noexcept
 {
@@ -27,25 +67,32 @@ bool CChessGUI::moveCallback(int source, int destination) noexcept
 	return legal;
 }
 
-void CChessGUI::moveBackCallback() noexcept
+PieceSprite::Piece CChessGUI::pieceCallback(std::size_t square) noexcept
 {
-	
-}
-
-void CChessGUI::moveForwardCallback() noexcept
-{
-	
+	return charToPiece(m_position[square]);
 }
 
 void CChessGUI::bufferPosition() noexcept
 {
-	const std::string_view position{ engine_get_position_char() };
-	m_window.bufferPieces(flipped, position);
+	std::string_view position{ engine_get_position_char() };
+	std::ranges::copy(position, m_position.begin());
+
+	std::array<PieceSprite, boardSize> pieces{};
+	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
+
+	std::ranges::for_each(position, [&back](char c) {
+		if (c == ' ') return;
+
+		*back = charToPiece(c);
+		++back;
+		});
+
+	m_window.bufferPieces(std::span(pieces.begin(), back));
 }
 
 void CChessGUI::play() noexcept
 {
-	m_window.bufferBoard(flipped, noPiece, noPiece);
+	m_window.bufferBoard(false, 64, 64);
 	bufferPosition();
 
 	while (m_window.open())
@@ -90,7 +137,7 @@ void CChessGUI::play() noexcept
 
 
 
-/* Public Methods */
+//	Public Methods
 
 //constructor
 CChessGUI::CChessGUI()

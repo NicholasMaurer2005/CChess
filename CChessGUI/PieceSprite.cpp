@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <array>
 
+
+
 static_assert(std::is_standard_layout_v<PieceSprite>);
 static_assert(sizeof(PieceSprite) == 64);
 

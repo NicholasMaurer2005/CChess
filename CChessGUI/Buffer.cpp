@@ -152,8 +152,9 @@ void Buffer::buffer(std::span<const PieceSprite> data, std::span<const Triangle>
 //buffer
 void Buffer::bind() const noexcept
 {
-	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
 	glBindVertexArray(m_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, m_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffer);
 }
 
 void Buffer::draw() const noexcept

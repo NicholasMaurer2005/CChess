@@ -246,12 +246,8 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="boardFragment.hpp" />
-    <ClInclude Include="boardVertex.hpp" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CChessGUI.h" />
-    <ClInclude Include="dragFragment.hpp" />
-    <ClInclude Include="dragVertex.hpp" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
@@ -262,9 +258,7 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
-    <ClInclude Include="pieceFragment.hpp" />
     <ClInclude Include="PieceSprite.h" />
-    <ClInclude Include="pieceVertex.hpp" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Window.h" />

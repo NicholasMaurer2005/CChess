@@ -7,6 +7,13 @@
 
 class Shader
 {
+public:
+
+	//	Public Definitions
+	
+	// This is a violation of my naming convention. This is so I can match the GLSL type vec2. I did not want to add all of GLM just
+	// for glm::vec2.
+
 private:
 
 	//	Private Members
@@ -41,5 +48,7 @@ public:
 
 	//setters
 	void use() const noexcept;
+
+	void uniformVec2(GLint location, float x, float y) const noexcept;
 };
 

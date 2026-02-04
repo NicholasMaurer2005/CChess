@@ -7,6 +7,7 @@
 #include <span>
 #include <array>
 #include <utility>
+#include <algorithm>
 
 #include "PieceSprite.h"
 #include "Texture.h"
@@ -111,7 +112,7 @@ static consteval PieceEbo generatePieceEBO()
 
 // Private Methods
 
-//init GLFW
+//init
 void Window::initGLFW()
 {
 	if (!glfwInit()) throw std::runtime_error("unable to initialize GLFW");
@@ -134,9 +135,6 @@ void Window::initGLFW()
 	glViewport(0, 0, m_height, m_height);
 }
 
-
-
-//init ImGui
 void Window::initImGui() noexcept
 {
 	constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
@@ -157,6 +155,9 @@ void Window::initImGui() noexcept
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
+
+
+//render pipelines //TODO: maybe remove redundant binds and uses?
 void Window::drawImGui() const noexcept
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -187,13 +188,51 @@ void Window::drawImGui() const noexcept
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void Window::drawBoard() const noexcept
+{
+	m_defaultShader.use();
+	m_boardTexture.bind();
+	m_viewportBuffer.draw();
+}
+
+void Window::drawPieces() const noexcept
+{
+	m_defaultShader.use();
+	m_piecesTexture.bind();
+	m_positionBuffer.draw();
+}
+
+void Window::drawDragPiece() const noexcept
+{
+	if (m_dragging)
+	{
+		auto [x, y] = mousePosition();
+		m_dragShader.uniformVec2(m_uMousePosition, x, y);
+
+		m_dragShader.use();
+		m_piecesTexture.bind();
+		m_dragBuffer.draw();
+	}
+}
+
+
+
+//mouse position
+std::pair<float, float> Window::mousePosition() const noexcept
+{
+	double x{}, y{};
+	glfwGetCursorPos(m_window, &x, &y);
+
+	return std::pair(static_cast<float>(x), static_cast<float>(y));
+}
+
 
 
 // Public Methods
 
 //constructors
-Window::Window(MoveCallback moveCallback)
-	: m_boardTexture(generateBoardTexture(false), fileSize, rankSize), m_moveCallback(moveCallback)
+Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
+	: m_boardTexture(generateBoardTexture(false), fileSize, rankSize), m_moveCallback(std::move(moveCallback)), m_pieceCallback(std::move(pieceCallback))
 {
 	initGLFW();
 	initImGui();
@@ -212,6 +251,8 @@ bool Window::open() const noexcept
 //setters
 void Window::resize(int width, int height) noexcept
 {
+	static constexpr float minimumAspectRatio{ static_cast<float>(minimumWindowWidth) / minimumWindowHeight };
+
 	m_width = width;
 	m_height = height;
 	m_aspectRatio = static_cast<float>(width) / height;
@@ -255,7 +296,7 @@ void Window::bufferPieces(std::span<const PieceSprite> data) noexcept
 {
 	static constexpr PieceEbo pieceEBO{ generatePieceEBO() };
 
-	m_pieceBuffer.buffer(data, std::span(pieceEBO.begin(), data.size()));
+	m_positionBuffer.buffer(data, std::span(pieceEBO.begin(), data.size()));
 }
 
 
@@ -284,18 +325,17 @@ void Window::draw() noexcept
 
 void Window::startDragging() noexcept  
 {
-	double x{};
-	double y{};
-	glfwGetCursorPos(m_window, &x, &y);
+	auto [x, y] = mousePosition();
 
 	//check if mouse is in board space
 	if (x < m_height)
 	{
-		const int file{ static_cast<int>(x / m_height * 8) };
-		const std::size_t rank{ static_cast<std::size_t>(8.0 - y / m_height * 8.0) };
+		const std::size_t file{ static_cast<std::size_t>(x / m_height * 8) };
+		const std::size_t rank{ static_cast<std::size_t>(8.0f - y / m_height * 8.0f) };
 		const std::size_t pieceIndex{ rank * fileSize + file };
+		const PieceSprite::Piece piece{ m_pieceCallback(pieceIndex) };
 
-		if (bufferDragPiece(pieceIndex))
+		if (piece != PieceSprite::Piece::NoPiece)
 		{
 			m_dragStart = static_cast<int>(pieceIndex);
 			m_dragging = true;
@@ -305,28 +345,24 @@ void Window::startDragging() noexcept
 
 void Window::stopDragging() noexcept
 {
-	double x{};
-	double y{};
-	glfwGetCursorPos(m_window, &x, &y);
+	m_dragging = false;
 
-	//check if mouse is in board space
+	auto [x, y] = mousePosition();
+
 	if (x < m_height)
 	{
 		const int file{ static_cast<int>(x / m_height * 8) };
 		const int rank{ static_cast<int>(8 - y / m_height * 8) };
-		const int pieceIndex{ rank * fileSize + file };
+		const int square{ rank * fileSize + file };
 
-		m_dragging = false;
-
-		if (m_moveCallback(m_dragStart, pieceIndex))
+		if (m_moveCallback(m_dragStart, square))
 		{
-			bufferBoard(false, m_dragStart, pieceIndex);
+			bufferBoard(false, m_dragStart, square);
 			glfwSwapBuffers(m_window);
 		}
 	}
 	else
 	{
-		m_dragging = false;
 		m_moveCallback(m_dragStart, m_dragStart);
 	}
 }

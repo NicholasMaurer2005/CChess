@@ -5,7 +5,7 @@ Other:
 	- brace on same line for lambdas
 	- no globals in header files
 	- no using namespaces in global space
-	- no auto keyword
+	- no auto keyword (unless for structured bindings)
 	- no warnings
 	- no static variables in header files
 	- no static variables in functions (avoid initialization guard)

@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <span>
+#include <utility>
 
 #include "PieceSprite.h"
 #include "Buffer.h"
@@ -29,6 +30,7 @@ private:
 
 	//usings
 	using MoveCallback = std::function<bool(int source, int destination)>;
+	using PieceCallback = std::function<PieceSprite::Piece(std::size_t index)>;
 	using clock = std::chrono::high_resolution_clock;
 
 
@@ -46,13 +48,21 @@ private:
 
 	//pipelines
 	Buffer m_viewportBuffer{ Buffer::square(2.0f) };
-	Buffer m_pieceBuffer;
+	Buffer m_positionBuffer;
 	Buffer m_dragBuffer{ Buffer::square(0.25f) };
 	Texture m_boardTexture;
-	Texture m_pieceTexture{ "pieceTextures.png" };
+	Texture m_piecesTexture{ "pieceTextures.png" };
+	Shader m_defaultShader{ "DefaultVertex.glsl", "DefaultFragment.glsl" };
+	Shader m_dragShader{ "DragVertex.glsl", "DefaultFragment.glsl" };
 	
 	//callbacks
 	MoveCallback m_moveCallback;
+	PieceCallback m_pieceCallback;
+
+	//piece drag
+	bool m_dragging{};
+	GLint m_uMousePosition{ m_dragShader.uniformLocation("mousePosition") };
+	int m_dragStart{};
 
 
 	
@@ -60,18 +70,26 @@ private:
 
 	//	Private Methods
 
-	//init GLFW
-	void initGLFW() noexcept;
+	//init
+	void initGLFW();
 
-
-
-	//init ImGui
 	void initImGui() noexcept;
 
 
 
 	//render pipelines
 	void drawImGui() const noexcept;
+
+	void drawBoard() const noexcept;
+
+	void drawPieces() const noexcept;
+
+	void drawDragPiece() const noexcept;
+
+	
+
+	//mouse position
+	std::pair<float, float> mousePosition() const noexcept;
 
 
 
@@ -80,7 +98,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Window(MoveCallback moveCallback) noexcept;
+	Window(MoveCallback moveCallback, PieceCallback pieceCallback);
 
 
 

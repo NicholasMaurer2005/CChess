@@ -116,3 +116,9 @@ void Shader::use() const noexcept
 {
 	glUseProgram(m_program);
 }
+
+void Shader::uniformVec2(GLint location, float x, float y) const noexcept
+{
+	glUseProgram(m_program);
+	glUniform2f(location, x, y);
+}

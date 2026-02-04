@@ -133,11 +133,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="boardFragment.glsl" />
-    <CustomBuild Include="boardVertex.glsl" />
-    <CustomBuild Include="pieceFragment.glsl" />
-    <CustomBuild Include="pieceVertex.glsl" />
-    <CustomBuild Include="dragFragment.glsl" />
-    <CustomBuild Include="dragVertex.glsl" />
+    <None Include="DefaultVertex.glsl" />
+    <None Include="DefaultFragment.glsl" />
+    <None Include="DragVertex.glsl" />
   </ItemGroup>
 </Project>

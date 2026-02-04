@@ -1,9 +1,9 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <string_view>
-#include <span>
 #include <cstdint>
+#include <GL/glew.h>
+#include <span>
+#include <string_view>
 
 
 
@@ -12,6 +12,7 @@ class Texture
 private:
 
 	//	Private Members
+
 	GLuint m_texture;
 	int m_width{};
 	int m_height{};
@@ -21,6 +22,7 @@ private:
 private:
 
 	//	Private Methods
+
 	void init() noexcept;
 
 
@@ -49,6 +51,6 @@ public:
 	//setters
 	void bind() const noexcept;
 
-	void update(std::span<const std::uint8_t> data) noexcept;
+	void update(std::span<const std::uint8_t> data) const noexcept;
 };
 

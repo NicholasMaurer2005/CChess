@@ -7,15 +7,11 @@
 
 class Shader
 {
-public:
-	//	Public Definitions
-
-
-
 private:
 
 	//	Private Members
-	GLuint m_program;
+
+	GLuint m_program{};
 
 
 
@@ -24,8 +20,6 @@ public:
 	//	Public Methods
 	 
 	//constructors
-	Shader() noexcept {};
-
 	Shader(std::string_view vertex, std::string_view fragment);
 
 	Shader(const Shader& other) = delete;

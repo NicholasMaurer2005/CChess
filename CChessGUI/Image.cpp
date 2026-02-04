@@ -5,8 +5,8 @@
 #include <format>
 #include <GL/glew.h>
 #include <stdexcept>
-#include <utility>
 #include <string_view>
+#include <utility>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -35,8 +35,7 @@ Image::Image(const Image& other) noexcept
 }
 
 Image::Image(Image&& other) noexcept
-	: m_data(std::exchange(other.m_data, nullptr)), m_width(std::exchange(other.m_width, 0)), m_height(std::exchange(other.m_height, 0)), m_format(std::exchange(other.m_format, 0)) {
-}
+	: m_data(std::exchange(other.m_data, nullptr)), m_width(std::exchange(other.m_width, 0)), m_height(std::exchange(other.m_height, 0)), m_format(std::exchange(other.m_format, 0)) { }
 
 Image& Image::operator= (const Image& other) noexcept
 {

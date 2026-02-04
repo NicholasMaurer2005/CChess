@@ -34,11 +34,6 @@ void Buffer::cleanup() const noexcept
 //	Public Methods
 
 //constructors
-Buffer::Buffer() noexcept
-{
-	init();
-}
-
 Buffer::Buffer(std::span<const Vertex> data) noexcept
 {
 	init();
@@ -48,9 +43,8 @@ Buffer::Buffer(std::span<const Vertex> data) noexcept
 Buffer::Buffer(Buffer&& other) noexcept :
 	m_buffer(std::exchange(other.m_buffer, 0)),
 	m_vao(std::exchange(other.m_vao, 0)),
-	m_capacity(std::exchange(other.m_capacity, 0)),
-	m_vertexCount(std::exchange(other.m_vertexCount, 0)) {
-}
+	m_capacity(other.m_capacity),
+	m_vertexCount(other.m_vertexCount) { }
 
 Buffer& Buffer::operator= (Buffer&& other) noexcept
 {

@@ -3,6 +3,8 @@
 #include <GL/glew.h>
 #include <span>
 
+
+
 class Buffer
 {
 public:
@@ -42,8 +44,6 @@ public:
 	//	Public Methods
 
 	//constructors
-	Buffer() noexcept;
-
 	Buffer(std::span<const Vertex> data) noexcept;
 
 	Buffer(const Buffer& other) = delete;

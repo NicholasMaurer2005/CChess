@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string_view>
-#include <GL/glew.h>
 #include <cstdint>
+#include <GL/glew.h>
+#include <string_view>
 
 
 
@@ -11,6 +11,7 @@ class Image
 private:
 
 	//	Private Members
+
 	std::uint8_t* m_data{};
 	int m_width{};
 	int m_height{};

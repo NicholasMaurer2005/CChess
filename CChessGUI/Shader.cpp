@@ -5,11 +5,13 @@
 #include <GL/glew.h>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 
 
 
 //	Static Helpers
+
 static GLuint createProgram(std::string_view vertex, std::string_view fragment)
 {
 	GLuint vertexShader{ glCreateShader(GL_VERTEX_SHADER) };

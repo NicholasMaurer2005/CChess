@@ -233,7 +233,7 @@ std::pair<float, float> Window::mousePosition() const noexcept
 
 //constructors
 Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
-	: m_boardTexture(generateBoardTexture(false), fileSize, rankSize), m_moveCallback(std::move(moveCallback)), m_pieceCallback(std::move(pieceCallback))
+	: m_moveCallback(std::move(moveCallback)), m_pieceCallback(std::move(pieceCallback))
 {
 	initGLFW();
 
@@ -244,7 +244,8 @@ Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
 	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize);
 	m_piecesTexture = Texture("pieceTextures.png");
 	m_defaultShader = Shader("DefaultVertex.glsl", "DefaultFragment.glsl");
-	m_dragShader = Shader("DragVertex.glsl", "DragFragment.glsl");
+	m_dragShader = Shader("DragVertex.glsl", "DefaultFragment.glsl");
+	m_uMousePosition = m_dragShader.uniformLocation("mousePosition");
 
 	initImGui();
 }
@@ -315,11 +316,12 @@ void Window::bufferPieces(std::span<const PieceSprite> data) noexcept
 //window 
 void Window::draw() noexcept
 {
-	
-
 	//render
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	drawBoard();
+	drawPieces();
+	drawDragPiece();
 	drawImGui();
 
 	glfwSwapBuffers(m_window);

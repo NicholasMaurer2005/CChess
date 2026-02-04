@@ -15,6 +15,10 @@
 
 //	Static Helpers
 
+//constants
+static constexpr int rankSize{ 8 };
+static constexpr int fileSize{ 8 };
+
 //usings
 using CharToPieceTable = std::array<PieceSprite::Piece, std::numeric_limits<unsigned char>::max() + 1>;
 
@@ -80,12 +84,17 @@ void CChessGUI::bufferPosition() noexcept
 	std::array<PieceSprite, boardSize> pieces{};
 	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
 
-	std::ranges::for_each(position, [&back](char c) {
-		if (c == ' ') return;
+	for (std::size_t rank{}; rank < rankSize; ++rank)
+	{
+		for (std::size_t file{}; file < fileSize; ++file)
+		{
+			const PieceSprite::Piece piece{ charToPiece(m_position[rank * fileSize + file]) };
+			if (piece == PieceSprite::Piece::NoPiece) continue;
 
-		*back = charToPiece(c);
-		++back;
-		});
+			*back = PieceSprite(rank, file, piece);
+			++back;
+		}
+	}
 
 	m_window.bufferPieces(std::span(pieces.begin(), back));
 }

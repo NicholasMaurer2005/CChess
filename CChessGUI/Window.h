@@ -61,7 +61,7 @@ private:
 
 	//piece drag
 	bool m_dragging{};
-	GLint m_uMousePosition{ m_dragShader.uniformLocation("mousePosition") };
+	GLint m_uMousePosition{};
 	int m_dragStart{};
 
 

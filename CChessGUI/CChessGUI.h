@@ -28,7 +28,7 @@ private:
 
 	bool m_whiteToMove{ true };
 	bool m_searching{ false };
-	std::array<char, boardSize> m_position;
+	std::array<std::size_t, boardSize> m_position;
 
 
 

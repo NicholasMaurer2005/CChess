@@ -2,6 +2,8 @@
 
 #include <type_traits>
 #include <array>
+#include <iostream>
+#include <format>
 
 
 
@@ -40,7 +42,7 @@ static constexpr Vec2 blackKingLocation{ 150, 0 };
 //helpers
 struct alignas(32) TextureCoords
 {
-	float x1, y1, x2, y2, x3, y3, x4, y4;
+	float u1, v1, u2, v2, u3, v3, u4, v4;
 };
 
 static consteval TextureCoords generateTextureCoords(int x, int y)
@@ -48,14 +50,14 @@ static consteval TextureCoords generateTextureCoords(int x, int y)
 	const Vec2 normalized{ static_cast<float>(x) / textureSheetSize.x, static_cast<float>(y) / textureSheetSize.y };
 
 	return {
-		//top right
-		normalized.x, normalized.y,
-		//top left
-		normalized.x + pieceTextureSize.x, normalized.y,
 		//bottem left
-		normalized.x + pieceTextureSize.x, normalized.y + pieceTextureSize.y,
+		normalized.x, normalized.y,
 		//bottem right
-		normalized.x, normalized.y + pieceTextureSize.y,
+		normalized.x + pieceTextureSize.x, normalized.y,
+		//top right
+		normalized.x + pieceTextureSize.x, normalized.y + pieceTextureSize.y,
+		//top left
+		normalized.x, normalized.y + pieceTextureSize.y
 	};
 }
 
@@ -81,14 +83,14 @@ void PieceSprite::initTexture(Piece piece) noexcept
 {
 	const TextureCoords texture{ pieceTextureCoords[static_cast<std::size_t>(piece)] };
 
-	m_u1 = texture.x1;
-	m_v1 = texture.y1;
-	m_u2 = texture.x2;
-	m_v2 = texture.y2;
-	m_u3 = texture.x3;
-	m_v3 = texture.y3;
-	m_u4 = texture.x4;
-	m_v4 = texture.y4;
+	m_u1 = texture.u1;
+	m_v1 = texture.v1;
+	m_u2 = texture.u2;
+	m_v2 = texture.v2;
+	m_u3 = texture.u3;
+	m_v3 = texture.v3;
+	m_u4 = texture.u4;
+	m_v4 = texture.v4;
 }
 
 
@@ -144,4 +146,15 @@ void PieceSprite::move(int rank, int file) noexcept
 	//top left
 	m_x4 = 2.0f * topLeftX - 1.0f;
 	m_y4 = 2.0f * topLeftY - 1.0f;
+}
+
+void PieceSprite::dump() const noexcept
+{
+	std::cout << std::format(
+		"pos1: {:.3f}, {:.3f} | tex1: {:.3f}, {:.3f}\npos2: {:.3f}, {:.3f} | tex2: {:.3f}, {:.3f}\npos3: {:.3f}, {:.3f} | tex3: {:.3f}, {:.3f}\npos4: {:.3f}, {:.3f} | tex4: {:.3f}, {:.3f}\n\n", 
+		m_x1, m_y1, m_u1, m_v1, 
+		m_x2, m_y2, m_u2, m_v2, 
+		m_x3, m_y3, m_u3, m_v3, 
+		m_x4, m_y4, m_u4, m_v4
+	);
 }

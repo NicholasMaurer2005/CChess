@@ -31,17 +31,17 @@ static consteval CharToPieceTable generateCharToPieceTable()
 	table.fill(PieceSprite::Piece::NoPiece);
 
 	table['P'] = PieceSprite::Piece::WhitePawn;
-	table['N'] = PieceSprite::Piece::WhitePawn;
-	table['B'] = PieceSprite::Piece::WhitePawn;
-	table['R'] = PieceSprite::Piece::WhitePawn;
-	table['Q'] = PieceSprite::Piece::WhitePawn;
-	table['K'] = PieceSprite::Piece::WhitePawn;
-	table['p'] = PieceSprite::Piece::WhitePawn;
-	table['n'] = PieceSprite::Piece::WhitePawn;
-	table['b'] = PieceSprite::Piece::WhitePawn;
-	table['r'] = PieceSprite::Piece::WhitePawn;
-	table['q'] = PieceSprite::Piece::WhitePawn;
-	table['k'] = PieceSprite::Piece::WhitePawn;
+	table['N'] = PieceSprite::Piece::WhiteKnight;
+	table['B'] = PieceSprite::Piece::WhiteBishop;
+	table['R'] = PieceSprite::Piece::WhiteRook;
+	table['Q'] = PieceSprite::Piece::WhiteQueen;
+	table['K'] = PieceSprite::Piece::WhiteKing;
+	table['p'] = PieceSprite::Piece::BlackPawn;
+	table['n'] = PieceSprite::Piece::BlackKnight;
+	table['b'] = PieceSprite::Piece::BlackBishop;
+	table['r'] = PieceSprite::Piece::BlackRook;
+	table['q'] = PieceSprite::Piece::BlackQueen;
+	table['k'] = PieceSprite::Piece::BlackKing;
 
 	return table;
 }
@@ -95,6 +95,10 @@ void CChessGUI::bufferPosition() noexcept
 			++back;
 		}
 	}
+
+	std::for_each(pieces.begin(), back, [](PieceSprite sprite) {
+		sprite.dump();
+		});
 
 	m_window.bufferPieces(std::span(pieces.begin(), back));
 }

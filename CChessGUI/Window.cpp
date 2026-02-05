@@ -291,16 +291,16 @@ void Window::bufferBoard(bool flipped, int source, int destination) const noexce
 
 	if (source != 64 && destination != 64)
 	{
-		static constexpr Texture::Pixel sourceColor{ 137, 207, 240, 255 };
-		static constexpr Texture::Pixel destinationColor{ 115, 157, 179, 255 };
+		static constexpr Texture::Pixel destinationColor{ 137, 207, 240, 255 };
+		static constexpr Texture::Pixel sourceColor{ 115, 157, 179, 255 };
 
 		Texture::Pixel oldSource{ std::exchange(board[source], sourceColor) };
 		Texture::Pixel oldDestination{ std::exchange(board[destination], destinationColor) };
 
 		m_boardTexture.update(board);
 
-		board[source] = sourceColor;
-		board[destination] = destinationColor;
+		board[source] = oldSource;
+		board[destination] = oldDestination;
 	}
 }
 
@@ -308,7 +308,7 @@ void Window::bufferPieces(std::span<const PieceSprite> data) noexcept
 {
 	static constexpr PieceEbo pieceEBO{ generatePieceEBO() };
 
-	m_positionBuffer.buffer(data, std::span(pieceEBO.begin(), data.size()));
+	m_positionBuffer.buffer(data, std::span(pieceEBO.begin(), data.size() * 2));
 }
 
 

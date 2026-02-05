@@ -20,7 +20,7 @@ Image::Image(std::string_view image)
 {
 	int channels{};
 
-	stbi_set_flip_vertically_on_load(true);
+	//stbi_set_flip_vertically_on_load(true);
 
 	m_data = stbi_load(image.data(), &m_width, &m_height, &channels, 0);
 	if (!m_data) throw std::runtime_error(std::format("could not find image {}", image));

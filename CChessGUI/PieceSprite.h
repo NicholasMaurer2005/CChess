@@ -62,6 +62,8 @@ public:
 	PieceSprite(Piece piece) noexcept;
 
 	void move(int rank, int file) noexcept;
+
+	void dump() const noexcept;
 };
 
 

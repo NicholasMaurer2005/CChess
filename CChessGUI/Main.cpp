@@ -15,5 +15,6 @@ int main()
 	catch (const std::exception& e)
 	{
 		std::cout << std::format("failed due to: {}\n", e.what());
+		std::cin.get();
 	}
 }

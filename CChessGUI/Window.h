@@ -85,8 +85,13 @@ private:
 	void drawPieces() const noexcept;
 
 	void drawDragPiece() const noexcept;
-
 	
+
+
+	//buffer
+	void bufferDragPiece(PieceSprite::Piece piece) noexcept;
+
+
 
 	//mouse position
 	std::pair<float, float> mousePosition() const noexcept;

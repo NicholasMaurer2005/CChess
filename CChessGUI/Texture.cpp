@@ -11,12 +11,12 @@
 
 // Private Methods
 
-void Texture::init() noexcept
+void Texture::init(MagFilter magFilter) noexcept
 {
 	glGenTextures(1, &m_texture);
 	glBindTexture(GL_TEXTURE_2D, m_texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<int>(magFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<int>(magFilter));
 }
 
 
@@ -24,18 +24,18 @@ void Texture::init() noexcept
 //	Public Methods
 
 //constructors
-Texture::Texture(std::span<const Pixel> data, int width, int height) noexcept
+Texture::Texture(std::span<const Pixel> data, int width, int height, MagFilter magFilter) noexcept
 	: m_width(width), m_height(height)
 {
-	init();
+	init(magFilter);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-Texture::Texture(std::string_view texture)
+Texture::Texture(std::string_view texture, MagFilter magFilter)
 {
-	init();
+	init(magFilter);
 
 	Image image{ texture };
 	m_width = image.width();

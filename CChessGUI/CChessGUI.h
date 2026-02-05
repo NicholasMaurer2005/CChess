@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <span>
 
 #include "Window.h"
 #include "PieceSprite.h"
@@ -28,7 +29,7 @@ private:
 
 	bool m_whiteToMove{ true };
 	bool m_searching{ false };
-	std::array<std::size_t, boardSize> m_position;
+	std::array<char, boardSize> m_position;
 
 
 
@@ -38,7 +39,11 @@ private:
 
 	void play() noexcept;
 
-	void bufferPosition() noexcept;
+	void bufferPosition(std::span<const char> position) noexcept;
+
+	void bufferNewPosition() noexcept;
+
+	void bufferCurrentPosition() noexcept;
 
 	bool moveCallback(int source, int destination) noexcept;
 

@@ -12,9 +12,16 @@ class Texture
 public:
 
 	//	Public Definitions
+
 	struct alignas(4) Pixel
 	{
 		std::uint8_t r, g, b, a;
+	};
+
+	enum class MagFilter
+	{
+		Nearest = GL_NEAREST,
+		Linear = GL_LINEAR
 	};
 
 private:
@@ -31,7 +38,7 @@ private:
 
 	//	Private Methods
 
-	void init() noexcept;
+	void init(MagFilter magFilter) noexcept;
 
 
 
@@ -42,9 +49,9 @@ public:
 	//constructors
 	Texture() noexcept {};
 
-	Texture(std::string_view image);
+	Texture(std::string_view image, MagFilter magFilter);
 
-	Texture(std::span<const Pixel> data, int width, int height) noexcept;
+	Texture(std::span<const Pixel> data, int width, int height, MagFilter magFilter) noexcept;
 
 	Texture(Texture& other) = delete;
 

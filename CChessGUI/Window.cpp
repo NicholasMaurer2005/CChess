@@ -208,12 +208,27 @@ void Window::drawDragPiece() const noexcept
 	if (m_dragging)
 	{
 		auto [x, y] = mousePosition();
-		m_dragShader.uniformVec2(m_uMousePosition, x, y);
+		m_dragShader.uniformVec2(m_uMousePosition, (2.0f * x / m_height) - 1.0f, -((2.0f * y / m_height) - 1.0f));
 
 		m_dragShader.use();
 		m_piecesTexture.bind();
 		m_dragBuffer.draw();
 	}
+}
+
+
+
+//buffer
+void Window::bufferDragPiece(PieceSprite::Piece piece) noexcept
+{
+	static constexpr std::array<Buffer::Triangle, 2> indexBuffer{
+		Buffer::Triangle(0, 1, 2),
+		Buffer::Triangle(0, 2, 3)
+
+	};
+	const std::array<PieceSprite, 1> sprite{ piece };
+	
+	m_dragBuffer.buffer(sprite, indexBuffer);
 }
 
 
@@ -241,8 +256,8 @@ Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
 	m_viewportBuffer = Buffer::square(2.0f);
 	m_positionBuffer.initialize();
 	m_dragBuffer = Buffer::square(0.25f);
-	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize);
-	m_piecesTexture = Texture("pieceTextures.png");
+	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize, Texture::MagFilter::Nearest);
+	m_piecesTexture = Texture("pieceTextures.png", Texture::MagFilter::Linear);
 	m_defaultShader = Shader("DefaultVertex.glsl", "DefaultFragment.glsl");
 	m_dragShader = Shader("DragVertex.glsl", "DefaultFragment.glsl");
 	m_uMousePosition = m_dragShader.uniformLocation("mousePosition");
@@ -350,6 +365,7 @@ void Window::startDragging() noexcept
 
 		if (piece != PieceSprite::Piece::NoPiece)
 		{
+			bufferDragPiece(piece);
 			m_dragStart = static_cast<int>(pieceIndex);
 			m_dragging = true;
 		}

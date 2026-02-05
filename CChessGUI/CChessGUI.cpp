@@ -66,21 +66,22 @@ bool CChessGUI::moveCallback(int source, int destination) noexcept
 		m_whiteToMove = false;
 	}
 
-	bufferPosition();
+	bufferNewPosition();
 
 	return legal;
 }
 
 PieceSprite::Piece CChessGUI::pieceCallback(std::size_t square) noexcept
 {
-	return charToPiece(m_position[square]);
+	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
+	m_position[square] = '.';
+	bufferCurrentPosition();
+	
+	return piece;
 }
 
-void CChessGUI::bufferPosition() noexcept
+void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 {
-	std::string_view position{ engine_get_position_char() };
-	std::ranges::copy(position, m_position.begin());
-
 	std::array<PieceSprite, boardSize> pieces{};
 	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
 
@@ -96,17 +97,26 @@ void CChessGUI::bufferPosition() noexcept
 		}
 	}
 
-	std::for_each(pieces.begin(), back, [](PieceSprite sprite) {
-		sprite.dump();
-		});
-
 	m_window.bufferPieces(std::span(pieces.begin(), back));
+}
+
+void CChessGUI::bufferNewPosition() noexcept
+{
+	std::string_view position{ engine_get_position_char() };
+	std::ranges::copy(position, m_position.begin());
+
+	bufferPosition(position);
+}
+
+void CChessGUI::bufferCurrentPosition() noexcept
+{
+	bufferPosition(m_position);
 }
 
 void CChessGUI::play() noexcept
 {
 	m_window.bufferBoard(false, 64, 64);
-	bufferPosition();
+	bufferNewPosition();
 
 	while (m_window.open())
 	{
@@ -139,7 +149,7 @@ void CChessGUI::play() noexcept
 					m_whiteToMove = true;
 					engine_move_unchecked(source, destination);
 					m_window.bufferBoard(false, source, destination);
-					bufferPosition();
+					bufferNewPosition();
 				}
 			}
 		}

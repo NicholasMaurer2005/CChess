@@ -52,6 +52,7 @@ private:
 	Buffer m_dragBuffer;
 	Texture m_boardTexture;
 	Texture m_piecesTexture;
+	Texture m_rfTexture;
 	Shader m_defaultShader;
 	Shader m_dragShader;
 	
@@ -85,6 +86,8 @@ private:
 	void drawPieces() const noexcept;
 
 	void drawDragPiece() const noexcept;
+
+	void drawRankFile() const noexcept;
 	
 
 

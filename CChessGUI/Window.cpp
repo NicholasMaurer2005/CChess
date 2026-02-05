@@ -13,6 +13,7 @@
 #include "Texture.h"
 #include "Buffer.h"
 #include "Shader.h"
+#include "Image.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
@@ -165,8 +166,8 @@ void Window::drawImGui() const noexcept
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::SetNextWindowPos(ImVec2(m_height, 0.0f));
-	ImGui::SetNextWindowSize(ImVec2(m_width - m_height, m_height));
+	ImGui::SetNextWindowPos(ImVec2(static_cast<float>(m_height), 0.0f));
+	ImGui::SetNextWindowSize(ImVec2(static_cast<float>(m_width - m_height), static_cast<float>(m_height)));
 	ImGui::Begin("settings", nullptr,
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
@@ -216,6 +217,13 @@ void Window::drawDragPiece() const noexcept
 	}
 }
 
+void Window::drawRankFile() const noexcept
+{
+	m_defaultShader.use();
+	m_rfTexture.bind();
+	m_viewportBuffer.draw();
+}
+
 
 
 //buffer
@@ -256,10 +264,14 @@ Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
 	m_viewportBuffer = Buffer::square(2.0f);
 	m_positionBuffer.initialize();
 	m_dragBuffer = Buffer::square(0.25f);
+
 	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize, Texture::MagFilter::Nearest);
-	m_piecesTexture = Texture("pieceTextures.png", Texture::MagFilter::Linear);
+	m_piecesTexture = Texture(Image("pieceTextures.png"), Texture::MagFilter::Linear);
+	m_rfTexture = Texture(Image("rfTexture.png", true), Texture::MagFilter::Linear);
+
 	m_defaultShader = Shader("DefaultVertex.glsl", "DefaultFragment.glsl");
 	m_dragShader = Shader("DragVertex.glsl", "DefaultFragment.glsl");
+
 	m_uMousePosition = m_dragShader.uniformLocation("mousePosition");
 
 	initImGui();
@@ -293,6 +305,7 @@ void Window::resize(int width, int height) noexcept
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	drawBoard();
+	drawRankFile();
 	drawPieces();
 	drawImGui();
 	glfwSwapBuffers(m_window);
@@ -335,6 +348,7 @@ void Window::draw() noexcept
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	drawBoard();
+	drawRankFile();
 	drawPieces();
 	drawDragPiece();
 	drawImGui();

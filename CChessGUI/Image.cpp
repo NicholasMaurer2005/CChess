@@ -16,11 +16,11 @@
 //	Public Methods
 
 //constructors
-Image::Image(std::string_view image)
+Image::Image(std::string_view image, bool flipped)
 {
 	int channels{};
 
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(flipped);
 
 	m_data = stbi_load(image.data(), &m_width, &m_height, &channels, 0);
 	if (!m_data) throw std::runtime_error(std::format("could not find image {}", image));
@@ -44,7 +44,7 @@ Image& Image::operator= (const Image& other) noexcept
 	std::memcpy(m_data, other.m_data, other.size());
 
 	m_width = other.m_width;
-	m_height - other.m_height;
+	m_height = other.m_height;
 	m_format = other.m_format;
 
 	return *this;

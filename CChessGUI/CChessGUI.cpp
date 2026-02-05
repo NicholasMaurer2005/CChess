@@ -85,11 +85,11 @@ void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 	std::array<PieceSprite, boardSize> pieces{};
 	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
 
-	for (std::size_t rank{}; rank < rankSize; ++rank)
+	for (int rank{}; rank < rankSize; ++rank)
 	{
-		for (std::size_t file{}; file < fileSize; ++file)
+		for (int file{}; file < fileSize; ++file)
 		{
-			const PieceSprite::Piece piece{ charToPiece(m_position[rank * fileSize + file]) };
+			const PieceSprite::Piece piece{ charToPiece(m_position[static_cast<std::size_t>(rank) * fileSize + file]) };
 			if (piece == PieceSprite::Piece::NoPiece) continue;
 
 			*back = PieceSprite(rank, file, piece);

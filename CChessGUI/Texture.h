@@ -3,7 +3,8 @@
 #include <cstdint>
 #include <GL/glew.h>
 #include <span>
-#include <string_view>
+
+#include "Image.h"
 
 
 
@@ -49,7 +50,7 @@ public:
 	//constructors
 	Texture() noexcept {};
 
-	Texture(std::string_view image, MagFilter magFilter);
+	Texture(Image image, MagFilter magFilter);
 
 	Texture(std::span<const Pixel> data, int width, int height, MagFilter magFilter) noexcept;
 

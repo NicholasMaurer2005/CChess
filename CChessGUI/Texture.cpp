@@ -33,11 +33,10 @@ Texture::Texture(std::span<const Pixel> data, int width, int height, MagFilter m
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-Texture::Texture(std::string_view texture, MagFilter magFilter)
+Texture::Texture(Image image, MagFilter magFilter)
 {
 	init(magFilter);
 
-	Image image{ texture };
 	m_width = image.width();
 	m_height = image.height();
 

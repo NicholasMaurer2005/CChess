@@ -397,7 +397,6 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
     <ClCompile Include="MoveGen.cpp" />
     <ClCompile Include="PreGen.cpp" />
     <ClCompile Include="State.cpp" />
-    <ClCompile Include="ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
@@ -413,7 +412,6 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
     <ClInclude Include="PreGen.h" />
     <ClInclude Include="StackString.hpp" />
     <ClInclude Include="State.h" />
-    <ClInclude Include="ThreadPool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

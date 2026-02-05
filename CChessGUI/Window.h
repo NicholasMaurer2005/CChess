@@ -1,152 +1,134 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <string_view>
 #include <array>
 #include <chrono>
-#include <span>
 #include <functional>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <span>
+#include <utility>
 
-
-
-//constants
-constexpr int boardSize{ 64 };
-
-using MoveCallback = std::function<void(int source, int destination)>;
+#include "PieceSprite.h"
+#include "Buffer.h"
+#include "Shader.h"
+#include "Texture.h"
 
 
 
 class Window
 {
-
-//private properties
 private:
 
-	//window
-	GLFWwindow* m_window;
-	int m_width;
-	int m_height;
-	float m_aspectRatio;
-	alignas(64) std::array<char, boardSize> m_position;
-	std::chrono::high_resolution_clock::time_point m_lastTime;
+	// Private Definitions
 
+	//constants
+	static constexpr int minimumSettingsWidth{ 200 };
+	static constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
+	static constexpr int minimumWindowHeight{ 500 };
+
+
+
+	//usings
+	using MoveCallback = std::function<bool(int source, int destination)>;
+	using PieceCallback = std::function<PieceSprite::Piece(std::size_t index)>;
+	using clock = std::chrono::high_resolution_clock;
+
+
+
+private:
+
+	//	Private Members
+	
+	//window
+	GLFWwindow* m_window{};
+	int m_width{ minimumWindowWidth };
+	int m_height{ minimumWindowHeight };
+	float m_aspectRatio{ static_cast<float>(minimumSettingsWidth) / minimumWindowHeight };
+	clock::time_point m_lastTime;
+
+	//pipelines
+	Buffer m_viewportBuffer;
+	Buffer m_positionBuffer;
+	Buffer m_dragBuffer;
+	Texture m_boardTexture;
+	Texture m_piecesTexture;
+	Texture m_rfTexture;
+	Shader m_defaultShader;
+	Shader m_dragShader;
+	
 	//callbacks
 	MoveCallback m_moveCallback;
-	std::function<void()> m_moveBackCallback;
-	std::function<void()> m_moveForwardCallback;
+	PieceCallback m_pieceCallback;
 
-
-	//board
-	GLuint m_boardShader;
-	GLuint m_boardTexture;
-	GLuint m_boardBuffer;
-	GLuint m_boardVAO;
-	GLuint m_boardEBO;
-
-	//pieces
-	GLuint m_piecesShader;
-	GLuint m_piecesTexture;
-	GLuint m_piecesBuffer;
-	GLuint m_piecesVAO;
-	GLuint m_piecesEBO;
-	GLsizei m_piecesBufferCount;
-	int m_maxPiecesBufferSize;
-
-	//dragging
-	GLuint m_dragShader;
-	GLuint m_dragBuffer;
-	GLuint m_dragVAO;
-	GLuint m_dragEBO;
-	GLuint m_uDragX;
-	GLuint m_uDragY;
-	bool m_dragging;
-	int m_dragStart;
+	//piece drag
+	bool m_dragging{};
+	GLint m_uMousePosition{};
+	int m_dragStart{};
 
 
 	
-//private methods
 private:
 
-	//init GLFW
-	void initGLFW() noexcept;
+	//	Private Methods
 
+	//init
+	void initGLFW();
 
-
-	//init board
-	void initBoardShader() noexcept;
-
-	void initBoardBuffer() noexcept;
-
-	void initBoardTexture() noexcept;
-
-
-
-	//init pieces
-	void initPieceShader() noexcept;
-
-	void initPieceBuffer() noexcept;
-
-	void initPieceTexture() noexcept;
-
-
-
-	//init drag
-	void initDragShader() noexcept;
-
-	void initDragBuffer() noexcept;
-
-
-
-	//init ImGui
 	void initImGui() noexcept;
 
 
 
-	//buffer drag
-	bool bufferDragPiece(std::size_t pieceIndex) noexcept;
-
-
-
 	//render pipelines
+	void drawImGui() const noexcept;
+
 	void drawBoard() const noexcept;
 
 	void drawPieces() const noexcept;
 
-	void drawDrag() const noexcept;
+	void drawDragPiece() const noexcept;
 
-	void drawImGui() const noexcept;
+	void drawRankFile() const noexcept;
+	
+
+
+	//buffer
+	void bufferDragPiece(PieceSprite::Piece piece) noexcept;
 
 
 
-//public methods
+	//mouse position
+	std::pair<float, float> mousePosition() const noexcept;
+
+
+
 public:
 
-
+	//	Public Methods
 
 	//constructors
-	Window(MoveCallback moveCallback, std::function<void()> moveBackCallback, std::function<void()> moveForwardCallback) noexcept;
+	Window(MoveCallback moveCallback, PieceCallback pieceCallback);
 
-	~Window() noexcept;
+
+
+	//getters
+	bool open() const noexcept;
+
+
+
+	//setters
+	void resize(int width, int height) noexcept;
+
+	void bufferBoard(bool flipped, int source, int destination) const noexcept;
+
+	void bufferPieces(std::span<const PieceSprite> data) noexcept;
 
 
 
 	//window
-	bool open() noexcept;
-
 	void draw() noexcept;
-
-	void resize(int width, int height) noexcept;
 
 	void startDragging() noexcept;
 
 	void stopDragging() noexcept;
-
-
-
-	//buffer
-	void bufferBoard(bool flipped, int source, int destination) const noexcept;
-
-	void bufferPieces(bool flipped, std::span<const char> board) noexcept;
 };
 

@@ -77,7 +77,7 @@ private:
 	StateHistory::iterator m_historyBack{ m_history.begin() + 1 };
 	State::FenPosition m_fenPosition;
 	State::CharPosition m_charPosition;
-	MoveList m_currentLegalMoves{ MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state) };
+	MoveList m_currentLegalMoves;
 
 	//worker
 	std::mutex m_mutex;

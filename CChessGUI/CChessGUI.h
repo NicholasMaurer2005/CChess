@@ -43,7 +43,7 @@ private:
 	bool m_whiteToMove{ true };
 	bool m_searching{ false };
 	bool m_playerIsWhite{ true };
-	bool m_flipped{ true };
+	bool m_flipped{ false };
 	bool m_engineMove{ false };
 
 	CharPosition m_position{};

@@ -124,8 +124,6 @@ void CChessGUI::play() noexcept
 
 void CChessGUI::makeMove(int source, int destination) noexcept
 {
-	std::cout << std::format("{} -> {}\n", source, destination);
-
 	if (engine_move(m_whiteToMove, source, destination))
 	{
 		m_whiteToMove = !m_whiteToMove;
@@ -146,8 +144,6 @@ void CChessGUI::makeMove(int source, int destination) noexcept
 //callbacks
 void CChessGUI::moveCallback(int source, int destination) noexcept
 {
-	std::cout << std::format("pre {} -> {}\n", source, destination);
-
 	if (m_flipped)
 	{
 		source = 63 - source;

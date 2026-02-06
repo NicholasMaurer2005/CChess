@@ -29,8 +29,10 @@ private:
 
 
 	//usings
-	using MoveCallback = std::function<bool(int source, int destination)>;
-	using PieceCallback = std::function<PieceSprite::Piece(std::size_t index)>;
+	using MoveCallback = std::function<void(int source, int destination)>;
+	using PieceCallback = std::function<PieceSprite::Piece(int square)>;
+	using VoidCallback = std::function<void()>;
+	using PlayerColorCallback = std::function<void(bool playerIsWhite)>;
 	using clock = std::chrono::high_resolution_clock;
 
 
@@ -59,6 +61,12 @@ private:
 	//callbacks
 	MoveCallback m_moveCallback;
 	PieceCallback m_pieceCallback;
+	VoidCallback m_resetCallback;
+	VoidCallback m_moveForwardCallback;
+	VoidCallback m_moveBackCallback;
+	VoidCallback m_flipCallback;
+	VoidCallback m_engineMoveCallback;
+	PlayerColorCallback m_playerColorCallback;
 
 	//piece drag
 	bool m_dragging{};
@@ -106,7 +114,16 @@ public:
 	//	Public Methods
 
 	//constructors
-	Window(MoveCallback moveCallback, PieceCallback pieceCallback);
+	Window(
+		MoveCallback moveCallback, 
+		PieceCallback pieceCallback, 
+		VoidCallback resetCallback, 
+		VoidCallback moveForwardCallback, 
+		VoidCallback moveBackCallback, 
+		VoidCallback flipCallback,
+		VoidCallback engineMoveCallback,
+		PlayerColorCallback playerColorCallback
+	);
 
 
 
@@ -118,7 +135,9 @@ public:
 	//setters
 	void resize(int width, int height) noexcept;
 
-	void bufferBoard(bool flipped, int source, int destination) const noexcept;
+	void bufferBoard() const noexcept;
+
+	void bufferBoard(int source, int destination) const noexcept;
 
 	void bufferPieces(std::span<const PieceSprite> data) noexcept;
 

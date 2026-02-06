@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <algorithm>
+#include <string_view>
 
 #include "Engine.h"
 #include "Move.h"
@@ -40,7 +41,7 @@ void engine_destroy() noexcept
 //	POSITION
 void engine_set_position_start() noexcept
 {
-	if (engine) engine->setStartState();
+	if (engine) engine->reset();
 }
 
 CCHESS_BOOL engine_set_position_fen(const char* position) noexcept
@@ -57,7 +58,7 @@ CCHESS_BOOL engine_set_position_char(const char* position) noexcept
 {
 	if (!(engine && position)) return false;
 	
-	const std::string_view constView{ position };
+	const std::string_view constView{ position, 64 };
 	engine->setPositionChar(constView);
 
 	return true;
@@ -81,12 +82,22 @@ const char* engine_get_position_char() noexcept
 	return data.data();
 }
 
+void engine_last_move(int* source, int* destination) CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		const auto [moveSource, moveDestination] = engine->lastMove();
+		*source = moveSource;
+		*destination = moveDestination;
+	}
+}
+
 
 
 //	SEARCH
-void engine_start_search() noexcept
+void engine_start_search(CCHESS_BOOL whiteToMove) noexcept
 {
-	if (engine) engine->startSearch();
+	if (engine) engine->startSearch(whiteToMove);
 }
 
 void engine_stop_search()  noexcept
@@ -116,8 +127,6 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 	}
 }
 
-//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
-//	'destination' are not modified and the function returns CCHESS_FALSE
 CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 {
 	if (!engine) return false;
@@ -134,14 +143,19 @@ CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 
 //	SEARCH
 
-CCHESS_BOOL engine_move(int source, int destination) CCHESS_NOEXCEPT
+CCHESS_BOOL engine_move(CCHESS_BOOL whiteToMove, int source, int destination) CCHESS_NOEXCEPT
 {
 	if (!engine) return false;
 
-	return engine->move(source, destination);
+	return engine->move(whiteToMove, source, destination);
 }
 
-void engine_move_unchecked(int source, int destination) CCHESS_NOEXCEPT
+CCHESS_BOOL engine_move_forward() CCHESS_NOEXCEPT
 {
-	if (engine) engine->moveUnchecked(source, destination);
+	return engine->moveForward();
+}
+
+CCHESS_BOOL engine_move_back() CCHESS_NOEXCEPT
+{
+	return engine->moveBack();
 }

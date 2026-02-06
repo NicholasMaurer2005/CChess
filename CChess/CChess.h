@@ -5,8 +5,7 @@
 
 	#ifdef __cplusplus
 
-		#define CCHESS_NOEXCEPT		noexcept
-		#define CCHESS_NODISCARD	[[nodiscard]]
+		#define CCHESS_NOEXCEPT	noexcept
 
 		extern "C" {
 
@@ -47,12 +46,15 @@
 	//	called.
 	const char* engine_get_position_char() CCHESS_NOEXCEPT;
 
+	//	Get the source and destination of the move that caused the current state. If it is currently the start position 'source' and
+	//	'destination' are not changed.
+	void engine_last_move(int* source, int* destination) CCHESS_NOEXCEPT;
 
 
 	//	SEARCH
 	
 	//	Start async search. Stop with engine_stop_search(). Get statistics with engine_search_statistics().
-	void engine_start_search() CCHESS_NOEXCEPT;
+	void engine_start_search(CCHESS_BOOL whiteToMove) CCHESS_NOEXCEPT;
 
 	//	Stop the async search. 
 	void engine_stop_search() CCHESS_NOEXCEPT;
@@ -71,11 +73,19 @@
 
 
 
-	//	SEARCH
+	//	MOVE
 
-	CCHESS_BOOL engine_move(int source, int destination) CCHESS_NOEXCEPT;
+	//	Try to make a legal move. If the move could be made the engine returns CCHESS_TRUE. If the engine is searching or the move 
+	//	is illegal the engine returns CCHESS_FALSE.
+	CCHESS_BOOL engine_move(CCHESS_BOOL whiteToMove, int source, int destination) CCHESS_NOEXCEPT;
 
-	void engine_move_unchecked(int source, int destination) CCHESS_NOEXCEPT;
+	//	Try to move back one half move. If the move back could be made the engine returns CCHESS_TRUE. If the engine is searching or 
+	//	their are no prior half moves the engine returns CCHESS_FALSE.
+	CCHESS_BOOL engine_move_forward() CCHESS_NOEXCEPT;
+
+	//	Try to move back one half move. If the move back could be made the engine returns CCHESS_TRUE. If the engine is searching or 
+	//	their are no further half moves the engine returns CCHESS_FALSE.
+	CCHESS_BOOL engine_move_back() CCHESS_NOEXCEPT;
 
 
 

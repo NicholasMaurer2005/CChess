@@ -8,6 +8,7 @@
 #include <span>
 #include <iostream>
 #include <format>
+#include <stdexcept>
 
 #include "PieceSprite.h"
 
@@ -57,29 +58,6 @@ static PieceSprite::Piece charToPiece(char c) noexcept
 
 //	Private Methods
 
-bool CChessGUI::moveCallback(int source, int destination) noexcept
-{
-	const bool legal{ engine_move(source, destination) == CCHESS_TRUE };
-	
-	if (legal)
-	{
-		m_whiteToMove = false;
-	}
-
-	bufferNewPosition();
-
-	return legal;
-}
-
-PieceSprite::Piece CChessGUI::pieceCallback(std::size_t square) noexcept
-{
-	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
-	m_position[square] = '.';
-	bufferCurrentPosition();
-	
-	return piece;
-}
-
 void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 {
 	std::array<PieceSprite, boardSize> pieces{};
@@ -89,7 +67,8 @@ void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			const PieceSprite::Piece piece{ charToPiece(m_position[static_cast<std::size_t>(rank) * fileSize + file]) };
+			const std::size_t index{ static_cast<std::size_t>(rank) * fileSize + file };
+			const PieceSprite::Piece piece{ charToPiece(m_position[m_flipped ? 63 - index : index]) };
 			if (piece == PieceSprite::Piece::NoPiece) continue;
 
 			*back = PieceSprite(rank, file, piece);
@@ -100,32 +79,18 @@ void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 	m_window.bufferPieces(std::span(pieces.begin(), back));
 }
 
-void CChessGUI::bufferNewPosition() noexcept
-{
-	std::string_view position{ engine_get_position_char() };
-	std::ranges::copy(position, m_position.begin());
-
-	bufferPosition(position);
-}
-
-void CChessGUI::bufferCurrentPosition() noexcept
-{
-	bufferPosition(m_position);
-}
-
 void CChessGUI::play() noexcept
 {
-	m_window.bufferBoard(false, 64, 64);
-	bufferNewPosition();
+	resetCallback();
 
 	while (m_window.open())
 	{
-		if (!m_whiteToMove)
+		if (m_whiteToMove != m_playerIsWhite || m_engineMove)
 		{
 			if (!m_searching)
 			{
 				m_searching = true;
-				engine_start_search();
+				engine_start_search(m_whiteToMove);
 			}
 			else 
 			{
@@ -146,16 +111,144 @@ void CChessGUI::play() noexcept
 				if (engine_best_move(&source, &destination))
 				{
 					m_searching = false;
-					m_whiteToMove = true;
-					engine_move_unchecked(source, destination);
-					m_window.bufferBoard(false, source, destination);
-					bufferNewPosition();
+					m_engineMove = false;
+
+					makeMove(source, destination);
 				}
 			}
 		}
 
 		m_window.draw();
 	}
+}
+
+void CChessGUI::makeMove(int source, int destination) noexcept
+{
+	std::cout << std::format("{} -> {}\n", source, destination);
+
+	if (engine_move(m_whiteToMove, source, destination))
+	{
+		m_whiteToMove = !m_whiteToMove;
+
+		m_window.bufferBoard(m_flipped ? 63 - source : source, m_flipped ? 63 - destination : destination);
+	}
+
+	const std::string_view position{ engine_get_position_char() };
+
+
+	std::ranges::copy(position, m_position.begin());
+
+	bufferPosition(m_position);
+}
+
+
+
+//callbacks
+void CChessGUI::moveCallback(int source, int destination) noexcept
+{
+	std::cout << std::format("pre {} -> {}\n", source, destination);
+
+	if (m_flipped)
+	{
+		source = 63 - source;
+		destination = 63 - destination;
+	}
+
+	makeMove(source, destination);
+}
+
+PieceSprite::Piece CChessGUI::pieceCallback(int square) noexcept
+{
+	square = m_flipped ? 63 - square : square;
+
+	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
+	m_position[square] = '.';
+	bufferPosition(m_position);
+
+	return piece;
+}
+
+void CChessGUI::resetCallback() noexcept
+{
+	engine_set_position_start();
+
+	const std::string_view position{ engine_get_position_char() };
+	std::ranges::copy(position, m_position.begin());
+
+	bufferPosition(m_position);
+	m_window.bufferBoard();
+}
+
+void CChessGUI::moveForwardCallback() noexcept
+{
+	if (engine_move_forward())
+	{
+		int source{}, destination{};
+		engine_last_move(&source, &destination);
+
+		const std::string_view position{ engine_get_position_char() };
+		std::ranges::copy(position, m_position.begin());
+		bufferPosition(m_position);
+
+		if (source == destination)
+		{
+			m_window.bufferBoard();
+		}
+		else
+		{
+			m_window.bufferBoard(m_flipped ? 63 - source : source, m_flipped ? 63 - destination : destination);
+		}
+	}
+}
+
+void CChessGUI::moveBackCallback() noexcept
+{
+	if (engine_move_back())
+	{
+		int source{}, destination{};
+		engine_last_move(&source, &destination);
+
+		const std::string_view position{ engine_get_position_char() };
+		std::ranges::copy(position, m_position.begin());
+		bufferPosition(m_position);
+
+		if (source == destination)
+		{
+			m_window.bufferBoard();
+		}
+		else
+		{
+			m_window.bufferBoard(m_flipped ? 63 - source : source, m_flipped ? 63 - destination : destination);
+		}
+	}
+}
+
+void CChessGUI::flipCallback() noexcept
+{
+	int source{}, destination{};
+	engine_last_move(&source, &destination);
+
+	m_flipped = !m_flipped;
+	bufferPosition(m_position);
+
+	if (source == destination)
+	{
+		m_window.bufferBoard();
+	}
+	else
+	{
+		m_window.bufferBoard(m_flipped ? 63 - source : source, m_flipped ? 63 - destination : destination);
+	}
+}
+
+void CChessGUI::engineMoveCallback() noexcept
+{
+	m_engineMove = true;
+}
+
+void CChessGUI::playerColorCallback(bool playerIsWhite) noexcept
+{
+	m_playerIsWhite = playerIsWhite;
 }
 
 

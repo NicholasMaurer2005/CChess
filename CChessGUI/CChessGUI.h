@@ -14,7 +14,14 @@ private:
 
 	//	Private Definitions
 
+	//constants
 	static constexpr int boardSize{ 64 };
+	static constexpr int halfMoveCount{ 100 };
+
+
+
+	//usings
+	using CharPosition = std::array<char, boardSize>;
 
 
 
@@ -23,13 +30,23 @@ private:
 	//	Private Members
 
 	Window m_window{
-		[this](int width, int height) { return this->moveCallback(width, height); },
-		[this](std::size_t square) { return this->pieceCallback(square); },
+		[this](int width, int height)	{ this->moveCallback(width, height); },
+		[this](int square)				{ return this->pieceCallback(square); },
+		[this]()						{ this->resetCallback(); },
+		[this]()						{ this->moveForwardCallback(); },
+		[this]()						{ this->moveBackCallback(); },
+		[this]()						{ this->flipCallback(); },
+		[this]()						{ this->engineMoveCallback(); },
+		[this](bool playerIsWhite)		{ this->playerColorCallback(playerIsWhite); },
 	};
 
 	bool m_whiteToMove{ true };
 	bool m_searching{ false };
-	std::array<char, boardSize> m_position;
+	bool m_playerIsWhite{ true };
+	bool m_flipped{ true };
+	bool m_engineMove{ false };
+
+	CharPosition m_position{};
 
 
 
@@ -41,13 +58,26 @@ private:
 
 	void bufferPosition(std::span<const char> position) noexcept;
 
-	void bufferNewPosition() noexcept;
+	void makeMove(int source, int destination) noexcept;
 
-	void bufferCurrentPosition() noexcept;
 
-	bool moveCallback(int source, int destination) noexcept;
 
-	PieceSprite::Piece pieceCallback(std::size_t square) noexcept;
+	//callbacks
+	void moveCallback(int source, int destination) noexcept;
+
+	PieceSprite::Piece pieceCallback(int square) noexcept;
+
+	void resetCallback() noexcept;
+
+	void moveBackCallback() noexcept;
+
+	void moveForwardCallback() noexcept;
+
+	void flipCallback() noexcept;
+
+	void engineMoveCallback() noexcept;
+
+	void playerColorCallback(bool playerIsWhite) noexcept;
 
 
 

@@ -85,7 +85,7 @@ void CChessGUI::play() noexcept
 
 	while (m_window.open())
 	{
-		if (m_whiteToMove != m_playerIsWhite || m_engineMove)
+		if (m_whiteToMove != m_playerIsWhite || m_engineMove || m_enginePlayItself)
 		{
 			if (!m_searching)
 			{
@@ -245,6 +245,11 @@ void CChessGUI::engineMoveCallback() noexcept
 void CChessGUI::playerColorCallback(bool playerIsWhite) noexcept
 {
 	m_playerIsWhite = playerIsWhite;
+}
+
+void CChessGUI::enginePlayItselfCallback(bool enginePlayItself) noexcept
+{
+	m_enginePlayItself = enginePlayItself;
 }
 
 

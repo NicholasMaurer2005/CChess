@@ -299,20 +299,18 @@ Engine::~Engine()
 //search
 void Engine::startSearch(bool whiteToMove) noexcept
 {
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_history.end()) return;
+
 	m_currentState->whiteToMove = whiteToMove;
+	m_nodeCount = 0;
+	m_searchStart = clock::now();
+	m_stopSearch.store(false, std::memory_order_relaxed);
+	m_cv.notify_one();
 
-	if (m_stopSearch.load(std::memory_order_relaxed))
-	{
-		m_nodeCount = 0;
-		m_searchStart = clock::now();
-		m_stopSearch.store(false, std::memory_order_relaxed);
-		m_cv.notify_one();
-
-		std::thread([](std::atomic_bool& stopSearch, int searchMilliseconds) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(searchMilliseconds));
-			stopSearch.store(true, std::memory_order_relaxed);
-			}, std::ref(m_stopSearch), m_searchMilliseconds).detach();
-	}
+	std::thread([](std::atomic_bool& stopSearch, int searchMilliseconds) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(searchMilliseconds));
+		stopSearch.store(true, std::memory_order_relaxed);
+		}, std::ref(m_stopSearch), m_searchMilliseconds).detach();
 }
 
 void Engine::stopSearch() noexcept
@@ -415,7 +413,7 @@ bool Engine::setPositionFen(std::string_view position) noexcept
 
 bool Engine::move(bool white, int source, int destination) noexcept
 {
-	if (!m_stopSearch.load(std::memory_order_relaxed)) return false;
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_history.end()) return false;
 
 	const Move castleMove{ getCastleMove(source, destination) };
 
@@ -443,7 +441,7 @@ bool Engine::move(bool white, int source, int destination) noexcept
 
 bool Engine::moveForward() noexcept
 {
-	if (!m_stopSearch.load(std::memory_order_relaxed) || m_historyBack - 1 == m_currentState) return false;
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_historyBack) return false;
 
 	++m_currentState;
 	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);

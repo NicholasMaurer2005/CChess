@@ -204,6 +204,12 @@ void Window::drawImGui() const noexcept
 	{
 		m_playerColorCallback(TEMPORARYchecked);
 	}
+	ImGui::SameLine();
+	static bool TEMPORARYplayItself{ false };
+	if (ImGui::Checkbox("Engine Play Itself", &TEMPORARYplayItself))
+	{
+		m_enginePlayItselfCallback(TEMPORARYplayItself);
+	}
 	
 
 	ImGui::End();
@@ -285,7 +291,8 @@ Window::Window(
 	VoidCallback moveBackCallback,
 	VoidCallback flipCallback,
 	VoidCallback engineMoveCallback,
-	PlayerColorCallback playerColorCallback
+	BooleanCallback playerColorCallback,
+	BooleanCallback enginePlayItselfCallback
 ) :
 	m_moveCallback(std::move(moveCallback)),
 	m_pieceCallback(std::move(pieceCallback)),
@@ -294,7 +301,8 @@ Window::Window(
 	m_moveBackCallback(moveBackCallback),
 	m_flipCallback(flipCallback),
 	m_engineMoveCallback(engineMoveCallback),
-	m_playerColorCallback(playerColorCallback)
+	m_playerColorCallback(playerColorCallback),
+	m_enginePlayItselfCallback(enginePlayItselfCallback)
 {
 	initGLFW();
 

@@ -32,7 +32,7 @@ private:
 	using MoveCallback = std::function<void(int source, int destination)>;
 	using PieceCallback = std::function<PieceSprite::Piece(int square)>;
 	using VoidCallback = std::function<void()>;
-	using PlayerColorCallback = std::function<void(bool playerIsWhite)>;
+	using BooleanCallback = std::function<void(bool value)>;
 	using clock = std::chrono::high_resolution_clock;
 
 
@@ -66,7 +66,8 @@ private:
 	VoidCallback m_moveBackCallback;
 	VoidCallback m_flipCallback;
 	VoidCallback m_engineMoveCallback;
-	PlayerColorCallback m_playerColorCallback;
+	BooleanCallback m_playerColorCallback;
+	BooleanCallback m_enginePlayItselfCallback;
 
 	//piece drag
 	bool m_dragging{};
@@ -122,7 +123,8 @@ public:
 		VoidCallback moveBackCallback, 
 		VoidCallback flipCallback,
 		VoidCallback engineMoveCallback,
-		PlayerColorCallback playerColorCallback
+		BooleanCallback playerColorCallback,
+		BooleanCallback enginePlayItselfCallback
 	);
 
 

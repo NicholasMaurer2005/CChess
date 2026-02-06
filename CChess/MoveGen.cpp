@@ -610,6 +610,11 @@ namespace MoveGen
 
 	MoveList generateMoves(bool white, const State& state) noexcept
 	{
+		if (!state.pieceOccupancyT<Piece::WhiteKing>().board() || !state.pieceOccupancyT<Piece::BlackKing>().board())
+		{
+			throw;
+		}
+
 		MoveList moveList;
 
 		if (white)

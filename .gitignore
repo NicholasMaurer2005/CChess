@@ -5,6 +5,7 @@
 
 # Engine lib and exe
 CChess.lib
+CChessd.lib
 CChessGUI.lib
 
 

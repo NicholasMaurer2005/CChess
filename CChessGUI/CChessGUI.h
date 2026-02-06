@@ -26,7 +26,7 @@ private:
 
 
 private:
-	
+
 	//	Private Members
 
 	Window m_window{
@@ -38,6 +38,7 @@ private:
 		[this]()						{ this->flipCallback(); },
 		[this]()						{ this->engineMoveCallback(); },
 		[this](bool playerIsWhite)		{ this->playerColorCallback(playerIsWhite); },
+		[this](bool enginePlayItself)	{ this->enginePlayItselfCallback(enginePlayItself); },
 	};
 
 	bool m_whiteToMove{ true };
@@ -45,6 +46,7 @@ private:
 	bool m_playerIsWhite{ true };
 	bool m_flipped{ false };
 	bool m_engineMove{ false };
+	bool m_enginePlayItself{ false };
 
 	CharPosition m_position{};
 
@@ -78,6 +80,8 @@ private:
 	void engineMoveCallback() noexcept;
 
 	void playerColorCallback(bool playerIsWhite) noexcept;
+
+	void enginePlayItselfCallback(bool enginePlayItself) noexcept;
 
 
 

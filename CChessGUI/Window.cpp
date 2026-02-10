@@ -14,6 +14,7 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Image.h"
+#include "MenuManager.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
@@ -174,43 +175,26 @@ void Window::drawImGui() const noexcept
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar);
 
-	if (ImGui::Button("Engine Move"))
-	{
-		m_engineMoveCallback();
-	}
-
-	if (ImGui::Button("Back"))
-	{
-		m_moveBackCallback();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Forward"))
-	{
-		m_moveForwardCallback();
-	}
-
 	if (ImGui::Button("Reset"))
 	{
-		m_resetCallback();
+		m_menuManager->reset();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Flip"))
+	if (ImGui::Button("Move Forward"))
 	{
-		m_flipCallback();
+		m_menuManager->reset();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Move Back"))
+	{
+		m_menuManager->reset();
 	}
 
-	static bool TEMPORARYchecked{ true };
-	if (ImGui::Checkbox("Player Is White", &TEMPORARYchecked))
-	{
-		m_playerColorCallback(TEMPORARYchecked);
-	}
+	ImGui::Checkbox("White Is Engine", m_menuManager->whiteIsEnginePtr());
 	ImGui::SameLine();
-	static bool TEMPORARYplayItself{ false };
-	if (ImGui::Checkbox("Engine Play Itself", &TEMPORARYplayItself))
-	{
-		m_enginePlayItselfCallback(TEMPORARYplayItself);
-	}
-	
+	ImGui::Checkbox("Black Is Engine", m_menuManager->blackIsEnginePtr());
+
+	ImGui::Checkbox("Flipped", m_menuManager->flippedPtr());
 
 	ImGui::End();
 
@@ -283,26 +267,8 @@ std::pair<float, float> Window::mousePosition() const noexcept
 // Public Methods
 
 //constructors
-Window::Window(
-	MoveCallback moveCallback,
-	PieceCallback pieceCallback,
-	VoidCallback resetCallback,
-	VoidCallback moveForwardCallback,
-	VoidCallback moveBackCallback,
-	VoidCallback flipCallback,
-	VoidCallback engineMoveCallback,
-	BooleanCallback playerColorCallback,
-	BooleanCallback enginePlayItselfCallback
-) :
-	m_moveCallback(std::move(moveCallback)),
-	m_pieceCallback(std::move(pieceCallback)),
-	m_resetCallback(resetCallback),
-	m_moveForwardCallback(moveForwardCallback),
-	m_moveBackCallback(moveBackCallback),
-	m_flipCallback(flipCallback),
-	m_engineMoveCallback(engineMoveCallback),
-	m_playerColorCallback(playerColorCallback),
-	m_enginePlayItselfCallback(enginePlayItselfCallback)
+Window::Window(MenuManager& menuManager, PieceCallback pieceCallback, MoveCallback moveCallback)
+	: m_menuManager(&menuManager), m_pieceCallback(std::move(pieceCallback)), m_moveCallback(std::move(moveCallback))
 {
 	initGLFW();
 

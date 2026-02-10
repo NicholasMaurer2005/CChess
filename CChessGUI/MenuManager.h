@@ -11,11 +11,17 @@ private:
 
 	//	Private Members
 
+	bool m_searching{ false };
+	bool m_whiteToMove{ true };
+	bool m_engineJustMoved{ false };
+	bool m_forceEngineMove{ false };
+	bool m_engineShouldRedraw{ false };
+
 	//settings
-	bool whiteIsEngine{ false };
-	bool blackIsEngine{ true };
+	bool m_whiteIsEngine{ false };
+	bool m_blackIsEngine{ true };
 	bool m_flipped{ false };
-	bool m_engineMoveAutoPlay{ true };
+	bool m_engineMovePause{ false };
 	int m_engineSearchMilliseconds{ 500 };
 	
 	//info
@@ -29,11 +35,17 @@ public:
 	//	Public Methods
 
 	//getters
-	bool engineShouldMove() noexcept;
+	bool engineShouldMove() const noexcept;
+
+	bool engineShouldRedraw() const noexcept;
 
 	std::string_view principalVariation();
 
 	std::string_view evaluationString();
+
+	bool searching() const noexcept;
+
+	bool whiteToMove() const noexcept;
 
 
 
@@ -42,11 +54,19 @@ public:
 
 	bool* blackIsEnginePtr() noexcept;
 
-	bool* engineMoveAutoPlayPtr() noexcept;
+	bool* engineMovePausePtr() noexcept;
 
-	bool* flipped() noexcept;
+	bool* flippedPtr() noexcept;
 
-	int* engineSearchMilliseconds() noexcept;
+	int* engineSearchMillisecondsPtr() noexcept;
+
+	void playerJustMoved() noexcept;
+
+	void engineJustMoved() noexcept;
+
+	void engineJustRedrew() noexcept;
+
+	void setSearching(bool searching) noexcept;
 
 
 

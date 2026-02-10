@@ -12,6 +12,7 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "MenuManager.h"
 
 
 
@@ -22,19 +23,16 @@ private:
 	// Private Definitions
 
 	//constants
-	static constexpr int minimumSettingsWidth{ 200 };
+	static constexpr int minimumSettingsWidth{ 300 };
 	static constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
 	static constexpr int minimumWindowHeight{ 500 };
 
 
 
 	//usings
-	using MoveCallback = std::function<void(int source, int destination)>;
-	using PieceCallback = std::function<PieceSprite::Piece(int square)>;
-	using VoidCallback = std::function<void()>;
-	using BooleanCallback = std::function<void(bool value)>;
 	using clock = std::chrono::high_resolution_clock;
-
+	using PieceCallback = std::function<PieceSprite::Piece(int)>;
+	using MoveCallback = std::function<void(int, int)>;
 
 
 private:
@@ -58,21 +56,17 @@ private:
 	Shader m_defaultShader;
 	Shader m_dragShader;
 	
-	//callbacks
-	MoveCallback m_moveCallback;
-	PieceCallback m_pieceCallback;
-	VoidCallback m_resetCallback;
-	VoidCallback m_moveForwardCallback;
-	VoidCallback m_moveBackCallback;
-	VoidCallback m_flipCallback;
-	VoidCallback m_engineMoveCallback;
-	BooleanCallback m_playerColorCallback;
-	BooleanCallback m_enginePlayItselfCallback;
-
 	//piece drag
 	bool m_dragging{};
 	GLint m_uMousePosition{};
 	int m_dragStart{};
+
+	//callbacks
+	PieceCallback m_pieceCallback;
+	MoveCallback m_moveCallback;
+
+
+	MenuManager* m_menuManager;
 
 
 	
@@ -115,17 +109,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Window(
-		MoveCallback moveCallback, 
-		PieceCallback pieceCallback, 
-		VoidCallback resetCallback, 
-		VoidCallback moveForwardCallback, 
-		VoidCallback moveBackCallback, 
-		VoidCallback flipCallback,
-		VoidCallback engineMoveCallback,
-		BooleanCallback playerColorCallback,
-		BooleanCallback enginePlayItselfCallback
-	);
+	Window(MenuManager& menuManager, PieceCallback pieceCallback, MoveCallback moveCallback);
 
 
 

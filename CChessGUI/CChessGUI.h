@@ -1,8 +1,8 @@
 #pragma once
 
 #include <array>
-#include <span>
 
+#include "MenuManager.h"
 #include "Window.h"
 #include "PieceSprite.h"
 
@@ -16,7 +16,6 @@ private:
 
 	//constants
 	static constexpr int boardSize{ 64 };
-	static constexpr int halfMoveCount{ 100 };
 
 
 
@@ -29,69 +28,34 @@ private:
 
 	//	Private Members
 
-	Window m_window{
-		[this](int width, int height)	{ this->moveCallback(width, height); },
-		[this](int square)				{ return this->pieceCallback(square); },
-		[this]()						{ this->resetCallback(); },
-		[this]()						{ this->moveForwardCallback(); },
-		[this]()						{ this->moveBackCallback(); },
-		[this]()						{ this->flipCallback(); },
-		[this]()						{ this->engineMoveCallback(); },
-		[this](bool playerIsWhite)		{ this->playerColorCallback(playerIsWhite); },
-		[this](bool enginePlayItself)	{ this->enginePlayItselfCallback(enginePlayItself); },
-	};
-
-	bool m_whiteToMove{ true };
-	bool m_searching{ false };
-	bool m_playerIsWhite{ true };
-	bool m_flipped{ false };
-	bool m_engineMove{ false };
-	bool m_enginePlayItself{ false };
-
+	MenuManager m_menuManager;
+	Window m_window{ m_menuManager, [this](int square) { return pieceCallback(square); }, [this](int source, int destination) { moveCallback(source, destination); } };
 	CharPosition m_position{};
+	int m_moveSource{};
+	int m_moveDestination{};
 
 
 
 private:
 
-	//	Private Methods
+	//	Private Members
 
 	void play() noexcept;
 
-	void bufferPosition(std::span<const char> position) noexcept;
+	void bufferPosition() noexcept;
+
+	void updatePosition() noexcept;
+
+	PieceSprite::Piece pieceCallback(int square) noexcept;
+
+	void moveCallback(int source, int destination) noexcept;
 
 	void makeMove(int source, int destination) noexcept;
 
 
-
-	//callbacks
-	void moveCallback(int source, int destination) noexcept;
-
-	PieceSprite::Piece pieceCallback(int square) noexcept;
-
-	void resetCallback() noexcept;
-
-	void moveBackCallback() noexcept;
-
-	void moveForwardCallback() noexcept;
-
-	void flipCallback() noexcept;
-
-	void engineMoveCallback() noexcept;
-
-	void playerColorCallback(bool playerIsWhite) noexcept;
-
-	void enginePlayItselfCallback(bool enginePlayItself) noexcept;
-
-
-
 public:
 
-	//	Public Methods
-	
-	//constructor
 	CChessGUI();
 
-	~CChessGUI() noexcept;
+	~CChessGUI();
 };
-

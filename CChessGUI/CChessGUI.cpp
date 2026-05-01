@@ -121,10 +121,11 @@ void CChessGUI::updatePosition() noexcept
 
 void CChessGUI::makeMove(int source, int destination) noexcept
 {
-	engine_move(*m_menuManager.flippedPtr(), source, destination);
+	engine_move(m_menuManager.whiteToMove(), source, destination);
 	updatePosition();
 	bufferPosition();
 }
+
 
 
 //	Private Members
@@ -144,7 +145,12 @@ void CChessGUI::play() noexcept
 		{
 			if (m_menuManager.searching())
 			{
-				
+				int source{}, destination{};
+				if (engine_best_move(&source, &destination))
+				{
+					makeMove(source, destination);
+					m_menuManager.engineJustMoved();
+				}
 			}
 			else
 			{

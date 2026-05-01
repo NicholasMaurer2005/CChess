@@ -223,6 +223,7 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
       <EnableVectorLength>VectorLength256</EnableVectorLength>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -376,6 +377,7 @@ xcopy /Y "$(OutDir)$(TargetName).lib" "$(SolutionDir)CChessGUI\CChess\lib\"
       <EnableVectorLength>VectorLength256</EnableVectorLength>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

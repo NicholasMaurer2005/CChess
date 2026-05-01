@@ -32,7 +32,8 @@ std::string_view MenuManager::evaluationString()
 
 bool MenuManager::searching() const noexcept
 {
-	return m_seraching;
+	//return m_seraching;
+	return false;
 }
 
 bool MenuManager::whiteToMove() const noexcept

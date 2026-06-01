@@ -55,7 +55,7 @@
 	//	SEARCH
 	
 	//	Start async search. Stop with engine_stop_search(). Get statistics with engine_search_statistics().
-	void engine_start_search(CCHESS_BOOL whiteToMove) CCHESS_NOEXCEPT;
+	void engine_start_search(CCHESS_BOOL white_to_move) CCHESS_NOEXCEPT;
 
 	//	Stop the async search. 
 	void engine_stop_search() CCHESS_NOEXCEPT;
@@ -66,7 +66,7 @@
 	//		nodes_per_second:		How many nodes (brances of search tree, moves made) are reached per second.
 	//		principal_variation:	A string containing the principal variation (line of best moves) seperated by commas. Memory 
 	//								is owned by the engine and invalid after engine_destroy() is called.
-	CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation) CCHESS_NOEXCEPT;
+	CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* time_remaining, const char** principal_variation) CCHESS_NOEXCEPT;
 
 	//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
 	//	'destination' are not modified and the function returns CCHESS_FALSE
@@ -78,7 +78,7 @@
 
 	//	Try to make a legal move. If the move could be made the engine returns CCHESS_TRUE. If the engine is searching or the move 
 	//	is illegal the engine returns CCHESS_FALSE.
-	CCHESS_BOOL engine_move(CCHESS_BOOL whiteToMove, int source, int destination) CCHESS_NOEXCEPT;
+	CCHESS_BOOL engine_move(CCHESS_BOOL white_to_move, int source, int destination) CCHESS_NOEXCEPT;
 
 	//	Try to move back one half move. If the move back could be made the engine returns CCHESS_TRUE. If the engine is searching or 
 	//	their are no prior half moves the engine returns CCHESS_FALSE.

@@ -7,6 +7,7 @@
 #include <limits>
 
 #include "PieceSprite.h"
+#include <span>
 
 
 
@@ -64,7 +65,8 @@ void CChessGUI::bufferPosition() noexcept
 		for (int file{}; file < fileSize; ++file)
 		{
 			const std::size_t index{ static_cast<std::size_t>(rank) * fileSize + file };
-			const PieceSprite::Piece piece{ charToPiece(m_position[*m_menuManager.flippedPtr() ? 63 - index : index])};
+			const PieceSprite::Piece piece{ charToPiece(m_position[*m_menuManager.flippedPtr() ? 63 - index : index]) };
+
 			if (piece == PieceSprite::Piece::NoPiece) continue;
 
 			*back = PieceSprite(rank, file, piece);
@@ -87,29 +89,7 @@ void CChessGUI::bufferPosition() noexcept
 
 
 //callbacks
-void CChessGUI::moveCallback(int source, int destination) noexcept
-{
-	if (*m_menuManager.flippedPtr())
-	{
-		source = 63 - source;
-		destination = 63 - destination;
-	}
-
-	makeMove(source, destination);
-}
-
-PieceSprite::Piece CChessGUI::pieceCallback(int square) noexcept
-{
-	square = *m_menuManager.flippedPtr() ? 63 - square : square;
-
-	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
-	m_position[square] = '.';
-	bufferPosition();
-
-	return piece;
-}
-
-void CChessGUI::updatePosition() noexcept
+void CChessGUI::drawPosition() noexcept
 {
 	std::string_view position{ engine_get_position_char() };
 	std::ranges::copy(position, m_position.begin());
@@ -122,7 +102,7 @@ void CChessGUI::updatePosition() noexcept
 void CChessGUI::makeMove(int source, int destination) noexcept
 {
 	engine_move(m_menuManager.whiteToMove(), source, destination);
-	updatePosition();
+	drawPosition();
 	bufferPosition();
 }
 
@@ -134,29 +114,36 @@ void CChessGUI::play() noexcept
 {
 	while (m_window.open())
 	{
-		if (m_menuManager.engineShouldRedraw())
+		if (m_menuManager.searching())
 		{
-			updatePosition();
-			bufferPosition();
-			m_menuManager.engineJustRedrew();
+			CCHESS_BOOL done{};
+			int evaluation{}, depth{};
+			float nodesPerSecond{}, timeRemaining{};
+			const char* principalVariation{};
+
+			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &timeRemaining, &principalVariation))
+			{
+				if (done)
+				{
+					int source{}, destination{};
+					engine_best_move(&source, &destination);
+
+					makeMove(source, destination);
+
+					drawPosition();
+				}
+			}
 		}
 
 		if (m_menuManager.engineShouldMove())
 		{
-			if (m_menuManager.searching())
-			{
-				int source{}, destination{};
-				if (engine_best_move(&source, &destination))
-				{
-					makeMove(source, destination);
-					m_menuManager.engineJustMoved();
-				}
-			}
-			else
-			{
-				engine_start_search(m_menuManager.whiteToMove());
-				m_menuManager.setSearching(true);
-			}
+			m_menuManager.setSearching(true);
+			engine_start_search(m_menuManager.whiteToMove())
+		}
+
+		if (m_menuManager.engineShouldParsePlayerMove())
+		{
+
 		}
 
 		m_window.draw();
@@ -167,7 +154,7 @@ CChessGUI::CChessGUI()
 {
 	engine_create();
 
-	updatePosition();
+	drawPosition();
 	bufferPosition();
 
 	play();

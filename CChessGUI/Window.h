@@ -61,11 +61,7 @@ private:
 	GLint m_uMousePosition{};
 	int m_dragStart{};
 
-	//callbacks
-	PieceCallback m_pieceCallback;
-	MoveCallback m_moveCallback;
-
-
+	//menu manager
 	MenuManager* m_menuManager;
 
 
@@ -109,7 +105,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Window(MenuManager& menuManager, PieceCallback pieceCallback, MoveCallback moveCallback);
+	Window(MenuManager& menuManager);
 
 
 

@@ -175,27 +175,29 @@ void Window::drawImGui() const noexcept
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar);
 
-	if (ImGui::Button("Reset"))
+	ImGui::Checkbox("White Is Engine", m_menuManager->whiteIsEnginePtr());
+	ImGui::SameLine();
+	ImGui::Checkbox("Black Is Engine", m_menuManager->blackIsEnginePtr());
+	ImGui::Checkbox("Flipped", m_menuManager->flippedPtr());
+	ImGui::Checkbox("Pause After Engine Move", m_menuManager->pauseAfterEngineMovePtr());
+
+	if (ImGui::Button("Engine Move"))
 	{
-		m_menuManager->reset();
+
+	}
+	if (ImGui::Button("Move Back"))
+	{
+		m_menuManager->moveBack();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Move Forward"))
 	{
-		m_menuManager->reset();
+		m_menuManager->moveForward();
 	}
-	ImGui::SameLine();
-	if (ImGui::Button("Move Back"))
+	if (ImGui::Button("Reset"))
 	{
 		m_menuManager->reset();
 	}
-
-	ImGui::Checkbox("White Is Engine", m_menuManager->whiteIsEnginePtr());
-	ImGui::SameLine();
-	ImGui::Checkbox("Black Is Engine", m_menuManager->blackIsEnginePtr());
-
-	ImGui::Checkbox("Flipped", m_menuManager->flippedPtr());
-
 	ImGui::End();
 
 	ImGui::Render();
@@ -267,8 +269,8 @@ std::pair<float, float> Window::mousePosition() const noexcept
 // Public Methods
 
 //constructors
-Window::Window(MenuManager& menuManager, PieceCallback pieceCallback, MoveCallback moveCallback)
-	: m_menuManager(&menuManager), m_pieceCallback(std::move(pieceCallback)), m_moveCallback(std::move(moveCallback))
+Window::Window(MenuManager& menuManager)
+	: m_menuManager(&menuManager)
 {
 	initGLFW();
 
@@ -383,10 +385,11 @@ void Window::startDragging() noexcept
 	//check if mouse is in board space
 	if (x < m_height)
 	{
-		const int file{ static_cast<int>(x / m_height * 8) };
+		const int file{ static_cast<int>(x / m_height * 8.0f) };
 		const int rank{ static_cast<int>(8.0f - y / m_height * 8.0f) };
 		const int square{ rank * fileSize + file };
-		const PieceSprite::Piece piece{ m_pieceCallback(square) };
+
+		const PieceSprite::Piece piece{ m_menuManager->getPiece(square) };
 
 		if (piece != PieceSprite::Piece::NoPiece)
 		{
@@ -409,10 +412,12 @@ void Window::stopDragging() noexcept
 		const int rank{ static_cast<int>(8 - y / m_height * 8) };
 		const int square{ rank * fileSize + file };
 
-		m_moveCallback(m_dragStart, square);
+		m_menuManager->setPlayerMove(m_dragStart, square);
 	}
 	else
 	{
-		m_moveCallback(m_dragStart, m_dragStart);
+		m_menuManager->setPlayerMove(m_dragStart, m_dragStart);
 	}
+
+	m_menuManager->setEngineShouldRedraw();
 }

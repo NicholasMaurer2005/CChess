@@ -61,7 +61,7 @@ public:
 		int depth;
 		int evaluation;
 		float nodesPerSecond;
-		float timeRemaining;
+		float secondsRemaining;
 		std::string_view principalVariation;
 	};
 
@@ -158,4 +158,6 @@ public:
 	bool moveBack() noexcept;
 
 	void reset() noexcept;
+
+	void setSearchMilliseconds(int milliseconds) noexcept;
 };

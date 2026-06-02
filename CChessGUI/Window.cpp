@@ -194,7 +194,11 @@ void Window::drawImGui() const noexcept
 	if (ImGui::Button("Move Forward")) m_menuManager->moveForward();
 	if (ImGui::Button("Reset")) m_menuManager->reset();
 
-	if (m_menuManager->searching()) ImGui::Text("Searching");
+	if (ImGui::DragFloat("Search Time", m_menuManager->engineSearchSecondsPtr(), 0.01f, 999999.9f))
+
+	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.2f} seconds remaining", m_menuManager->secondsRemaining()).data());
+
+	ImGui::Text(m_menuManager->evaluationString().data());
 
 	ImGui::End();
 

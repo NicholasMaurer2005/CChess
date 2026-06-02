@@ -2,8 +2,9 @@
 
 #include <string_view>
 #include <utility>
-#include "PieceSprite.h"
 #include <string>
+
+#include "PieceSprite.h"
 
 
 
@@ -36,19 +37,18 @@ bool* MenuManager::pauseAfterEngineMovePtr() noexcept
 	return &m_pauseAfterEngineMove;
 }
 
-int* MenuManager::engineSearchMillisecondsPtr() noexcept
+float* MenuManager::engineSearchSecondsPtr() noexcept
 {
-	return &m_engineSearchMilliseconds;
+	return &m_engineSearchSeconds;
 }
 
 bool MenuManager::engineShouldMove() noexcept
 {
-	const bool engineTurn{ m_whiteIsEngine == m_whiteToMove || m_blackIsEngine == !m_whiteToMove };
+	const bool engineTurn{ m_whiteIsEngine && m_whiteToMove || m_blackIsEngine && !m_whiteToMove };
 	const bool stopEngineTurn{ m_pauseAfterEngineMove && m_engineJustMoved };
 	const bool engineShouldMove{ m_forceEngineMove || (!stopEngineTurn && engineTurn) };
 
 	m_forceEngineMove = false;
-	m_engineJustMoved = engineShouldMove;
 
 	return engineShouldMove;
 }
@@ -98,12 +98,16 @@ bool MenuManager::engineShouldParsePlayerMove() noexcept
 	return value;
 }
 
-std::string_view MenuManager::principalVariation()
+bool MenuManager::engineShouldUpdateSearchTime() noexcept
 {
-	return m_principalVariation;
+	const bool value{ m_engineShouldUpdateSearchTime };
+
+	m_engineShouldUpdateSearchTime = false;
+
+	return value;
 }
 
-std::string_view MenuManager::evaluationString()
+std::string_view MenuManager::evaluationString() const noexcept
 {
 	return m_evaluationString;
 }
@@ -128,6 +132,11 @@ PieceSprite::Piece MenuManager::getPiece(int square) const noexcept
 	return m_getPieceCallback(square);
 }
 
+float MenuManager::secondsRemaining() const noexcept
+{
+	return m_secondsRemaining;
+}
+
 
 
 //setters
@@ -139,11 +148,6 @@ void MenuManager::setSearching(bool searching) noexcept
 void MenuManager::flipColorToMove() noexcept
 {
 	m_whiteToMove = !m_whiteToMove;
-}
-
-void MenuManager::setPrincipalVariation(std::string principalVariation) noexcept
-{
-	m_principalVariation = std::move(principalVariation);
 }
 
 void MenuManager::setEvaluationString(std::string evaluationString) noexcept
@@ -168,6 +172,21 @@ void MenuManager::forceEngineMove() noexcept
 	m_forceEngineMove = true;
 }
 
+void MenuManager::setEngineJustMoved(bool value) noexcept
+{
+	m_engineJustMoved = value;
+}
+
+void MenuManager::setSecondsRemaining(float value) noexcept
+{
+	m_secondsRemaining = value;
+}
+
+void MenuManager::setEngineShouldUpdateSearchTime() noexcept
+{
+	m_engineShouldUpdateSearchTime = true;
+}
+
 
 
 //buttons
@@ -178,7 +197,6 @@ void MenuManager::engineMove() noexcept
 
 void MenuManager::reset() noexcept
 {
-	m_principalVariation.clear();
 	m_evaluationString.clear();
 
 	m_engineJustMoved = false;

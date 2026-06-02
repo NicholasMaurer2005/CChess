@@ -250,9 +250,10 @@ void Engine::logSearchInfo() noexcept
 {
 	const clock::time_point now{ clock::now() };
 	const std::chrono::duration<float> elapsed{ now - m_searchStart };
+	const std::chrono::duration<float> timeRemaining{ std::chrono::milliseconds(m_searchMilliseconds) - elapsed };
 
 	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
-	m_searchInfo.timeRemaining = static_cast<float>(m_searchMilliseconds) - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+	m_searchInfo.secondsRemaining = timeRemaining.count();
 	m_newInfo.store(true, std::memory_order_release);
 }
 
@@ -471,4 +472,9 @@ void Engine::reset() noexcept
 	m_history.front().whiteToMove = true;
 
 	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
+}
+
+void Engine::setSearchMilliseconds(int milliseconds) noexcept
+{
+	m_searchMilliseconds = milliseconds;
 }

@@ -105,7 +105,7 @@ void engine_stop_search()  noexcept
 	if (engine) engine->stopSearch();
 }
 
-CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* time_remaining, const char** principal_variation)  noexcept
+CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* seconds_remaining, const char** principal_variation)  noexcept
 {
 	if (!engine) return false;
 
@@ -116,7 +116,7 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 		*evaluation = info.evaluation;
 		*depth = info.depth;
 		*nodes_per_second = info.nodesPerSecond;
-		*time_remaining = info.timeRemaining;
+		*seconds_remaining = info.secondsRemaining;
 		*principal_variation = info.principalVariation.data();
 
 		return true;
@@ -126,6 +126,17 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 		return false;
 	}
 }
+
+void engine_set_search_milliseconds(float seconds) CCHESS_NOEXCEPT
+{
+	if (!engine) return;
+
+	engine->setSearchMilliseconds(static_cast<int>(seconds * 1000.0f));
+}
+
+
+
+//	MOVE
 
 CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 {
@@ -138,10 +149,6 @@ CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 
 	return move.move();
 }
-
-
-
-//	SEARCH
 
 CCHESS_BOOL engine_move(CCHESS_BOOL white_to_move, int source, int destination) CCHESS_NOEXCEPT
 {

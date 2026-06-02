@@ -118,21 +118,23 @@ void CChessGUI::play() noexcept
 		{
 			CCHESS_BOOL done{};
 			int evaluation{}, depth{};
-			float nodesPerSecond{}, timeRemaining{};
+			float nodesPerSecond{}, secondsRemaining{};
 			const char* principalVariation{};
 
-			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &timeRemaining, &principalVariation))
+			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &secondsRemaining, &principalVariation))
 			{
-				m_menuManager.setEvaluationString(std::format("{} - {}ply", evaluation, depth));
-				m_menuManager.setPrincipalVariation(principalVariation);
+				m_menuManager.setSecondsRemaining(secondsRemaining);
+				m_menuManager.setEvaluationString(std::format("{}ply - {}: {}", depth, evaluation * 0.01f, principalVariation));
 			}
 
 			int source{}, destination{};
 			if (engine_best_move(&source, &destination))
 			{
 				engine_move(m_menuManager.whiteToMove(), source, destination);
+
 				m_menuManager.setSearching(false);
 				m_menuManager.flipColorToMove();
+				m_menuManager.setEngineJustMoved(true);
 				m_menuManager.setEngineShouldRedraw();
 			}
 		}
@@ -147,7 +149,12 @@ void CChessGUI::play() noexcept
 		{
 			auto [source, destination] = m_menuManager.lastPlayerMove();
 
-			if (engine_move(m_menuManager.whiteToMove(), source, destination)) m_menuManager.flipColorToMove();
+			if (engine_move(m_menuManager.whiteToMove(), source, destination))
+			{
+				m_menuManager.flipColorToMove();
+
+				m_menuManager.setEngineJustMoved(false);
+			}
 
 			m_menuManager.setEngineShouldRedraw();
 		}
@@ -173,6 +180,9 @@ void CChessGUI::play() noexcept
 			m_menuManager.flipColorToMove();
 		}
 
+		if (m_menuManager.engineShouldUpdateSearchTime()) engine_set_search_seconds(*m_menuManager.engineSearchSecondsPtr())
+
+		// this should be last check because others could require a redraw
 		if (m_menuManager.engineShouldRedraw())
 		{
 			updatePosition();

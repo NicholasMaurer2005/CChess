@@ -23,29 +23,29 @@ private:
 
 	//	Private Members
 
-	bool m_searching{};
-	bool m_whiteToMove{ true };
-	bool m_engineJustMoved{};
-	bool m_forceEngineMove{};
-
 	bool m_engineShouldRedraw{};
 	bool m_engineShouldReset{};
 	bool m_engineShouldMoveForward{};
 	bool m_engineShouldMoveBack{};
+	bool m_engineShouldUpdateSearchTime{ true };
 
 	int m_playerMoveSource{};
 	int m_playerMoveDestination{};
 	bool m_playerJustMoved{};
+	bool m_whiteToMove{ true };
+	bool m_engineJustMoved{};
+	bool m_forceEngineMove{};
 
 	//settings
 	bool m_whiteIsEngine{};
 	bool m_blackIsEngine{ true };
 	bool m_flipped{};
 	bool m_pauseAfterEngineMove{ true };
-	int m_engineSearchMilliseconds{ 500 };
+	float m_engineSearchSeconds{ 1.0f };
 	
 	//info
-	std::string m_principalVariation;
+	bool m_searching{};
+	float m_secondsRemaining{};
 	std::string m_evaluationString;
 
 	//callback
@@ -71,7 +71,7 @@ public:
 
 	bool* pauseAfterEngineMovePtr() noexcept;
 
-	int* engineSearchMillisecondsPtr() noexcept;
+	float* engineSearchSecondsPtr() noexcept;
 
 	bool engineShouldMove() noexcept;
 
@@ -85,9 +85,9 @@ public:
 
 	bool engineShouldRedraw() noexcept;
 
-	std::string_view principalVariation();
+	bool engineShouldUpdateSearchTime() noexcept;
 
-	std::string_view evaluationString();
+	std::string_view evaluationString() const noexcept;
 
 	bool searching() const noexcept;
 
@@ -97,14 +97,14 @@ public:
 
 	PieceSprite::Piece getPiece(int square) const noexcept;
 
+	float secondsRemaining() const noexcept;
+
 
 
 	//setters
 	void setSearching(bool searching) noexcept;
 
 	void flipColorToMove() noexcept;
-
-	void setPrincipalVariation(std::string principalVariation) noexcept;
 
 	void setEvaluationString(std::string evaluationString) noexcept;
 
@@ -113,6 +113,13 @@ public:
 	void setEngineShouldRedraw() noexcept;
 
 	void forceEngineMove() noexcept;
+
+	void setEngineJustMoved(bool value) noexcept;
+
+	void setSecondsRemaining(float value) noexcept;
+
+	void setEngineShouldUpdateSearchTime() noexcept;
+
 
 
 	//buttons

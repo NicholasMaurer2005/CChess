@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <format>
 
 #include "PieceSprite.h"
 #include <span>
@@ -57,8 +58,10 @@ static PieceSprite::Piece charToPiece(char c) noexcept
 
 void CChessGUI::bufferPosition() noexcept
 {
-	std::array<PieceSprite, boardSize> pieces{};
-	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
+	using PieceArray = std::array<PieceSprite, boardSize>;
+
+	PieceArray pieces{};
+	PieceArray::iterator back{ pieces.begin() };
 
 	for (int rank{}; rank < rankSize; ++rank)
 	{
@@ -86,10 +89,7 @@ void CChessGUI::bufferPosition() noexcept
 	}
 }
 
-
-
-//callbacks
-void CChessGUI::drawPosition() noexcept
+void CChessGUI::updatePosition() noexcept
 {
 	std::string_view position{ engine_get_position_char() };
 	std::ranges::copy(position, m_position.begin());
@@ -99,16 +99,16 @@ void CChessGUI::drawPosition() noexcept
 	engine_last_move(&m_moveSource, &m_moveDestination);
 }
 
-void CChessGUI::makeMove(int source, int destination) noexcept
+PieceSprite::Piece CChessGUI::pieceCallback(int square) noexcept
 {
-	engine_move(m_menuManager.whiteToMove(), source, destination);
-	drawPosition();
+	square = *m_menuManager.flippedPtr() ? 63 - square : square;
+
+	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
+	m_position[square] = '.';
 	bufferPosition();
+
+	return piece;
 }
-
-
-
-//	Private Members
 
 void CChessGUI::play() noexcept
 {
@@ -123,38 +123,77 @@ void CChessGUI::play() noexcept
 
 			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &timeRemaining, &principalVariation))
 			{
-				if (done)
-				{
-					int source{}, destination{};
-					engine_best_move(&source, &destination);
+				m_menuManager.setEvaluationString(std::format("{} - {}ply", evaluation, depth));
+				m_menuManager.setPrincipalVariation(principalVariation);
+			}
 
-					makeMove(source, destination);
-
-					drawPosition();
-				}
+			int source{}, destination{};
+			if (engine_best_move(&source, &destination))
+			{
+				engine_move(m_menuManager.whiteToMove(), source, destination);
+				m_menuManager.setSearching(false);
+				m_menuManager.flipColorToMove();
+				m_menuManager.setEngineShouldRedraw();
 			}
 		}
 
 		if (m_menuManager.engineShouldMove())
 		{
+			engine_start_search(m_menuManager.whiteToMove());
 			m_menuManager.setSearching(true);
-			engine_start_search(m_menuManager.whiteToMove())
 		}
 
 		if (m_menuManager.engineShouldParsePlayerMove())
 		{
+			auto [source, destination] = m_menuManager.lastPlayerMove();
 
+			if (engine_move(m_menuManager.whiteToMove(), source, destination)) m_menuManager.flipColorToMove();
+
+			m_menuManager.setEngineShouldRedraw();
+		}
+
+		if (m_menuManager.engineShouldReset())
+		{
+			engine_set_position_start();
+
+			m_menuManager.setEngineShouldRedraw();
+		}
+
+		if (m_menuManager.engineShouldMoveForward() && engine_move_forward())
+		{
+			m_menuManager.setEngineShouldRedraw();
+
+			m_menuManager.flipColorToMove();
+		}
+
+		if (m_menuManager.engineShouldMoveBack() && engine_move_back())
+		{
+			m_menuManager.setEngineShouldRedraw();
+
+			m_menuManager.flipColorToMove();
+		}
+
+		if (m_menuManager.engineShouldRedraw())
+		{
+			updatePosition();
+			bufferPosition();
 		}
 
 		m_window.draw();
 	}
 }
 
+
+
+//	Public Methods
+
+//constructors
 CChessGUI::CChessGUI()
+	: m_menuManager([this](int square) { return pieceCallback(square); })
 {
 	engine_create();
 
-	drawPosition();
+	updatePosition();
 	bufferPosition();
 
 	play();

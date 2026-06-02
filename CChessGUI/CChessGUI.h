@@ -28,7 +28,7 @@ private:
 
 	//	Private Members
 
-	MenuManager m_menuManager{ [this](int square) { return };
+	MenuManager m_menuManager;
 	Window m_window{ m_menuManager };
 	CharPosition m_position{};
 	int m_moveSource{};
@@ -44,10 +44,9 @@ private:
 
 	void bufferPosition() noexcept;
 
-	void drawPosition() noexcept;
+	void updatePosition() noexcept;
 
-	void makeMove(int source, int destination) noexcept;
-
+	PieceSprite::Piece pieceCallback(int square) noexcept;
 
 public:
 

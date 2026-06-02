@@ -80,11 +80,11 @@ static consteval BoardTexture generateBoardTexture()
 
 			if (square % 2)
 			{
-				board[index] = darkSquare;
+				board[index] = lightSquare;
 			}
 			else
 			{
-				board[index] = lightSquare;
+				board[index] = darkSquare;
 			}
 		}
 	}
@@ -110,6 +110,11 @@ static consteval PieceEbo generatePieceEBO()
 
 	return ebo;
 }
+
+
+
+// global variables (evil but I would make them static if it weren't for initialization gaurd
+static BoardTexture boardTexture{ generateBoardTexture() };
 
 
 
@@ -175,29 +180,22 @@ void Window::drawImGui() const noexcept
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar);
 
+	if (ImGui::Checkbox("Flipped", m_menuManager->flippedPtr())) m_menuManager->setEngineShouldRedraw();
+
 	ImGui::Checkbox("White Is Engine", m_menuManager->whiteIsEnginePtr());
 	ImGui::SameLine();
 	ImGui::Checkbox("Black Is Engine", m_menuManager->blackIsEnginePtr());
-	ImGui::Checkbox("Flipped", m_menuManager->flippedPtr());
+	
 	ImGui::Checkbox("Pause After Engine Move", m_menuManager->pauseAfterEngineMovePtr());
 
-	if (ImGui::Button("Engine Move"))
-	{
-
-	}
-	if (ImGui::Button("Move Back"))
-	{
-		m_menuManager->moveBack();
-	}
+	if (ImGui::Button("Engine Move")) m_menuManager->forceEngineMove();
+	if (ImGui::Button("Move Back")) m_menuManager->moveBack();
 	ImGui::SameLine();
-	if (ImGui::Button("Move Forward"))
-	{
-		m_menuManager->moveForward();
-	}
-	if (ImGui::Button("Reset"))
-	{
-		m_menuManager->reset();
-	}
+	if (ImGui::Button("Move Forward")) m_menuManager->moveForward();
+	if (ImGui::Button("Reset")) m_menuManager->reset();
+
+	if (m_menuManager->searching()) ImGui::Text("Searching");
+
 	ImGui::End();
 
 	ImGui::Render();
@@ -325,10 +323,9 @@ void Window::resize(int width, int height) noexcept
 	glfwSwapBuffers(m_window);
 }
 
-static BoardTexture boardTexture{ generateBoardTexture() };
 void Window::bufferBoard() const noexcept
 {
-	m_boardTexture.update(boardTexture);
+	m_boardTexture.update(generateBoardTexture());
 }
 
 void Window::bufferBoard(int source, int destination) const noexcept

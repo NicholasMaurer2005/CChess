@@ -75,7 +75,7 @@ public:
 
 	bool engineShouldMove() noexcept;
 
-	bool engineShouldRedraw() noexcept;
+	bool engineShouldParsePlayerMove() noexcept;
 
 	bool engineShouldReset() noexcept;
 
@@ -83,7 +83,7 @@ public:
 
 	bool engineShouldMoveBack() noexcept;
 
-	bool engineShouldParsePlayerMove() noexcept;
+	bool engineShouldRedraw() noexcept;
 
 	std::string_view principalVariation();
 
@@ -95,24 +95,24 @@ public:
 
 	std::pair<int, int> lastPlayerMove() const noexcept;
 
-	PieceSprite::Piece getPiece(int square) const noexcept
-	{
-		return m_getPieceCallback(square);
-	}
-
+	PieceSprite::Piece getPiece(int square) const noexcept;
 
 
 
 	//setters
 	void setSearching(bool searching) noexcept;
 
-	void setPrincipalVariation(std::string_view principalVariation) noexcept;
+	void flipColorToMove() noexcept;
 
-	void setEvaluationString(std::string_view evaluationString) noexcept;
+	void setPrincipalVariation(std::string principalVariation) noexcept;
+
+	void setEvaluationString(std::string evaluationString) noexcept;
 
 	void setPlayerMove(int source, int destination) noexcept;
 
 	void setEngineShouldRedraw() noexcept;
+
+	void forceEngineMove() noexcept;
 
 
 	//buttons

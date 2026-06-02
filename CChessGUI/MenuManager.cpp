@@ -3,6 +3,7 @@
 #include <string_view>
 #include <utility>
 #include "PieceSprite.h"
+#include <string>
 
 
 
@@ -47,7 +48,9 @@ bool MenuManager::engineShouldMove() noexcept
 	const bool engineShouldMove{ m_forceEngineMove || (!stopEngineTurn && engineTurn) };
 
 	m_forceEngineMove = false;
-	m_engineJustMoved = true;
+	m_engineJustMoved = engineShouldMove;
+
+	return engineShouldMove;
 }
 
 bool MenuManager::engineShouldRedraw() noexcept
@@ -133,14 +136,19 @@ void MenuManager::setSearching(bool searching) noexcept
 	m_searching = searching;
 }
 
-void MenuManager::setPrincipalVariation(std::string_view principalVariation) noexcept
+void MenuManager::flipColorToMove() noexcept
 {
-	m_principalVariation = principalVariation;
+	m_whiteToMove = !m_whiteToMove;
 }
 
-void MenuManager::setEvaluationString(std::string_view evaluationString) noexcept
+void MenuManager::setPrincipalVariation(std::string principalVariation) noexcept
 {
-	m_evaluationString = evaluationString;
+	m_principalVariation = std::move(principalVariation);
+}
+
+void MenuManager::setEvaluationString(std::string evaluationString) noexcept
+{
+	m_evaluationString = std::move(evaluationString);
 }
 
 void MenuManager::setPlayerMove(int source, int destination) noexcept
@@ -148,12 +156,16 @@ void MenuManager::setPlayerMove(int source, int destination) noexcept
 	m_playerMoveSource = source;
 	m_playerMoveDestination = destination;
 	m_playerJustMoved = true;
-	m_engineShouldRedraw = true;
 }
 
 void MenuManager::setEngineShouldRedraw() noexcept
 {
 	m_engineShouldRedraw = true;
+}
+
+void MenuManager::forceEngineMove() noexcept
+{
+	m_forceEngineMove = true;
 }
 
 
@@ -166,18 +178,24 @@ void MenuManager::engineMove() noexcept
 
 void MenuManager::reset() noexcept
 {
+	m_principalVariation.clear();
+	m_evaluationString.clear();
+
+	m_engineJustMoved = false;
+	m_whiteIsEngine = false;
+	m_blackIsEngine = true;
+	m_flipped = false;
+	m_whiteToMove = true;
+
 	m_engineShouldReset = true;
-	m_engineShouldRedraw = true;
 }
 
 void MenuManager::moveBack() noexcept
 {
-	m_engineShouldMoveForward = true;
-	m_engineShouldRedraw = true;
+	m_engineShouldMoveBack = true;
 }
 
 void MenuManager::moveForward() noexcept
 {
-	m_engineShouldMoveBack = true;
-	m_engineShouldRedraw = true;
+	m_engineShouldMoveForward = true;
 }

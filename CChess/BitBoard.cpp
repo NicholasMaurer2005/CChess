@@ -1,7 +1,7 @@
 #include "BitBoard.h"
 
-#include <iostream>
 #include <bit>
+#include <iostream>
 
 #include "ChessConstants.hpp"
 

@@ -1,10 +1,20 @@
 #include "Move.h"
 
-#include <string_view>
 #include <array>
+#include <cstdint>
 #include <iostream>
+#include <string>
+#include <string_view>
 
-constexpr std::array<std::string_view, boardSize> squareToRF{
+#include "Castle.hpp"
+#include "ChessConstants.hpp"
+
+
+
+//	Static Helpers
+
+//constants
+static constexpr std::array<std::string_view, boardSize> squareToRF{
 		"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 		"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
 		"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
@@ -15,6 +25,9 @@ constexpr std::array<std::string_view, boardSize> squareToRF{
 		"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
 };
 
+
+
+//functions
 static std::string_view castleMove(Castle castle) noexcept
 {
 	switch (castle)
@@ -41,36 +54,7 @@ static std::string_view castleMove(Castle castle) noexcept
 
 
 
-//print
-void Move::print() const
-{
-	if (castleFlag())
-	{
-		std::cout << castleMove(castleType()) << '\n';
-	}
-	else
-	{ 
-		std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()] << '\n';
-	}
-}
-
-std::string Move::string() const
-{
-	if (castleFlag())
-	{
-		return std::string(castleMove(castleType()));
-	}
-	else
-	{
-		std::string move;
-		move.reserve(4);
-		move.append(squareToRF[sourceIndex()]);
-		move.append(squareToRF[destinationIndex()]);
-		return move;
-	}
-}
-
-
+//	Public Methods
 
 //getters
 std::uint32_t Move::move() const noexcept
@@ -126,4 +110,35 @@ int Move::enpassantIndex() const noexcept
 Castle Move::castleType() const noexcept
 {
 	return static_cast<Castle>(m_move & castleTypeMask);
+}
+
+
+
+//helpers
+void Move::print() const
+{
+	if (castleFlag())
+	{
+		std::cout << castleMove(castleType()) << '\n';
+	}
+	else
+	{
+		std::cout << squareToRF[sourceIndex()] << squareToRF[destinationIndex()] << '\n';
+	}
+}
+
+std::string Move::string() const
+{
+	if (castleFlag())
+	{
+		return std::string(castleMove(castleType()));
+	}
+	else
+	{
+		std::string move;
+		move.reserve(4);
+		move.append(squareToRF[sourceIndex()]);
+		move.append(squareToRF[destinationIndex()]);
+		return move;
+	}
 }

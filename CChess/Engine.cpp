@@ -32,12 +32,11 @@
 static constexpr int bestValue{ 9999999 };
 static constexpr int worstValue{ -9999999 };
 static constexpr int checkmateScore{ -999999 };
+static State startState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
 
 
 
 //functions
-static State startState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
-
 static void findWhiteSquares(State& state) noexcept
 {
 	std::uint64_t squares{};
@@ -209,7 +208,10 @@ int Engine::search(const State& state, int color, int depth, int alpha, int beta
 	}
 
 	MoveList moves{ MoveGen::generateMoves(color > 0, state) };
-	moves.sort(m_killerMoves.killerMoves(depth), m_principalVariation[depth]);
+
+	const auto [killerMove1, killerMove2] = m_killerMoves.killerMoves(depth);
+
+	moves.sort(killerMove1, killerMove2, m_principalVariation[depth]);
 
 	int legalMoves{};
 	int bestScore{ worstValue };
@@ -300,6 +302,8 @@ Engine::Engine() noexcept
 
 Engine::~Engine()
 {
+	m_stopSearch.store(true, std::memory_order_relaxed);
+
 	m_cv.notify_one();
 }
 
@@ -397,6 +401,7 @@ std::pair<int, int> Engine::lastMove() noexcept
 {
 	return std::pair(m_currentState->moveSource, m_currentState->moveDestination);
 }
+
 
 
 //setters

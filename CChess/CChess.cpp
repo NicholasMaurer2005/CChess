@@ -1,7 +1,7 @@
 #include "CChess.h"
 
 #include <exception>
-#include <algorithm>
+#include <new>
 #include <string_view>
 
 #include "Engine.h"
@@ -32,8 +32,6 @@ CCHESS_BOOL engine_create() noexcept
 
 void engine_destroy() noexcept
 {
-	engine_stop_search();
-
 	delete engine;
 	engine = nullptr;
 }

@@ -1,7 +1,9 @@
 #include "KillerMoveHistory.h"
 
-#include "Move.h"
 #include <utility>
+
+#include "Move.h"
+
 
 
 KillerMoveHistory::KillerMoveHistory() noexcept

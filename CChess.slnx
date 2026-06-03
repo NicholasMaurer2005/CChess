@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="Sanitize" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="format.txt" />
+  </Folder>
+  <Project Path="CChess/CChess.vcxproj" Id="a0b72c73-454b-4f35-9052-b0513e846a7b" />
+  <Project Path="CChessGUI/CChessGUI.vcxproj" Id="d8acc072-75cc-4259-8e17-fa3d4b20f1ed">
+    <BuildDependency Project="CChess/CChess.vcxproj" />
+  </Project>
+</Solution>

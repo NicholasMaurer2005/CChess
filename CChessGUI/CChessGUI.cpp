@@ -1,14 +1,14 @@
 #include "CChessGUI.h"
 
-#include <CChess.h>
-#include <string_view>
 #include <algorithm>
 #include <array>
-#include <limits>
+#include <CChess.h>
 #include <format>
+#include <limits>
+#include <span>
+#include <string_view>
 
 #include "PieceSprite.h"
-#include <span>
 
 
 
@@ -81,7 +81,7 @@ void CChessGUI::bufferPosition() noexcept
 
 	if (m_moveSource != m_moveDestination)
 	{
-		m_window.bufferBoard(m_moveSource, m_moveDestination);
+		m_window.bufferBoard(*m_menuManager.flippedPtr() ? 63 - m_moveSource : m_moveSource, *m_menuManager.flippedPtr() ? 63 - m_moveDestination : m_moveDestination);
 	}
 	else
 	{
@@ -137,6 +137,7 @@ void CChessGUI::play() noexcept
 				m_menuManager.flipColorToMove();
 				m_menuManager.setEngineJustMoved(true);
 				m_menuManager.setEngineShouldRedraw();
+				m_menuManager.setWindowShouldRedraw();
 			}
 		}
 
@@ -190,7 +191,7 @@ void CChessGUI::play() noexcept
 			bufferPosition();
 		}
 
-		m_window.draw();
+		m_window.update();
 	}
 }
 

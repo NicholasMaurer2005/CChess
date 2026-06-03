@@ -107,6 +107,15 @@ bool MenuManager::engineShouldUpdateSearchTime() noexcept
 	return value;
 }
 
+bool MenuManager::windowShouldRedraw() noexcept
+{
+	const bool value{ m_windowShouldRedraw };
+
+	m_windowShouldRedraw = false;
+
+	return value;
+}
+
 std::string_view MenuManager::evaluationString() const noexcept
 {
 	return m_evaluationString;
@@ -143,6 +152,7 @@ float MenuManager::knps() const noexcept
 }
 
 
+
 //setters
 void MenuManager::setSearching(bool searching) noexcept
 {
@@ -161,8 +171,8 @@ void MenuManager::setEvaluationString(std::string evaluationString) noexcept
 
 void MenuManager::setPlayerMove(int source, int destination) noexcept
 {
-	m_playerMoveSource = source;
-	m_playerMoveDestination = destination;
+	m_playerMoveSource = (m_flipped ? 63 - source : source);
+	m_playerMoveDestination = (m_flipped ? 63 - destination : destination);
 	m_playerJustMoved = true;
 }
 
@@ -195,6 +205,12 @@ void MenuManager::setKnps(float value) noexcept
 {
 	m_knps = value;
 }
+
+void MenuManager::setWindowShouldRedraw() noexcept
+{
+	m_windowShouldRedraw = true;
+}
+
 
 
 //buttons

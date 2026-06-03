@@ -42,26 +42,33 @@ using PieceEbo = std::array<Buffer::Triangle, boardSize * 2>;
 //functions
 static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) noexcept
 {
-	Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
+	Window& user{ *reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
 	if (button == GLFW_MOUSE_BUTTON_1)
 	{
 		if (action == GLFW_PRESS)
 		{
-			user->startDragging();
+			user.startDragging();
 		}
 		else if (action == GLFW_RELEASE)
 		{
-			user->stopDragging();
+			user.stopDragging();
 		}
 	}
 }
 
 static void windowSizeCallback(GLFWwindow* window, int width, int height) noexcept
 {
-	Window* user{ reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
+	Window& user{ *reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
 
-	user->resize(width, height);
+	user.resize(width, height);
+}
+
+static void cursorEnterCallback(GLFWwindow* window, int entered)
+{
+	Window& user{ *reinterpret_cast<Window*>(glfwGetWindowUserPointer(window)) };
+
+	user.setMouseInsideWindow(entered);
 }
 
 static consteval BoardTexture generateBoardTexture()
@@ -134,10 +141,13 @@ void Window::initGLFW()
 	if (glewInit() != GLEW_OK) throw std::runtime_error("unable to initialize GLEW");
 
 	glfwSetWindowUserPointer(m_window, this);
-	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
-	glfwSetWindowSizeLimits(m_window, minimumWindowWidth, minimumWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE); 
-	glfwSetWindowSizeCallback(m_window, windowSizeCallback);
 
+	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
+	glfwSetWindowSizeCallback(m_window, windowSizeCallback);
+	glfwSetCursorEnterCallback(m_window, cursorEnterCallback);
+
+	glfwSetWindowSizeLimits(m_window, minimumWindowWidth, minimumWindowHeight, GLFW_DONT_CARE, GLFW_DONT_CARE); 
+	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, m_height, m_height);
@@ -200,11 +210,16 @@ void Window::drawImGui() const noexcept
 	if (ImGui::Button("Move Forward")) m_menuManager->moveForward();
 	if (ImGui::Button("Reset")) m_menuManager->reset();
 
+	ImGui::BeginDisabled(m_menuManager->searching());
 	ImGui::SetNextItemWidth(80.0f);
-	if (ImGui::DragFloat("Search Time", m_menuManager->engineSearchSecondsPtr(), 0.1f, 0.1f, 60.0f, "%.1f"))
+	float* ptr{ m_menuManager->engineSearchSecondsPtr() };
+	if (ImGui::DragFloat("Search Time", ptr, 0.1f, 0.0f, 999999.9f, "%.1f"))
 	{
 		m_menuManager->setEngineShouldUpdateSearchTime();
+
+		*ptr = std::clamp(*ptr, 0.0f, 999999.9f);
 	}
+	ImGui::EndDisabled();
 
 	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.3f} seconds remaining\n{:.3f}knps\n", m_menuManager->secondsRemaining(), m_menuManager->knps()).data());
 
@@ -250,6 +265,28 @@ void Window::drawRankFile() const noexcept
 	m_viewportBuffer.draw();
 }
 
+void Window::draw() const noexcept
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	drawBoard();
+	drawRankFile();
+	drawPieces();
+	drawDragPiece();
+	drawImGui();
+
+	glfwSwapBuffers(m_window);
+}
+
+void Window::setTitle() noexcept
+{
+	const auto currentTime{ std::chrono::high_resolution_clock::now() };
+	const std::chrono::duration<double> elapsed{ currentTime - m_lastTime };
+	m_lastTime = currentTime;
+
+	const std::string title{ std::format("CChess - fps: {:.3f}", 1.0 / elapsed.count()) };
+	glfwSetWindowTitle(m_window, title.data());
+}
 
 
 //buffer
@@ -363,30 +400,28 @@ void Window::bufferPieces(std::span<const PieceSprite> data) noexcept
 	m_positionBuffer.buffer(data, std::span(pieceEBO.begin(), data.size() * 2));
 }
 
+void Window::setMouseInsideWindow(bool value) noexcept
+{
+	m_mouseInsideWindow = value;
+}
+
 
 
 //window 
-void Window::draw() noexcept
+void Window::update() noexcept
 {
-	//render
-	glClear(GL_COLOR_BUFFER_BIT);
+	if (m_mouseInsideWindow || m_menuManager->searching() || m_menuManager->windowShouldRedraw())
+	{
+		draw();
 
-	drawBoard();
-	drawRankFile();
-	drawPieces();
-	drawDragPiece();
-	drawImGui();
+		setTitle();
 
-	glfwSwapBuffers(m_window);
-	glfwPollEvents();
-
-	//fps and title
-	const auto currentTime{ std::chrono::high_resolution_clock::now() };
-	const std::chrono::duration<double> elapsed{ currentTime - m_lastTime };
-	m_lastTime = currentTime;
-
-	const std::string title{ std::format("CChess - fps: {:.3f}", 1.0 / elapsed.count()) };
-	glfwSetWindowTitle(m_window, title.data());
+		glfwPollEvents();
+	}
+	else
+	{
+		glfwWaitEvents();
+	}
 }
 
 void Window::startDragging() noexcept  
@@ -419,8 +454,8 @@ void Window::stopDragging() noexcept
 
 	if (x < m_height)
 	{
-		const int file{ static_cast<int>(x / m_height * 8) };
-		const int rank{ static_cast<int>(8 - y / m_height * 8) };
+		const int file{ static_cast<int>(x / m_height * 8.0f) };
+		const int rank{ static_cast<int>(8.0f - y / m_height * 8.0f) };
 		const int square{ rank * fileSize + file };
 
 		m_menuManager->setPlayerMove(m_dragStart, square);

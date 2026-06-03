@@ -28,6 +28,7 @@ private:
 	bool m_engineShouldMoveForward{};
 	bool m_engineShouldMoveBack{};
 	bool m_engineShouldUpdateSearchTime{ true };
+	bool m_windowShouldRedraw{ true };
 
 	int m_playerMoveSource{};
 	int m_playerMoveDestination{};
@@ -102,6 +103,8 @@ public:
 
 	float knps() const noexcept;
 
+	bool windowShouldRedraw() noexcept;
+
 
 
 	//setters
@@ -124,6 +127,8 @@ public:
 	void setEngineShouldUpdateSearchTime() noexcept;
 
 	void setKnps(float value) noexcept;
+
+	void setWindowShouldRedraw() noexcept;
 
 
 

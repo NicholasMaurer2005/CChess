@@ -46,6 +46,7 @@ private:
 	int m_height{ minimumWindowHeight };
 	float m_aspectRatio{ static_cast<float>(minimumSettingsWidth) / minimumWindowHeight };
 	Clock::time_point m_lastTime;
+	bool m_mouseInsideWindow{};
 
 	//pipelines
 	Buffer m_viewportBuffer;
@@ -88,6 +89,10 @@ private:
 	void drawDragPiece() const noexcept;
 
 	void drawRankFile() const noexcept;
+
+	void draw() const noexcept;
+
+	void setTitle() noexcept;
 	
 
 
@@ -124,10 +129,12 @@ public:
 
 	void bufferPieces(std::span<const PieceSprite> data) noexcept;
 
+	void setMouseInsideWindow(bool value) noexcept;
+
 
 
 	//window
-	void draw() noexcept;
+	void update() noexcept;
 
 	void startDragging() noexcept;
 

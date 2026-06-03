@@ -8,11 +8,11 @@
 #include <mutex>
 #include <string_view>
 #include <thread>
+#include <utility>
 
 #include "ChessConstants.hpp"
 #include "KillerMoveHistory.h"
 #include "Move.h"
-#include "MoveGen.h"
 #include "MoveList.hpp"
 #include "StackString.hpp"
 #include "State.h"
@@ -26,16 +26,25 @@ private:
 	//	Private Definitions
 
 	//constants
-	static constexpr int bestValue{ 9999999 };
-	static constexpr int worstValue{ -9999999 };
-	static constexpr int checkmateScore{ -999999 };
 	static constexpr int maxSearchDepth{ 50 };
 	static constexpr int maxMoveStringSize{ 5 };
+	static constexpr int maxHalfMoveCount{ 100 };
+
+	//types
+	struct HistoryPosition
+	{
+		State state;
+		bool whiteToMove;
+		int moveSource;
+		int moveDestination;
+	};
+
 
 	//usings
-	using clock = std::chrono::high_resolution_clock;
+	using Clock = std::chrono::high_resolution_clock;
 	using PrincipalVariation = std::array<Move, maxSearchDepth>;
 	using PrincipalVariationString = StackString<maxSearchDepth * maxMoveStringSize>;
+	using StateHistory = std::array<HistoryPosition, maxHalfMoveCount>;
 
 
 
@@ -48,7 +57,7 @@ public:
 		int depth;
 		int evaluation;
 		float nodesPerSecond;
-		float timeRemaining;
+		float secondsRemaining;
 		std::string_view principalVariation;
 	};
 
@@ -59,11 +68,12 @@ private:
 	//	Private Members
 	
 	//state
-	State m_currentState;
-	bool m_currentWhiteToMove{ true };
+	StateHistory m_history{};
+	StateHistory::iterator m_currentState{ m_history.begin() };
+	StateHistory::iterator m_historyBack{ m_history.begin() + 1 };
 	State::FenPosition m_fenPosition;
 	State::CharPosition m_charPosition;
-	MoveList m_currentLegalMoves{ MoveGen::generateMoves(m_currentWhiteToMove, m_currentState) };
+	MoveList m_currentLegalMoves;
 
 	//worker
 	std::mutex m_mutex;
@@ -80,7 +90,7 @@ private:
 	//info
 	SearchInfo m_searchInfo{};
 	std::atomic_bool m_newInfo;
-	clock::time_point m_searchStart;
+	Clock::time_point m_searchStart;
 	std::uint64_t m_nodeCount{};
 	PrincipalVariationString m_pvString{};
 	Move m_bestMove{ 0 };
@@ -111,7 +121,7 @@ public:
 
 
 	//search
-	void startSearch() noexcept;
+	void startSearch(bool whiteToMove) noexcept;
 
 	void stopSearch() noexcept;
 
@@ -128,20 +138,22 @@ public:
 
 	Move bestMove() const noexcept;
 
+	std::pair<int, int> lastMove() noexcept;
+
 
 
 	//setters
-	void setStartState() noexcept;
+	bool setPositionFen(std::string_view position) noexcept;
 
-	void setPositionFen(std::string_view position) noexcept;
-
-	void setPositionChar(std::string_view position) noexcept;
+	bool setPositionChar(std::string_view position) noexcept;
 
 	bool move(bool white, int source, int destination) noexcept;
 
-	void moveUnchecked(bool white, int source, int destination) noexcept;
+	bool moveForward() noexcept;
 
-	bool move(int source, int destination) noexcept;
+	bool moveBack() noexcept;
 
-	void moveUnchecked(int source, int destination) noexcept;
+	void reset() noexcept;
+
+	void setSearchMilliseconds(int milliseconds) noexcept;
 };

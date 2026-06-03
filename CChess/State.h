@@ -1,14 +1,13 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
 #include <string_view>
 
-#include "ChessConstants.hpp"
 #include "BitBoard.h"
-#include "StackString.hpp"
 #include "Castle.hpp"
+#include "ChessConstants.hpp"
 #include "Move.h"
+#include "StackString.hpp"
 
 
 
@@ -162,17 +161,11 @@ public:
 
 
 
-	//move
+	//helpers
 	void makeMove(bool white, Move move) noexcept;
 
-
-
-	//compare
 	bool operator== (const State& other) const noexcept;
 
-
-
-	//print
 	void print() const noexcept;
 
 	void dump() const noexcept;

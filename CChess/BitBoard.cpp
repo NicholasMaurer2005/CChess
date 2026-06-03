@@ -1,17 +1,9 @@
 #include "BitBoard.h"
 
-#include <iostream>
 #include <bit>
+#include <iostream>
 
 #include "ChessConstants.hpp"
-
-
-
-//operators
-bool BitBoard::operator== (const BitBoard& other) const noexcept
-{
-	return m_board == other.m_board;
-}
 
 
 

@@ -1,7 +1,8 @@
 #include "CChess.h"
 
 #include <exception>
-#include <algorithm>
+#include <new>
+#include <string_view>
 
 #include "Engine.h"
 #include "Move.h"
@@ -40,7 +41,7 @@ void engine_destroy() noexcept
 //	POSITION
 void engine_set_position_start() noexcept
 {
-	if (engine) engine->setStartState();
+	if (engine) engine->reset();
 }
 
 CCHESS_BOOL engine_set_position_fen(const char* position) noexcept
@@ -57,7 +58,7 @@ CCHESS_BOOL engine_set_position_char(const char* position) noexcept
 {
 	if (!(engine && position)) return false;
 	
-	const std::string_view constView{ position };
+	const std::string_view constView{ position, 64 };
 	engine->setPositionChar(constView);
 
 	return true;
@@ -81,12 +82,22 @@ const char* engine_get_position_char() noexcept
 	return data.data();
 }
 
+void engine_last_move(int* source, int* destination) CCHESS_NOEXCEPT
+{
+	if (engine)
+	{
+		const auto [moveSource, moveDestination] = engine->lastMove();
+		*source = moveSource;
+		*destination = moveDestination;
+	}
+}
+
 
 
 //	SEARCH
-void engine_start_search() noexcept
+void engine_start_search(CCHESS_BOOL white_to_move) noexcept
 {
-	if (engine) engine->startSearch();
+	if (engine) engine->startSearch(white_to_move);
 }
 
 void engine_stop_search()  noexcept
@@ -94,7 +105,7 @@ void engine_stop_search()  noexcept
 	if (engine) engine->stopSearch();
 }
 
-CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* timeRemaining, const char** principal_variation)  noexcept
+CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, float* nodes_per_second, float* seconds_remaining, const char** principal_variation)  noexcept
 {
 	if (!engine) return false;
 
@@ -105,7 +116,7 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 		*evaluation = info.evaluation;
 		*depth = info.depth;
 		*nodes_per_second = info.nodesPerSecond;
-		*timeRemaining = info.timeRemaining;
+		*seconds_remaining = info.secondsRemaining;
 		*principal_variation = info.principalVariation.data();
 
 		return true;
@@ -116,8 +127,17 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 	}
 }
 
-//	Get the best move after the search is done. If the search is not done or stopSearch() has not been called 'source' and 
-//	'destination' are not modified and the function returns CCHESS_FALSE
+void engine_set_search_seconds(float seconds) CCHESS_NOEXCEPT
+{
+	if (!engine) return;
+
+	engine->setSearchMilliseconds(static_cast<int>(seconds * 1000.0f));
+}
+
+
+
+//	MOVE
+
 CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 {
 	if (!engine) return false;
@@ -130,18 +150,19 @@ CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT
 	return move.move();
 }
 
-
-
-//	SEARCH
-
-CCHESS_BOOL engine_move(int source, int destination) CCHESS_NOEXCEPT
+CCHESS_BOOL engine_move(CCHESS_BOOL white_to_move, int source, int destination) CCHESS_NOEXCEPT
 {
 	if (!engine) return false;
 
-	return engine->move(source, destination);
+	return engine->move(white_to_move, source, destination);
 }
 
-void engine_move_unchecked(int source, int destination) CCHESS_NOEXCEPT
+CCHESS_BOOL engine_move_forward() CCHESS_NOEXCEPT
 {
-	if (engine) engine->moveUnchecked(source, destination);
+	return engine->moveForward();
+}
+
+CCHESS_BOOL engine_move_back() CCHESS_NOEXCEPT
+{
+	return engine->moveBack();
 }

@@ -10,9 +10,10 @@
 #include <mutex>
 #include <span>
 #include <stop_token>
+#include <string>
 #include <string_view>
 #include <thread>
-#include <string>
+#include <utility>
 
 #include "BitBoard.h"
 #include "Castle.hpp"
@@ -27,8 +28,15 @@
 
 //	Static Helpers
 
+//constants
+static constexpr int bestValue{ 9999999 };
+static constexpr int worstValue{ -9999999 };
+static constexpr int checkmateScore{ -999999 };
 static State startState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
 
+
+
+//functions
 static void findWhiteSquares(State& state) noexcept
 {
 	std::uint64_t squares{};
@@ -200,7 +208,10 @@ int Engine::search(const State& state, int color, int depth, int alpha, int beta
 	}
 
 	MoveList moves{ MoveGen::generateMoves(color > 0, state) };
-	moves.sort(m_killerMoves.killerMoves(depth), m_principalVariation[depth]);
+
+	const auto [killerMove1, killerMove2] = m_killerMoves.killerMoves(depth);
+
+	moves.sort(killerMove1, killerMove2, m_principalVariation[depth]);
 
 	int legalMoves{};
 	int bestScore{ worstValue };
@@ -247,11 +258,12 @@ int Engine::search(const State& state, int color, int depth, int alpha, int beta
 
 void Engine::logSearchInfo() noexcept
 {
-	const clock::time_point now{ clock::now() };
+	const Clock::time_point now{ Clock::now() };
 	const std::chrono::duration<float> elapsed{ now - m_searchStart };
+	const std::chrono::duration<float> timeRemaining{ std::chrono::milliseconds(m_searchMilliseconds) - elapsed };
 
 	m_searchInfo.nodesPerSecond = m_nodeCount / elapsed.count();
-	m_searchInfo.timeRemaining = static_cast<float>(m_searchMilliseconds) - std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+	m_searchInfo.secondsRemaining = timeRemaining.count();
 	m_newInfo.store(true, std::memory_order_release);
 }
 
@@ -280,30 +292,38 @@ std::string_view Engine::principalVariation() noexcept
 
 // constructors
 Engine::Engine() noexcept
-	: m_currentState(startState), m_currentLegalMoves(MoveGen::generateMoves(m_currentWhiteToMove, m_currentState)), m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) { }
+	: m_worker(worker, std::ref(m_mutex), std::ref(m_cv), std::ref(*this)) 
+{
+	m_history.front().state = startState;
+	m_history.front().whiteToMove = true;
+
+	m_currentLegalMoves = MoveGen::generateMoves(true, m_history.front().state);
+}
 
 Engine::~Engine()
 {
+	m_stopSearch.store(true, std::memory_order_relaxed);
+
 	m_cv.notify_one();
 }
 
 
 
 //search
-void Engine::startSearch() noexcept
+void Engine::startSearch(bool whiteToMove) noexcept
 {
-	if (m_stopSearch.load(std::memory_order_relaxed))
-	{
-		m_nodeCount = 0;
-		m_searchStart = clock::now();
-		m_stopSearch.store(false, std::memory_order_relaxed);
-		m_cv.notify_one();
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_history.end()) return;
 
-		std::thread([](std::atomic_bool& stopSearch, int searchMilliseconds) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(searchMilliseconds));
-			stopSearch.store(true, std::memory_order_relaxed);
-			}, std::ref(m_stopSearch), m_searchMilliseconds).detach();
-	}
+	m_currentState->whiteToMove = whiteToMove;
+	m_nodeCount = 0;
+	m_searchStart = Clock::now();
+	m_stopSearch.store(false, std::memory_order_relaxed);
+	m_cv.notify_one();
+
+	std::thread([](std::atomic_bool& stopSearch, int searchMilliseconds) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(searchMilliseconds));
+		stopSearch.store(true, std::memory_order_relaxed);
+		}, std::ref(m_stopSearch), m_searchMilliseconds).detach();
 }
 
 void Engine::stopSearch() noexcept
@@ -323,13 +343,13 @@ void Engine::searchRun() noexcept
 	{
 
 		m_currentSearchDepth = depth; //had the idea to use this variable in the for loop but apparently it is considered bad practice
-		const int score{ search(m_currentState, m_currentWhiteToMove ? 1 : -1, 0, worstValue, bestValue) };
+		const int score{ search(m_currentState->state, m_currentState->whiteToMove ? 1 : -1, 0, worstValue, bestValue) };
 
 		if (m_stopSearch.load(std::memory_order_relaxed)) break;
 
 		m_bestMove = m_principalVariation.front();
 		m_searchInfo.depth = depth;
-		m_searchInfo.evaluation = m_currentWhiteToMove ? score : -score;
+		m_searchInfo.evaluation = m_currentState->whiteToMove ? score : -score;
 		m_searchInfo.principalVariation = principalVariation();
 		m_newInfo.store(true, std::memory_order_release);
 	}
@@ -355,13 +375,13 @@ bool Engine::searchInfo(SearchInfo& info) noexcept
 
 std::string_view Engine::fenPosition() noexcept
 {
-	m_fenPosition = m_currentState.fenPosition();
+	m_fenPosition = m_currentState->state.fenPosition();
 	return m_fenPosition.data();
 }
 
 std::string_view Engine::charPosition() noexcept
 {
-	m_charPosition = m_currentState.charPosition();
+	m_charPosition = m_currentState->state.charPosition();
 	return m_charPosition.data();
 }
 
@@ -377,66 +397,97 @@ Move Engine::bestMove() const noexcept
 	}
 }
 
+std::pair<int, int> Engine::lastMove() noexcept
+{
+	return std::pair(m_currentState->moveSource, m_currentState->moveDestination);
+}
+
 
 
 //setters
-void Engine::setStartState() noexcept
+bool Engine::setPositionChar(std::string_view position) noexcept
 {
-	m_currentState = startState;
-	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+	if (!m_stopSearch.load(std::memory_order_relaxed)) return false;
+
+	m_currentState->state = State::fromChar(position);
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
+
+	return true;
 }
 
-void Engine::setPositionChar(std::string_view position) noexcept
+bool Engine::setPositionFen(std::string_view position) noexcept
 {
-	m_currentState = State::fromChar(position);
-	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
-}
+	if (!m_stopSearch.load(std::memory_order_relaxed)) return false;
 
-void Engine::setPositionFen(std::string_view position) noexcept
-{
-	m_currentState = State::fromFen(position);
-	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+	m_currentState->state = State::fromFen(position);
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
+
+	return true;
 }
 
 bool Engine::move(bool white, int source, int destination) noexcept
 {
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_history.end()) return false;
+
 	const Move castleMove{ getCastleMove(source, destination) };
 
 	const auto it{ std::ranges::find_if(m_currentLegalMoves, [source, destination, castleMove](Move move) {
 		   return (move.sourceIndex() == source && move.destinationIndex() == destination) || (move.move() == castleMove.move());
 	   }) };
 
-	State stateCopy{ m_currentState };
+	State stateCopy{ m_currentState->state };
 
 	if (it == m_currentLegalMoves.end() || !makeLegalMove(stateCopy, *it, white)) return false;
 	
 	const Move move{ *it };
 
-	m_currentState = stateCopy;
-	m_currentWhiteToMove = !white;
-	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+	++m_currentState;
+	m_historyBack = m_currentState + 1;
+
+	m_currentState->state = stateCopy;
+	m_currentState->whiteToMove = !white;
+	m_currentState->moveSource = source;
+	m_currentState->moveDestination = destination;
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, stateCopy);
 
 	return true;
 }
 
-void Engine::moveUnchecked(bool white, int source, int destination) noexcept
+bool Engine::moveForward() noexcept
 {
-	const Move castleMove{ getCastleMove(source, destination) };
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState + 1 == m_historyBack) return false;
 
-	if (castleMove.move())
-	{
-		m_currentState.makeMove(white, castleMove);
-	}
+	++m_currentState;
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
 
-	m_currentLegalMoves = MoveGen::generateMoves(m_currentWhiteToMove, m_currentState);
+	return true;
 }
 
-bool Engine::move(int source, int destination) noexcept
+bool Engine::moveBack() noexcept
 {
-	return move(m_currentWhiteToMove, source, destination);
+	if (!m_stopSearch.load(std::memory_order_relaxed) || m_currentState == m_history.begin()) return false;
+
+	--m_currentState;
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
+
+	return true;
 }
 
-void Engine::moveUnchecked(int source, int destination) noexcept
+void Engine::reset() noexcept
 {
-	move(m_currentWhiteToMove, source, destination);
+	if (!m_stopSearch.load(std::memory_order_relaxed)) return;
+
+	m_currentState = m_history.begin();
+	m_historyBack = m_history.begin() + 1;
+
+	m_history.fill(HistoryPosition());
+	m_history.front().state = startState;
+	m_history.front().whiteToMove = true;
+
+	m_currentLegalMoves = MoveGen::generateMoves(m_currentState->whiteToMove, m_currentState->state);
+}
+
+void Engine::setSearchMilliseconds(int milliseconds) noexcept
+{
+	m_searchMilliseconds = milliseconds;
 }

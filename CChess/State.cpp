@@ -1,15 +1,13 @@
 #include "State.h"
 
+#include <array>
 #include <cctype>
 #include <iostream>
-#include <array>
-#include <span>
 #include <stdexcept>
-#include <algorithm>
 
-#include "Move.h"
-#include "ChessConstants.hpp"
 #include "BitBoard.h"
+#include "ChessConstants.hpp"
+#include "Move.h"
 
 
 
@@ -43,6 +41,7 @@ static char pieceToChar(Piece piece)
 }
 
 static constexpr std::array<Piece, 255> charToPiece{ generateCharToPiece() };
+
 
 
 //	Private Methods

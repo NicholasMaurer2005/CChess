@@ -2950,9 +2950,9 @@ float ImGui::ScaleRatioFromValueT(ImGuiDataType data_type, TYPE v, TYPE v_min, T
     const TYPE v_clamped = (v_min < v_max) ? ImClamp(v, v_min, v_max) : ImClamp(v, v_max, v_min);
     if (is_logarithmic)
     {
-        bool flipped = v_max < v_min;
+        bool flippedPtr = v_max < v_min;
 
-        if (flipped) // Handle the case where the range is backwards
+        if (flippedPtr) // Handle the case where the range is backwards
             ImSwap(v_min, v_max);
 
         // Fudge min/max to avoid getting close to log(0)
@@ -2987,7 +2987,7 @@ float ImGui::ScaleRatioFromValueT(ImGuiDataType data_type, TYPE v, TYPE v_min, T
         else
             result = (float)(ImLog((FLOATTYPE)v_clamped / v_min_fudged) / ImLog(v_max_fudged / v_min_fudged));
 
-        return flipped ? (1.0f - result) : result;
+        return flippedPtr ? (1.0f - result) : result;
     }
     else
     {
@@ -3014,15 +3014,15 @@ TYPE ImGui::ScaleValueFromRatioT(ImGuiDataType data_type, float t, TYPE v_min, T
         FLOATTYPE v_min_fudged = (ImAbs((FLOATTYPE)v_min) < logarithmic_zero_epsilon) ? ((v_min < 0.0f) ? -logarithmic_zero_epsilon : logarithmic_zero_epsilon) : (FLOATTYPE)v_min;
         FLOATTYPE v_max_fudged = (ImAbs((FLOATTYPE)v_max) < logarithmic_zero_epsilon) ? ((v_max < 0.0f) ? -logarithmic_zero_epsilon : logarithmic_zero_epsilon) : (FLOATTYPE)v_max;
 
-        const bool flipped = v_max < v_min; // Check if range is "backwards"
-        if (flipped)
+        const bool flippedPtr = v_max < v_min; // Check if range is "backwards"
+        if (flippedPtr)
             ImSwap(v_min_fudged, v_max_fudged);
 
         // Awkward special case - we need ranges of the form (-100 .. 0) to convert to (-100 .. -epsilon), not (-100 .. epsilon)
         if ((v_max == 0.0f) && (v_min < 0.0f))
             v_max_fudged = -logarithmic_zero_epsilon;
 
-        float t_with_flip = flipped ? (1.0f - t) : t; // t, but flipped if necessary to account for us flipping the range
+        float t_with_flip = flippedPtr ? (1.0f - t) : t; // t, but flipped if necessary to account for us flipping the range
 
         if ((v_min * v_max) < 0.0f) // Range crosses zero, so we have to do this in two parts
         {

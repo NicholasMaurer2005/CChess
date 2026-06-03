@@ -14,6 +14,7 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Image.h"
+#include "MenuManager.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
@@ -63,7 +64,7 @@ static void windowSizeCallback(GLFWwindow* window, int width, int height) noexce
 	user->resize(width, height);
 }
 
-static consteval BoardTexture generateBoardTexture(bool flipped)
+static consteval BoardTexture generateBoardTexture()
 {
 	std::array<Texture::Pixel, boardSize> board{};
 
@@ -79,11 +80,11 @@ static consteval BoardTexture generateBoardTexture(bool flipped)
 
 			if (square % 2)
 			{
-				board[index] = flipped ? darkSquare : lightSquare;
+				board[index] = lightSquare;
 			}
 			else
 			{
-				board[index] = flipped ? lightSquare : darkSquare;
+				board[index] = darkSquare;
 			}
 		}
 	}
@@ -109,6 +110,11 @@ static consteval PieceEbo generatePieceEBO()
 
 	return ebo;
 }
+
+
+
+// global variables (evil but I would make them static if it weren't for initialization gaurd
+static BoardTexture boardTexture{ generateBoardTexture() };
 
 
 
@@ -139,7 +145,8 @@ void Window::initGLFW()
 
 void Window::initImGui() noexcept
 {
-	constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
+	static constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
+	static constexpr std::string_view fontLocation{ "C:\\Windows\\Fonts\\segoeui.ttf" };
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -147,6 +154,11 @@ void Window::initImGui() noexcept
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
+
+	ImFont* defaultFont =
+		io.Fonts->AddFontFromFileTTF(
+			"C:\\Windows\\Fonts\\segoeui.ttf",
+			25.0f);
 
 	ImGui::StyleColorsDark();
 	ImGuiStyle& style{ ImGui::GetStyle() };
@@ -174,15 +186,29 @@ void Window::drawImGui() const noexcept
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar);
 
-	/*if (ImGui::Button("Back"))
-	{
-		m_moveBackCallback();
-	}
+	if (ImGui::Checkbox("Flipped", m_menuManager->flippedPtr())) m_menuManager->setEngineShouldRedraw();
+
+	ImGui::Checkbox("White Is Engine", m_menuManager->whiteIsEnginePtr());
 	ImGui::SameLine();
-	if (ImGui::Button("Forward"))
+	ImGui::Checkbox("Black Is Engine", m_menuManager->blackIsEnginePtr());
+	
+	ImGui::Checkbox("Pause After Engine Move", m_menuManager->pauseAfterEngineMovePtr());
+
+	if (ImGui::Button("Engine Move")) m_menuManager->forceEngineMove();
+	if (ImGui::Button("Move Back")) m_menuManager->moveBack();
+	ImGui::SameLine();
+	if (ImGui::Button("Move Forward")) m_menuManager->moveForward();
+	if (ImGui::Button("Reset")) m_menuManager->reset();
+
+	ImGui::SetNextItemWidth(80.0f);
+	if (ImGui::DragFloat("Search Time", m_menuManager->engineSearchSecondsPtr(), 0.1f, 0.1f, 60.0f, "%.1f"))
 	{
-		m_moveForwardCallback();
-	}*/
+		m_menuManager->setEngineShouldUpdateSearchTime();
+	}
+
+	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.3f} seconds remaining\n{:.3f}knps\n", m_menuManager->secondsRemaining(), m_menuManager->knps()).data());
+
+	ImGui::TextWrapped(m_menuManager->evaluationString().data());
 
 	ImGui::End();
 
@@ -255,8 +281,8 @@ std::pair<float, float> Window::mousePosition() const noexcept
 // Public Methods
 
 //constructors
-Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
-	: m_moveCallback(std::move(moveCallback)), m_pieceCallback(std::move(pieceCallback))
+Window::Window(MenuManager& menuManager)
+	: m_menuManager(&menuManager)
 {
 	initGLFW();
 
@@ -265,7 +291,7 @@ Window::Window(MoveCallback moveCallback, PieceCallback pieceCallback)
 	m_positionBuffer.initialize();
 	m_dragBuffer = Buffer::square(0.25f);
 
-	m_boardTexture = Texture(generateBoardTexture(false), fileSize, rankSize, Texture::MagFilter::Nearest);
+	m_boardTexture = Texture(generateBoardTexture(), fileSize, rankSize, Texture::MagFilter::Nearest);
 	m_piecesTexture = Texture(Image("pieceTextures.png"), Texture::MagFilter::Linear);
 	m_rfTexture = Texture(Image("rfTexture.png", true), Texture::MagFilter::Linear);
 
@@ -311,25 +337,23 @@ void Window::resize(int width, int height) noexcept
 	glfwSwapBuffers(m_window);
 }
 
-static BoardTexture whiteBoard{ generateBoardTexture(false) };
-static BoardTexture blackBoard{ generateBoardTexture(true) };
-void Window::bufferBoard(bool flipped, int source, int destination) const noexcept
+void Window::bufferBoard() const noexcept
 {
-	const std::span<Texture::Pixel> board{ flipped ? blackBoard : whiteBoard };
+	m_boardTexture.update(generateBoardTexture());
+}
 
-	if (source != 64 && destination != 64)
-	{
-		static constexpr Texture::Pixel destinationColor{ 137, 207, 240, 255 };
-		static constexpr Texture::Pixel sourceColor{ 115, 157, 179, 255 };
+void Window::bufferBoard(int source, int destination) const noexcept
+{
+	static constexpr Texture::Pixel destinationColor{ 137, 207, 240, 255 };
+	static constexpr Texture::Pixel sourceColor{ 115, 157, 179, 255 };
 
-		Texture::Pixel oldSource{ std::exchange(board[source], sourceColor) };
-		Texture::Pixel oldDestination{ std::exchange(board[destination], destinationColor) };
+	Texture::Pixel oldSource{ std::exchange(boardTexture[source], sourceColor) };
+	Texture::Pixel oldDestination{ std::exchange(boardTexture[destination], destinationColor) };
 
-		m_boardTexture.update(board);
+	m_boardTexture.update(boardTexture);
 
-		board[source] = oldSource;
-		board[destination] = oldDestination;
-	}
+	boardTexture[source] = oldSource;
+	boardTexture[destination] = oldDestination;
 }
 
 void Window::bufferPieces(std::span<const PieceSprite> data) noexcept
@@ -372,15 +396,16 @@ void Window::startDragging() noexcept
 	//check if mouse is in board space
 	if (x < m_height)
 	{
-		const std::size_t file{ static_cast<std::size_t>(x / m_height * 8) };
-		const std::size_t rank{ static_cast<std::size_t>(8.0f - y / m_height * 8.0f) };
-		const std::size_t pieceIndex{ rank * fileSize + file };
-		const PieceSprite::Piece piece{ m_pieceCallback(pieceIndex) };
+		const int file{ static_cast<int>(x / m_height * 8.0f) };
+		const int rank{ static_cast<int>(8.0f - y / m_height * 8.0f) };
+		const int square{ rank * fileSize + file };
+
+		const PieceSprite::Piece piece{ m_menuManager->getPiece(square) };
 
 		if (piece != PieceSprite::Piece::NoPiece)
 		{
 			bufferDragPiece(piece);
-			m_dragStart = static_cast<int>(pieceIndex);
+			m_dragStart = square;
 			m_dragging = true;
 		}
 	}
@@ -398,14 +423,12 @@ void Window::stopDragging() noexcept
 		const int rank{ static_cast<int>(8 - y / m_height * 8) };
 		const int square{ rank * fileSize + file };
 
-		if (m_moveCallback(m_dragStart, square))
-		{
-			bufferBoard(false, m_dragStart, square);
-			glfwSwapBuffers(m_window);
-		}
+		m_menuManager->setPlayerMove(m_dragStart, square);
 	}
 	else
 	{
-		m_moveCallback(m_dragStart, m_dragStart);
+		m_menuManager->setPlayerMove(m_dragStart, m_dragStart);
 	}
+
+	m_menuManager->setEngineShouldRedraw();
 }

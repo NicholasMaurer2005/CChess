@@ -24,7 +24,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Image(std::string_view image, bool flipped = false);
+	Image(std::string_view image, bool flippedPtr = false);
 
 	Image(const Image& other) noexcept;
 

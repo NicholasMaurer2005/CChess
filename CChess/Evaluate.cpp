@@ -1,5 +1,8 @@
 #include "Evaluate.h"
 
+#include "ChessConstants.hpp"
+#include "State.h"
+
 
 
 static int pieceEvaluation(const State& state) noexcept
@@ -35,4 +38,3 @@ int evaluate(const State& state) noexcept
 {
 	return pieceEvaluation(state) + spaceEvaluation(state);
 }
-

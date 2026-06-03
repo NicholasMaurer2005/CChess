@@ -2,16 +2,18 @@
 
 #include <cstdint>
 
-enum class Castle : std::uint8_t //if you change type rememember to change operators
+
+
+enum class Castle : std::uint8_t 
 {
-	WhiteKingSide = 0b0001,
-	WhiteQueenSide = 0b0010,
-	BlackKingSide = 0b0100,
-	BlackQueenSide = 0b1000,
-	WhiteBoth = 0b0011,
-	BlackBoth = 0b1100,
-	All = 0b1111,
-	None = 0b0000
+	WhiteKingSide	= 0b00000001,
+	WhiteQueenSide	= 0b00000010,
+	BlackKingSide	= 0b00000100,
+	BlackQueenSide	= 0b00001000,
+	WhiteBoth		= 0b00000011,
+	BlackBoth		= 0b00001100,
+	All				= 0b00001111,
+	None			= 0b00000000
 };
 
 constexpr Castle operator& (Castle lhs, Castle rhs) noexcept

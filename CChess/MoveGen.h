@@ -1,7 +1,9 @@
 #pragma once
 
-#include "State.h"
 #include "MoveList.hpp"
+#include "State.h"
+
+
 
 namespace MoveGen
 {
@@ -21,4 +23,3 @@ namespace MoveGen
 
 	BitBoard rookMoves(std::size_t square, BitBoard occupancy) noexcept;
 };
-

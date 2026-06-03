@@ -1,16 +1,21 @@
 #include "PreGen.h"
 
-#include <chrono>
-#include <iostream>
-#include <vector>
-#include <cstdint>
-#include <random>
 #include <bitset>
+#include <chrono>
 #include <concepts>
-#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <random>
+#include <type_traits>
+#include <vector>
+
+#include "BitBoard.h"
+#include "ChessConstants.hpp"
 
 
-//static helpers
+
+//	Static Helpers
+
 template<typename T>
 requires std::integral<T> && std::is_convertible_v<T, std::size_t>
 static std::size_t boardIndex(T rank, T file) noexcept
@@ -20,12 +25,12 @@ static std::size_t boardIndex(T rank, T file) noexcept
 
 static std::size_t bishopMagicIndex(std::size_t square, std::size_t magicIndex)
 {
-	return square * maxBishopAttacks + magicIndex;
+	return square * PreGen::maxBishopAttacks + magicIndex;
 }
 
 static std::size_t rookMagicIndex(std::size_t square, std::size_t magicIndex)
 {
-	return square * maxRookAttacks + magicIndex;
+	return square * PreGen::maxRookAttacks + magicIndex;
 }
 
 static void setSafe(BitBoard& board, int rank, int file) noexcept
@@ -61,17 +66,6 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 
 	return occupancies;
 }
-
-//outside of function to remove initialization guard
-//namespace rnd
-//{
-//	static std::mt19937_64 gen{ std::random_device{}() };
-//	static std::uniform_int_distribution<std::uint64_t> dist;
-//}
-//static std::uint64_t randomMagic() noexcept
-//{
-//	return rnd::dist(rnd::gen) & rnd::dist(rnd::gen) & rnd::dist(rnd::gen);
-//}
 
 static std::uint64_t randomMagic() noexcept
 {
@@ -152,6 +146,8 @@ static BitBoard generateRookAttack(int rank, int file, BitBoard occupancy) noexc
 }
 
 
+
+//	Private Methods
 
 //constructor
 PreGen::PreGen() noexcept :
@@ -447,6 +443,8 @@ void PreGen::generateRookMoves() noexcept
 }
 
 
+
+//	Public Methods
 
 //getters
 BitBoard PreGen::whitePawnAttack(std::size_t index) const noexcept

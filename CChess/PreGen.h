@@ -2,23 +2,16 @@
 
 #include <array>
 
-#include "ChessConstants.hpp"
 #include "BitBoard.h"
-
-#include <iostream>
-
-
-
-constexpr int maxBishopAttacks{ 512 };
-constexpr int maxRookAttacks{ 4096 };
+#include "ChessConstants.hpp"
 
 
 
 class cachealign PreGen
 {
-	/* Class Members*/
-
 private:
+
+	//	Private Definitions
 
 	struct alignas(16) MagicData
 	{
@@ -26,8 +19,23 @@ private:
 		int magicShift;
 	};
 
-	//magic numbers //TODO: use stockfish method.
-	std::array<MagicData, boardSize> m_bishopMagicData;
+
+
+public:
+
+	//	Public Definitions
+
+	static constexpr int maxBishopAttacks{ 512 };
+	static constexpr int maxRookAttacks{ 4096 };
+
+
+
+private:
+	
+	//	Private Members
+
+	//magic numbers 
+	std::array<MagicData, boardSize> m_bishopMagicData; //TODO: use stockfish method.
 	std::array<MagicData, boardSize> m_rookMagicData;
 	std::array<std::uint64_t, boardSize> m_bishopMagics;
 	std::array<std::uint64_t, boardSize> m_rookMagics;
@@ -42,10 +50,9 @@ private:
 
 
 
-	/* Private Methods */
-
 private:
 
+	//	Private Methods
 	
 	//magic numbers
 	void generateBishopRelevantBits() noexcept;
@@ -73,6 +80,8 @@ private:
 
 public:
 
+	//	Public Methods
+
 	//constructor
 	PreGen() noexcept;
 
@@ -91,4 +100,3 @@ public:
 
 	BitBoard rookMove(std::size_t index, BitBoard occupancy) const noexcept;
 };
-

@@ -1,15 +1,14 @@
 #include "CChessGUI.h"
 
 #include <CChess.h>
+#include <string_view>
+#include <algorithm>
 #include <array>
 #include <limits>
-#include <algorithm>
-#include <string_view>
-#include <span>
-#include <iostream>
 #include <format>
 
 #include "PieceSprite.h"
+#include <span>
 
 
 
@@ -57,39 +56,20 @@ static PieceSprite::Piece charToPiece(char c) noexcept
 
 //	Private Methods
 
-bool CChessGUI::moveCallback(int source, int destination) noexcept
+void CChessGUI::bufferPosition() noexcept
 {
-	const bool legal{ engine_move(source, destination) == CCHESS_TRUE };
-	
-	if (legal)
-	{
-		m_whiteToMove = false;
-	}
+	using PieceArray = std::array<PieceSprite, boardSize>;
 
-	bufferNewPosition();
-
-	return legal;
-}
-
-PieceSprite::Piece CChessGUI::pieceCallback(std::size_t square) noexcept
-{
-	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
-	m_position[square] = '.';
-	bufferCurrentPosition();
-	
-	return piece;
-}
-
-void CChessGUI::bufferPosition(std::span<const char> position) noexcept
-{
-	std::array<PieceSprite, boardSize> pieces{};
-	std::array<PieceSprite, boardSize>::iterator back{ pieces.begin() };
+	PieceArray pieces{};
+	PieceArray::iterator back{ pieces.begin() };
 
 	for (int rank{}; rank < rankSize; ++rank)
 	{
 		for (int file{}; file < fileSize; ++file)
 		{
-			const PieceSprite::Piece piece{ charToPiece(m_position[static_cast<std::size_t>(rank) * fileSize + file]) };
+			const std::size_t index{ static_cast<std::size_t>(rank) * fileSize + file };
+			const PieceSprite::Piece piece{ charToPiece(m_position[*m_menuManager.flippedPtr() ? 63 - index : index]) };
+
 			if (piece == PieceSprite::Piece::NoPiece) continue;
 
 			*back = PieceSprite(rank, file, piece);
@@ -98,60 +78,116 @@ void CChessGUI::bufferPosition(std::span<const char> position) noexcept
 	}
 
 	m_window.bufferPieces(std::span(pieces.begin(), back));
+
+	if (m_moveSource != m_moveDestination)
+	{
+		m_window.bufferBoard(m_moveSource, m_moveDestination);
+	}
+	else
+	{
+		m_window.bufferBoard();
+	}
 }
 
-void CChessGUI::bufferNewPosition() noexcept
+void CChessGUI::updatePosition() noexcept
 {
 	std::string_view position{ engine_get_position_char() };
 	std::ranges::copy(position, m_position.begin());
-
-	bufferPosition(position);
+	
+	m_moveSource = 0;
+	m_moveDestination = 0;
+	engine_last_move(&m_moveSource, &m_moveDestination);
 }
 
-void CChessGUI::bufferCurrentPosition() noexcept
+PieceSprite::Piece CChessGUI::pieceCallback(int square) noexcept
 {
-	bufferPosition(m_position);
+	square = *m_menuManager.flippedPtr() ? 63 - square : square;
+
+	const PieceSprite::Piece piece{ charToPiece(m_position[square]) };
+	m_position[square] = '.';
+	bufferPosition();
+
+	return piece;
 }
 
 void CChessGUI::play() noexcept
 {
-	m_window.bufferBoard(false, 64, 64);
-	bufferNewPosition();
-
 	while (m_window.open())
 	{
-		if (!m_whiteToMove)
+		if (m_menuManager.searching())
 		{
-			if (!m_searching)
-			{
-				m_searching = true;
-				engine_start_search();
-			}
-			else 
-			{
-				int done{};
-				int evaluation{};
-				int depth{};
-				float nodesPerSecond{};
-				float timeRemaining{};
-				const char* pv{ "no pv" };
-				if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &timeRemaining, &pv))
-				{
-					std::cout << std::format("Depth: {} ply  |  Evaluation: {}  |  Time Remaining: {:.3f} ms  |  {:.5f} kNodes/s\nPV: {}\n\n", depth, evaluation, timeRemaining, nodesPerSecond * 0.001f, pv);
-				}
+			CCHESS_BOOL done{};
+			int evaluation{}, depth{};
+			float nodesPerSecond{}, secondsRemaining{};
+			const char* principalVariation{};
 
-				int source{};
-				int destination{};
-
-				if (engine_best_move(&source, &destination))
-				{
-					m_searching = false;
-					m_whiteToMove = true;
-					engine_move_unchecked(source, destination);
-					m_window.bufferBoard(false, source, destination);
-					bufferNewPosition();
-				}
+			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &secondsRemaining, &principalVariation))
+			{
+				m_menuManager.setSecondsRemaining(secondsRemaining);
+				m_menuManager.setKnps(nodesPerSecond * 0.0001f);
+				m_menuManager.setEvaluationString(std::format("{}ply\n{:.2f}: {}", depth, evaluation * 0.01f, principalVariation));
 			}
+
+			int source{}, destination{};
+			if (engine_best_move(&source, &destination))
+			{
+				engine_move(m_menuManager.whiteToMove(), source, destination);
+
+				m_menuManager.setSearching(false);
+				m_menuManager.flipColorToMove();
+				m_menuManager.setEngineJustMoved(true);
+				m_menuManager.setEngineShouldRedraw();
+			}
+		}
+
+		if (m_menuManager.engineShouldMove())
+		{
+			engine_start_search(m_menuManager.whiteToMove());
+			m_menuManager.setSearching(true);
+		}
+
+		if (m_menuManager.engineShouldParsePlayerMove())
+		{
+			auto [source, destination] = m_menuManager.lastPlayerMove();
+
+			if (engine_move(m_menuManager.whiteToMove(), source, destination))
+			{
+				m_menuManager.flipColorToMove();
+
+				m_menuManager.setEngineJustMoved(false);
+			}
+
+			m_menuManager.setEngineShouldRedraw();
+		}
+
+		if (m_menuManager.engineShouldReset())
+		{
+			engine_set_position_start();
+
+			m_menuManager.setEngineShouldRedraw();
+		}
+
+		if (m_menuManager.engineShouldMoveForward() && engine_move_forward())
+		{
+			m_menuManager.setEngineShouldRedraw();
+
+			m_menuManager.flipColorToMove();
+		}
+
+		if (m_menuManager.engineShouldMoveBack() && engine_move_back())
+		{
+			m_menuManager.setEngineShouldRedraw();
+
+			m_menuManager.flipColorToMove();
+		}
+
+		if (m_menuManager.engineShouldUpdateSearchTime()) engine_set_search_seconds(*m_menuManager.engineSearchSecondsPtr());
+
+		// this should be last check because others could require a redraw
+		if (m_menuManager.engineShouldRedraw())
+		{
+			updatePosition();
+			bufferPosition();
 		}
 
 		m_window.draw();
@@ -162,15 +198,19 @@ void CChessGUI::play() noexcept
 
 //	Public Methods
 
-//constructor
+//constructors
 CChessGUI::CChessGUI()
+	: m_menuManager([this](int square) { return pieceCallback(square); })
 {
-	if (engine_create() == CCHESS_FALSE) throw std::runtime_error("unable to create engine");
+	engine_create();
+
+	updatePosition();
+	bufferPosition();
 
 	play();
 }
 
-CChessGUI::~CChessGUI() noexcept
+CChessGUI::~CChessGUI()
 {
 	engine_destroy();
 }

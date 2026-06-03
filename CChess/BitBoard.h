@@ -1,26 +1,32 @@
 #pragma once
 
+#include <compare>
 #include <cstdint>
 
 #include "ChessConstants.hpp"
+
+
 
 class BitBoard
 {
 private:
 
+	//	Private Members
+
 	std::uint64_t m_board;
 
+
+
 public:
+
+	//	Public Methods
 
 	//constructors
 	constexpr BitBoard() noexcept : m_board() {}
 
 	constexpr BitBoard(std::uint64_t board) noexcept : m_board(board) {}
 
-
-
-	//operators
-	bool operator== (const BitBoard& other) const noexcept;
+	auto operator<=>(const BitBoard& other) const noexcept = default;
 
 
 
@@ -63,4 +69,3 @@ public:
 	//helpers
 	void print() const;
 };
-

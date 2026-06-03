@@ -12,6 +12,7 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "MenuManager.h"
 
 
 
@@ -22,16 +23,16 @@ private:
 	// Private Definitions
 
 	//constants
-	static constexpr int minimumSettingsWidth{ 200 };
+	static constexpr int minimumSettingsWidth{ 350 };
 	static constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
 	static constexpr int minimumWindowHeight{ 500 };
 
 
 
 	//usings
-	using MoveCallback = std::function<bool(int source, int destination)>;
-	using PieceCallback = std::function<PieceSprite::Piece(std::size_t index)>;
-	using clock = std::chrono::high_resolution_clock;
+	using Clock = std::chrono::high_resolution_clock;
+	using PieceCallback = std::function<PieceSprite::Piece(int)>;
+	using MoveCallback = std::function<void(int, int)>;
 
 
 
@@ -44,7 +45,7 @@ private:
 	int m_width{ minimumWindowWidth };
 	int m_height{ minimumWindowHeight };
 	float m_aspectRatio{ static_cast<float>(minimumSettingsWidth) / minimumWindowHeight };
-	clock::time_point m_lastTime;
+	Clock::time_point m_lastTime;
 
 	//pipelines
 	Buffer m_viewportBuffer;
@@ -56,14 +57,13 @@ private:
 	Shader m_defaultShader;
 	Shader m_dragShader;
 	
-	//callbacks
-	MoveCallback m_moveCallback;
-	PieceCallback m_pieceCallback;
-
 	//piece drag
 	bool m_dragging{};
 	GLint m_uMousePosition{};
 	int m_dragStart{};
+
+	//menu manager
+	MenuManager* m_menuManager;
 
 
 	
@@ -106,7 +106,7 @@ public:
 	//	Public Methods
 
 	//constructors
-	Window(MoveCallback moveCallback, PieceCallback pieceCallback);
+	Window(MenuManager& menuManager);
 
 
 
@@ -118,7 +118,9 @@ public:
 	//setters
 	void resize(int width, int height) noexcept;
 
-	void bufferBoard(bool flipped, int source, int destination) const noexcept;
+	void bufferBoard() const noexcept;
+
+	void bufferBoard(int source, int destination) const noexcept;
 
 	void bufferPieces(std::span<const PieceSprite> data) noexcept;
 

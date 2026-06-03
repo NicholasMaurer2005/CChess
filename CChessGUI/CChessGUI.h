@@ -1,8 +1,8 @@
 #pragma once
 
 #include <array>
-#include <span>
 
+#include "MenuManager.h"
 #include "Window.h"
 #include "PieceSprite.h"
 
@@ -14,50 +14,43 @@ private:
 
 	//	Private Definitions
 
+	//constants
 	static constexpr int boardSize{ 64 };
 
 
 
+	//usings
+	using CharPosition = std::array<char, boardSize>;
+
+
+
 private:
-	
+
 	//	Private Members
 
-	Window m_window{
-		[this](int width, int height) { return this->moveCallback(width, height); },
-		[this](std::size_t square) { return this->pieceCallback(square); },
-	};
-
-	bool m_whiteToMove{ true };
-	bool m_searching{ false };
-	std::array<char, boardSize> m_position;
+	MenuManager m_menuManager;
+	Window m_window{ m_menuManager };
+	CharPosition m_position{};
+	int m_moveSource{};
+	int m_moveDestination{};
 
 
 
 private:
 
-	//	Private Methods
+	//	Private Members
 
 	void play() noexcept;
 
-	void bufferPosition(std::span<const char> position) noexcept;
+	void bufferPosition() noexcept;
 
-	void bufferNewPosition() noexcept;
+	void updatePosition() noexcept;
 
-	void bufferCurrentPosition() noexcept;
-
-	bool moveCallback(int source, int destination) noexcept;
-
-	PieceSprite::Piece pieceCallback(std::size_t square) noexcept;
-
-
+	PieceSprite::Piece pieceCallback(int square) noexcept;
 
 public:
 
-	//	Public Methods
-	
-	//constructor
 	CChessGUI();
 
-	~CChessGUI() noexcept;
+	~CChessGUI();
 };
-

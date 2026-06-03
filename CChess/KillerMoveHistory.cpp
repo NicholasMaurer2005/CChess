@@ -1,6 +1,9 @@
 #include "KillerMoveHistory.h"
 
+#include <utility>
+
 #include "Move.h"
+
 
 
 KillerMoveHistory::KillerMoveHistory() noexcept
@@ -9,11 +12,11 @@ KillerMoveHistory::KillerMoveHistory() noexcept
 	m_moves.fill({ 0, { 0, 0 } });
 }
 
-KillerMoves KillerMoveHistory::killerMoves(int depth) const noexcept
+std::pair<Move, Move> KillerMoveHistory::killerMoves(int depth) const noexcept
 {
 	const std::size_t index{ static_cast<std::size_t>(depth) };
 
-	return { m_moves[index].moves[0], m_moves[index].moves[1] };
+	return std::pair(m_moves[index].moves[0], m_moves[index].moves[1]);
 }
 
 void KillerMoveHistory::push(int depth, Move move) noexcept

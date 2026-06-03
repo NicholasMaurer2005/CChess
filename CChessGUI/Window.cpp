@@ -206,7 +206,7 @@ void Window::drawImGui() const noexcept
 		m_menuManager->setEngineShouldUpdateSearchTime();
 	}
 
-	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.2f} seconds remaining", m_menuManager->secondsRemaining()).data());
+	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.3f} seconds remaining\n{:.3f}knps\n", m_menuManager->secondsRemaining(), m_menuManager->knps()).data());
 
 	ImGui::TextWrapped(m_menuManager->evaluationString().data());
 

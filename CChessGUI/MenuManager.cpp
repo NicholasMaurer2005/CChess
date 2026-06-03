@@ -137,6 +137,10 @@ float MenuManager::secondsRemaining() const noexcept
 	return m_secondsRemaining;
 }
 
+float MenuManager::knps() const noexcept
+{
+	return m_knps;
+}
 
 
 //setters
@@ -187,6 +191,10 @@ void MenuManager::setEngineShouldUpdateSearchTime() noexcept
 	m_engineShouldUpdateSearchTime = true;
 }
 
+void MenuManager::setKnps(float value) noexcept
+{
+	m_knps = value;
+}
 
 
 //buttons

@@ -124,6 +124,7 @@ void CChessGUI::play() noexcept
 			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &secondsRemaining, &principalVariation))
 			{
 				m_menuManager.setSecondsRemaining(secondsRemaining);
+				m_menuManager.setKnps(nodesPerSecond * 0.0001f);
 				m_menuManager.setEvaluationString(std::format("{}ply\n{:.2f}: {}", depth, evaluation * 0.01f, principalVariation));
 			}
 

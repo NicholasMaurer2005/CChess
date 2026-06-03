@@ -1,9 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <functional>
 
 #include "PieceSprite.h"
 
@@ -46,6 +46,7 @@ private:
 	//info
 	bool m_searching{};
 	float m_secondsRemaining{};
+	float m_knps{};
 	std::string m_evaluationString;
 
 	//callback
@@ -99,6 +100,8 @@ public:
 
 	float secondsRemaining() const noexcept;
 
+	float knps() const noexcept;
+
 
 
 	//setters
@@ -119,6 +122,8 @@ public:
 	void setSecondsRemaining(float value) noexcept;
 
 	void setEngineShouldUpdateSearchTime() noexcept;
+
+	void setKnps(float value) noexcept;
 
 
 

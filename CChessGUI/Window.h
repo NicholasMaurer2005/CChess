@@ -23,16 +23,17 @@ private:
 	// Private Definitions
 
 	//constants
-	static constexpr int minimumSettingsWidth{ 300 };
+	static constexpr int minimumSettingsWidth{ 350 };
 	static constexpr int minimumWindowWidth{ 500 + minimumSettingsWidth };
 	static constexpr int minimumWindowHeight{ 500 };
 
 
 
 	//usings
-	using clock = std::chrono::high_resolution_clock;
+	using Clock = std::chrono::high_resolution_clock;
 	using PieceCallback = std::function<PieceSprite::Piece(int)>;
 	using MoveCallback = std::function<void(int, int)>;
+
 
 
 private:
@@ -44,7 +45,7 @@ private:
 	int m_width{ minimumWindowWidth };
 	int m_height{ minimumWindowHeight };
 	float m_aspectRatio{ static_cast<float>(minimumSettingsWidth) / minimumWindowHeight };
-	clock::time_point m_lastTime;
+	Clock::time_point m_lastTime;
 
 	//pipelines
 	Buffer m_viewportBuffer;

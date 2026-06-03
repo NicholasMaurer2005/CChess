@@ -124,7 +124,7 @@ void CChessGUI::play() noexcept
 			if (engine_search_info(&done, &evaluation, &depth, &nodesPerSecond, &secondsRemaining, &principalVariation))
 			{
 				m_menuManager.setSecondsRemaining(secondsRemaining);
-				m_menuManager.setEvaluationString(std::format("{}ply - {}: {}", depth, evaluation * 0.01f, principalVariation));
+				m_menuManager.setEvaluationString(std::format("{}ply\n{:.2f}: {}", depth, evaluation * 0.01f, principalVariation));
 			}
 
 			int source{}, destination{};
@@ -180,7 +180,7 @@ void CChessGUI::play() noexcept
 			m_menuManager.flipColorToMove();
 		}
 
-		if (m_menuManager.engineShouldUpdateSearchTime()) engine_set_search_seconds(*m_menuManager.engineSearchSecondsPtr())
+		if (m_menuManager.engineShouldUpdateSearchTime()) engine_set_search_seconds(*m_menuManager.engineSearchSecondsPtr());
 
 		// this should be last check because others could require a redraw
 		if (m_menuManager.engineShouldRedraw())

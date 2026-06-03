@@ -28,6 +28,14 @@
 
 //	Static Helpers
 
+//constants
+static constexpr int bestValue{ 9999999 };
+static constexpr int worstValue{ -9999999 };
+static constexpr int checkmateScore{ -999999 };
+
+
+
+//functions
 static State startState{ "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", Castle::All };
 
 static void findWhiteSquares(State& state) noexcept
@@ -248,7 +256,7 @@ int Engine::search(const State& state, int color, int depth, int alpha, int beta
 
 void Engine::logSearchInfo() noexcept
 {
-	const clock::time_point now{ clock::now() };
+	const Clock::time_point now{ Clock::now() };
 	const std::chrono::duration<float> elapsed{ now - m_searchStart };
 	const std::chrono::duration<float> timeRemaining{ std::chrono::milliseconds(m_searchMilliseconds) - elapsed };
 
@@ -304,7 +312,7 @@ void Engine::startSearch(bool whiteToMove) noexcept
 
 	m_currentState->whiteToMove = whiteToMove;
 	m_nodeCount = 0;
-	m_searchStart = clock::now();
+	m_searchStart = Clock::now();
 	m_stopSearch.store(false, std::memory_order_relaxed);
 	m_cv.notify_one();
 

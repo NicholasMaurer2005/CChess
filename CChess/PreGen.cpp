@@ -7,10 +7,10 @@
 #include <random>
 #include <bitset>
 #include <concepts>
-#include <algorithm>
 
 
-//static helpers
+
+//	Static Helpers
 template<typename T>
 requires std::integral<T> && std::is_convertible_v<T, std::size_t>
 static std::size_t boardIndex(T rank, T file) noexcept
@@ -61,17 +61,6 @@ static std::vector<BitBoard> generateOccupancies(BitBoard relavantBitsMask, std:
 
 	return occupancies;
 }
-
-//outside of function to remove initialization guard
-//namespace rnd
-//{
-//	static std::mt19937_64 gen{ std::random_device{}() };
-//	static std::uniform_int_distribution<std::uint64_t> dist;
-//}
-//static std::uint64_t randomMagic() noexcept
-//{
-//	return rnd::dist(rnd::gen) & rnd::dist(rnd::gen) & rnd::dist(rnd::gen);
-//}
 
 static std::uint64_t randomMagic() noexcept
 {

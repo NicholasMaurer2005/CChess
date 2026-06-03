@@ -6,7 +6,6 @@
 #include "ChessConstants.hpp"
 
 
-
 static cachealign PreGen preGen;
 
 
@@ -638,7 +637,6 @@ namespace MoveGen
 
 		return moveList;
 	}
-
 
 	BitBoard whitePawnMoves(std::size_t square) noexcept
 	{

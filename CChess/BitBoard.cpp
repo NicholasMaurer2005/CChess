@@ -7,14 +7,6 @@
 
 
 
-//operators
-bool BitBoard::operator== (const BitBoard& other) const noexcept
-{
-	return m_board == other.m_board;
-}
-
-
-
 //getters
 int BitBoard::leastSignificantBit() const noexcept
 {

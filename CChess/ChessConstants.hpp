@@ -11,6 +11,9 @@ static constexpr int rankSize{ 8 };
 static constexpr int maxSearchDepth{ 50 };
 static constexpr int maxLegalMoves{ 218 };
 static constexpr int maxLegalCaptures{ 30 };
+static constexpr int pieceCount{ 13 };
+static constexpr int whitePieceOffset{ 1 };
+static constexpr int blackPieceOffset{ 7 };
 
 #define cachealign alignas(std::hardware_destructive_interference_size)
 
@@ -35,12 +38,6 @@ enum class Piece : std::uint32_t
 	BlackQueen = 11,
 	BlackKing = 12
 };
-
-
-
-static constexpr int pieceCount{ 13 };
-static constexpr int whitePieceOffset{ 1 };
-static constexpr int blackPieceOffset{ 7 };
 
 
 

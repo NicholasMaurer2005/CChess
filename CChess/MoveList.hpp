@@ -1,12 +1,12 @@
 #pragma once
 
-#include <array>
 #include <algorithm>
+#include <array>
+#include <cstdint>
 
+#include "Castle.hpp"
 #include "ChessConstants.hpp"
 #include "Move.h"
-#include "KillerMoveHistory.h"
-#include "Castle.hpp"
 
 
 
@@ -14,6 +14,8 @@ template<std::size_t listSize>
 class cachealign MoveListT 
 {
 private:
+
+	//	Static Helpers
 
 	static int moveScore(Move move) noexcept
 	{
@@ -42,14 +44,14 @@ private:
 		return score + (static_cast<int>(move.promotePiece()) << 7);
 	}
 
-	static bool MoveGreater(Move lhs, Move rhs, KillerMoves killerMoves, Move pvMove) noexcept
+	static bool MoveGreater(Move lhs, Move rhs, Move killerMove1 Move killerMove2, Move pvMove) noexcept
 	{
-		const bool lhsKiller{ lhs.move() == killerMoves.first.move() || lhs.move() == killerMoves.second.move() };
+		const bool lhsKiller{ lhs.move() == killerMove1.move() || lhs.move() == killerMove2.move() };
 		const bool lhsIsPvMove{ lhs.move() == pvMove.move() };
 		const int lhsStaticScore{ moveScore(lhs) };
 		const int lhsScore = lhsStaticScore + (static_cast<int>(lhsKiller) << 10) + (static_cast<int>(lhsIsPvMove) << 14);
 
-		const bool rhsKiller{ rhs.move() == killerMoves.first.move() || rhs.move() == killerMoves.second.move() };
+		const bool rhsKiller{ rhs.move() == killerMove1.move() || rhs.move() == killerMove2.move() };
 		const bool rhsIsPvMove{ rhs.move() == pvMove.move() };
 		const int rhsStaticScore{ moveScore(rhs) };
 		const int rhsScore = rhsStaticScore + (static_cast<int>(rhsKiller) << 10) + (static_cast<int>(rhsIsPvMove) << 14);
@@ -61,6 +63,8 @@ private:
 
 private:
 
+	//	Private Members
+
 	std::array<Move, listSize>::iterator m_back;
 	std::array<Move, listSize> m_moves;
 
@@ -68,9 +72,10 @@ private:
 
 public:
 
+	//	Public Methods
+
+	//constructors
 	MoveListT() noexcept : m_back(m_moves.begin()) {}
-
-
 
 	MoveListT(const MoveListT& other) noexcept
 		: m_back(), m_moves(other.m_moves)
@@ -106,14 +111,10 @@ public:
 
 
 
+	//getters
 	std::size_t size() const noexcept 
 	{
 		return m_back - m_moves.begin();
-	}
-
-	void sort(KillerMoves killerMoves, Move pvMove) noexcept
-	{
-		std::sort(m_moves.begin(), m_back, [killerMoves, pvMove](Move lhs, Move rhs) { return MoveGreater(lhs, rhs, killerMoves, pvMove); });
 	}
 
 	std::array<Move, listSize>::const_iterator begin() const noexcept 
@@ -127,6 +128,11 @@ public:
 	}
 
 
+	//setters
+	void sort(Move killerMove1, Move killerMove2, Move pvMove) noexcept
+	{
+		std::sort(m_moves.begin(), m_back, [killerMoves, pvMove](Move lhs, Move rhs) { return MoveGreater(lhs, rhs, killerMove1, killerMove2, pvMove); });
+	}
 
 	template<Piece piece>
 	void pushQuiet(int sourceIndex, int destinationIndex) noexcept 

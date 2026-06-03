@@ -32,6 +32,8 @@ CCHESS_BOOL engine_create() noexcept
 
 void engine_destroy() noexcept
 {
+	engine_stop_search();
+
 	delete engine;
 	engine = nullptr;
 }
@@ -127,7 +129,7 @@ CCHESS_BOOL engine_search_info(CCHESS_BOOL* done, int* evaluation, int* depth, f
 	}
 }
 
-void engine_set_search_milliseconds(float seconds) CCHESS_NOEXCEPT
+void engine_set_search_seconds(float seconds) CCHESS_NOEXCEPT
 {
 	if (!engine) return;
 

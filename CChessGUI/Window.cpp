@@ -145,7 +145,8 @@ void Window::initGLFW()
 
 void Window::initImGui() noexcept
 {
-	constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
+	static constexpr ImVec4 windowColor{ 0.552f, 0.369f, 0.259f, 1.0f };
+	static constexpr std::string_view fontLocation{ "C:\\Windows\\Fonts\\segoeui.ttf" };
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -153,6 +154,11 @@ void Window::initImGui() noexcept
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
+
+	ImFont* defaultFont =
+		io.Fonts->AddFontFromFileTTF(
+			"C:\\Windows\\Fonts\\segoeui.ttf",
+			25.0f);
 
 	ImGui::StyleColorsDark();
 	ImGuiStyle& style{ ImGui::GetStyle() };
@@ -194,11 +200,15 @@ void Window::drawImGui() const noexcept
 	if (ImGui::Button("Move Forward")) m_menuManager->moveForward();
 	if (ImGui::Button("Reset")) m_menuManager->reset();
 
-	if (ImGui::DragFloat("Search Time", m_menuManager->engineSearchSecondsPtr(), 0.01f, 999999.9f))
+	ImGui::SetNextItemWidth(80.0f);
+	if (ImGui::DragFloat("Search Time", m_menuManager->engineSearchSecondsPtr(), 0.1f, 0.1f, 60.0f, "%.1f"))
+	{
+		m_menuManager->setEngineShouldUpdateSearchTime();
+	}
 
 	if (m_menuManager->searching()) ImGui::Text(std::format("Searching. {:.2f} seconds remaining", m_menuManager->secondsRemaining()).data());
 
-	ImGui::Text(m_menuManager->evaluationString().data());
+	ImGui::TextWrapped(m_menuManager->evaluationString().data());
 
 	ImGui::End();
 

@@ -72,6 +72,9 @@
 	//	'destination' are not modified and the function returns CCHESS_FALSE
 	CCHESS_BOOL engine_best_move(int* source, int* destination) CCHESS_NOEXCEPT;
 
+	//	Set the time the engine should search for in seconds
+	void engine_set_search_seconds(float seconds) CCHESS_NOEXCEPT;
+
 
 
 	//	MOVE

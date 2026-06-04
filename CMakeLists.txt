@@ -8,3 +8,9 @@ project(CChess LANGUAGES CXX)
 add_subdirectory(CChess)
 add_subdirectory(CChessGUI)
 
+# specify C++ version
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# add option for AVX2 
+option(USE_AVX2 "Enable AVX2 optimizations" OFF)

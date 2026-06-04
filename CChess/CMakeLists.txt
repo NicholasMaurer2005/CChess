@@ -2,7 +2,7 @@
 add_library(CChess STATIC)
 
 # add source files
-add_sources(CChess PRIVATE 
+target_sources(CChess PRIVATE 
 	src/BitBoard.cpp
 	src/CChess.cpp
 	src/Engine.cpp
@@ -16,7 +16,7 @@ add_sources(CChess PRIVATE
 )
 
 # add include directories
-target_include_directories(Cchess
+target_include_directories(CChess
 	PUBLIC include
 	PRIVATE src
 )

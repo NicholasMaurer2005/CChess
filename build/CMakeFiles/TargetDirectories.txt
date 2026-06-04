@@ -1,4 +1,0 @@
-C:/Dev/VisualStudio/CPlusPlus/CChess/build/CMakeFiles/ALL_BUILD.dir
-C:/Dev/VisualStudio/CPlusPlus/CChess/build/CMakeFiles/ZERO_CHECK.dir
-C:/Dev/VisualStudio/CPlusPlus/CChess/build/CChess/CMakeFiles/CChess.dir
-C:/Dev/VisualStudio/CPlusPlus/CChess/build/CChessGUI/CMakeFiles/CChessGUI.dir

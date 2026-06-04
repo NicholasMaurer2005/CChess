@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <GL/glew.h>
+#include <glew/glew.h>
 #include <span>
 
 #include "Image.h"

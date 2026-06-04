@@ -1,8 +1,7 @@
 #include "Texture.h"
 
-#include <GL/glew.h>
+#include <glew/glew.h>
 #include <span>
-#include <string_view>
 #include <utility>
 
 #include "Image.h"

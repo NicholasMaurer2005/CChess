@@ -1,16 +1,19 @@
 # create an executable
 add_executable(CChessGUI)
 
+# preprocessor definitions
+target_compile_definitions(CChessGUI PRIVATE GLEW_STATIC)
+
 # add GLFW
 add_library(GLFW STATIC IMPORTED)
 set_target_properties(GLFW PROPERTIES 
-	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/GLFW/lib/glfw3.lib"
+	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLFW/lib/glfw3.lib"
 	)
 	
 # add GLEW
 add_library(GLEW STATIC IMPORTED)
 set_target_properties(GLFW PROPERTIES 
-	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/GLEW/lib/glew32s.lib"
+	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}dependencies//GLEW/lib/glew32s.lib"
 	)
 
 # add libraries

@@ -1,26 +1,26 @@
 #include "Window.h"
 
-#include <string>
-#include <format>
-#include <stdexcept>
-#include <chrono>
-#include <span>
-#include <array>
-#include <utility>
 #include <algorithm>
+#include <array>
+#include <chrono>
+#include <format>
+#include <span>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <glew/glew.h>
+#include <glfw/glfw3.h>
 
-#include "PieceSprite.h"
-#include "Texture.h"
 #include "Buffer.h"
-#include "Shader.h"
 #include "Image.h"
 #include "MenuManager.h"
+#include "PieceSprite.h"
+#include "Shader.h"
+#include "Texture.h"
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
 #include "ImGui/imgui_impl_opengl3.h"
-#include "GLFW/glfw3.h"
-#include "GL/glew.h"
 
 
 

@@ -2,7 +2,7 @@
 
 #include <format>
 #include <fstream>
-#include <GL/glew.h>
+#include <glew/glew.h>
 #include <stdexcept>
 #include <string>
 #include <string_view>

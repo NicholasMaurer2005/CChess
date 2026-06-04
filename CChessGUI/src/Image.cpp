@@ -3,13 +3,13 @@
 #include <cstdint>
 #include <cstring>
 #include <format>
-#include <GL/glew.h>
+#include <glew/glew.h>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <stb/stb_image.h>
 
 
 

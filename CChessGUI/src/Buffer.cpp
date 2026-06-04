@@ -1,7 +1,7 @@
 #include "Buffer.h"
 
 #include <cstddef>
-#include <GL/glew.h>
+#include <glew/glew.h>
 #include <span>
 #include <utility>
 #include <array>

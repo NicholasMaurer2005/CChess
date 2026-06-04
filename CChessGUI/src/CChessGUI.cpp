@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <array>
-#include <CChess.h>
+#include <CChess/CChess.h>
 #include <format>
 #include <limits>
 #include <span>

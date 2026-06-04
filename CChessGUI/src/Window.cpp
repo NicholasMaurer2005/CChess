@@ -329,11 +329,11 @@ Window::Window(MenuManager& menuManager)
 	m_dragBuffer = Buffer::square(0.25f);
 
 	m_boardTexture = Texture(generateBoardTexture(), fileSize, rankSize, Texture::MagFilter::Nearest);
-	m_piecesTexture = Texture(Image("pieceTextures.png"), Texture::MagFilter::Linear);
-	m_rfTexture = Texture(Image("rfTexture.png", true), Texture::MagFilter::Linear);
+	m_piecesTexture = Texture(Image("CChessGui/assets/pieceTextures.png"), Texture::MagFilter::Linear);
+	m_rfTexture = Texture(Image("CChessGui/assets/rfTexture.png", true), Texture::MagFilter::Linear);
 
-	m_defaultShader = Shader("DefaultVertex.glsl", "DefaultFragment.glsl");
-	m_dragShader = Shader("DragVertex.glsl", "DefaultFragment.glsl");
+	m_defaultShader = Shader("CChessGui/assets/DefaultVertex.glsl", "CChessGui/assets/DefaultFragment.glsl");
+	m_dragShader = Shader("CChessGui/assets/DragVertex.glsl", "CChessGui/assets/DefaultFragment.glsl");
 
 	m_uMousePosition = m_dragShader.uniformLocation("mousePosition");
 

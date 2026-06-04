@@ -1,8 +1,19 @@
 # create an executable
 add_executable(CChessGUI)
 
+# set working directory
+set_target_properties(CChessGUI PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
+
 # preprocessor definitions
 target_compile_definitions(CChessGUI PRIVATE GLEW_STATIC)
+
+# add ImGui
+add_subdirectory(dependencies/ImGui)
+
+# add OpenGL
+find_package(OpenGL REQUIRED)
 
 # add GLFW
 add_library(GLFW STATIC IMPORTED)
@@ -12,9 +23,12 @@ set_target_properties(GLFW PROPERTIES
 	
 # add GLEW
 add_library(GLEW STATIC IMPORTED)
-set_target_properties(GLFW PROPERTIES 
-	IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}dependencies//GLEW/lib/glew32s.lib"
-	)
+set_target_properties(GLEW PROPERTIES 
+    IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLEW/lib/glew32s.lib"
+    IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLEW/lib/glew32s.lib"
+    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLEW/lib/glew32s.lib"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/GLEW/lib/glew32s.lib"
+)
 
 # add libraries
 target_link_libraries(CChessGUI PRIVATE
@@ -22,6 +36,7 @@ target_link_libraries(CChessGUI PRIVATE
 	GLFW
 	GLEW
 	ImGui
+	OpenGL::GL
 )
 
 # add source files

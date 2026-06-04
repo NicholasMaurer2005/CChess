@@ -1,4 +1,4 @@
-#include "CChess.h"
+#include "CChess/CChess.h"
 
 #include <exception>
 #include <new>
